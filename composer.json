@@ -1,0 +1,59 @@
+{
+    "name": "precision-soft/symfony-console",
+    "type": "symfony-bundle",
+    "version": "v1.0.0",
+    "description": "symfony console utilities",
+    "keywords": [
+        "symfony",
+        "console",
+        "cronjob",
+        "worker"
+    ],
+    "homepage": "https://gitlab.com/precision-soft-open-source/symfony/console",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Adrian Jeledintan",
+            "email": "adrian.jeledintan@precision-soft.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "symfony/config": "7.*",
+        "symfony/console": "7.*",
+        "symfony/dependency-injection": "7.*",
+        "symfony/filesystem": "7.*",
+        "symfony/http-kernel": "7.*"
+    },
+    "require-dev": {
+        "precision-soft/symfony-phpunit": "1.*",
+        "friendsofphp/php-cs-fixer": "3.*",
+        "squizlabs/php_codesniffer": "3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "PrecisionSoft\\Symfony\\Console\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PrecisionSoft\\Symfony\\Console\\Test\\": "tests/"
+        }
+    },
+    "scripts": {
+        "install-hooks": [
+            "[ $COMPOSER_DEV_MODE -eq 1 ] && rm -rf .git/hooks && ln -s ../dev/git-hooks .git/hooks || exit 0"
+        ],
+        "post-install-cmd": [
+            "@install-hooks"
+        ],
+        "post-update-cmd": [
+            "@install-hooks"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    }
+}
