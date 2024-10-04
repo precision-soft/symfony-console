@@ -60,7 +60,7 @@ trait SymfonyStyleTrait
             '[%s][%s] %s',
             (new DateTime())->format('H:i:s'),
             MemoryService::getMemoryUsage(),
-            $text
+            $text,
         );
     }
 

@@ -21,6 +21,7 @@ class Configuration implements ConfigurationInterface
     public const COMMAND = 'command';
     public const SCHEDULE = 'schedule';
     public const LOG = 'log';
+    public const LOG_FILE_NAME = 'log_file_name';
     public const TEMPLATE_CLASS = 'template_class';
     public const CONF_FILES_DIR = 'conf_files_dir';
     public const LOGS_DIR = 'logs_dir';
@@ -76,32 +77,35 @@ class Configuration implements ConfigurationInterface
             ->children()
             ->booleanNode(static::LOG)->defaultTrue()->end()
             ->scalarNode(static::DESTINATION_FILE)->defaultValue('crontab')->end()
-            ->booleanNode(static::HEARTBEAT)->defaultTrue()->end();
+            ->booleanNode(static::HEARTBEAT)->defaultTrue()->end()
+            ->scalarNode(static::USER)->defaultNull()->end();
 
         /** @var NodeBuilder|ArrayNodeDefinition $commandsTree */
         $commandsTree = $cronjobTree->children()->arrayNode(static::COMMANDS)
             ->isRequired()
             ->useAttributeAsKey(static::NAME)
-            ->prototype('array');
+            ->prototype('array')
+            ->children();
 
-        $commandsTree->children()
-            ->scalarNode(static::NAME)->end()
-            ->arrayNode(static::COMMAND)/* command start */
+        $commandsTree->scalarNode(static::NAME)->end()
+            ->scalarNode(static::LOG_FILE_NAME)->defaultNull()->end()
+            ->scalarNode(static::USER)->defaultNull()->end();
+
+        $commandsTree->arrayNode(static::COMMAND)
             ->isRequired()
             ->beforeNormalization()->ifString()->then(fn($command) => [$command])->end()
-            ->scalarPrototype()->end()
-            ->end()/* command end */
-            ->arrayNode(static::SCHEDULE)/* schedule start */
+            ->scalarPrototype()->end();
+
+        $commandsTree->arrayNode(static::SCHEDULE)
             ->children()
             ->scalarNode(static::MINUTE)->defaultValue('*')->end()
             ->scalarNode(static::HOUR)->defaultValue('*')->end()
             ->scalarNode(static::DAY_OF_MONTH)->defaultValue('*')->end()
             ->scalarNode(static::MONTH)->defaultValue('*')->end()
             ->scalarNode(static::DAY_OF_WEEK)->defaultValue('*')->end()
-            ->end()
-            ->end(); /* schedule end */
+            ->end();
 
-        $commandsTree->children()->arrayNode(static::SETTINGS)
+        $commandsTree->arrayNode(static::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet()
             ->children()

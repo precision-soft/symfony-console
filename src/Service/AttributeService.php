@@ -26,7 +26,7 @@ class AttributeService
         }
 
         throw new Exception(
-            sprintf('could not compute the name for `%s`', $commandClass)
+            sprintf('could not compute the name for `%s`', $commandClass),
         );
     }
 }

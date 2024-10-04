@@ -54,20 +54,36 @@ class CrontabTemplate implements TemplateInterface
         CommandDto $commandDto,
         ConfigDto $configDto,
     ): string {
-        $schedule = $this->buildSchedule($commandDto->getSchedule());
+        $commandParts = [
+            $this->buildSchedule($commandDto->getSchedule()),
+        ];
 
-        $commandParts = $commandDto->getCommand();
-        \array_unshift($commandParts, $schedule);
+        $user = $configDto->getSettings()->getUser() ?? $commandDto->getUser();
+        if (null !== $user) {
+            $commandParts[] = $user;
+        }
 
-        if (($commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog()) === true) {
-            $commandParts[] = \sprintf(
-                '>> %s/%s.log 2>&1',
-                $configDto->getLogsDir(),
-                $commandDto->getName(),
-            );
+        $commandParts = array_merge($commandParts, $commandDto->getCommand());
+
+        $logPart = $this->buildLog($commandDto, $configDto);
+        if (null !== $logPart) {
+            $commandParts[] = $logPart;
         }
 
         return \implode(' ', $commandParts);
+    }
+
+    protected function buildLog(
+        CommandDto $commandDto,
+        ConfigDto $configDto,
+    ): ?string {
+        if (($commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog()) !== true) {
+            return null;
+        }
+
+        $logFileName = $commandDto->getLogFileName() ?? sprintf('%s.log', $commandDto->getName());
+
+        return \sprintf('>> %s/%s 2>&1', $configDto->getLogsDir(), $logFileName);
     }
 
     protected function buildSchedule(ScheduleDto $schedule): string

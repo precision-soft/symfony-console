@@ -18,6 +18,7 @@ class ConfigSettingsDto implements SettingInterface
     private bool $log;
     private string $destinationFile;
     private bool $heartbeat;
+    private ?string $user = null;
 
     public function __construct(array $settings)
     {
@@ -37,5 +38,10 @@ class ConfigSettingsDto implements SettingInterface
     public function getHeartbeat(): bool
     {
         return $this->heartbeat;
+    }
+
+    public function getUser(): ?string
+    {
+        return $this->user;
     }
 }

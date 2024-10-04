@@ -38,11 +38,14 @@ final class CronjobCreateCommandTest extends AbstractTestCase
                 Configuration::SETTINGS => [
                     Configuration::DESTINATION_FILE => 'destination_file',
                     Configuration::HEARTBEAT => true,
+                    Configuration::USER => 'test',
                 ],
             ],
             Configuration::COMMANDS => [
                 'test' => [
                     Configuration::COMMAND => ['test'],
+                    Configuration::USER => 'test',
+                    Configuration::LOG_FILE_NAME => 'test.log',
                     Configuration::SCHEDULE => [
                         Configuration::MINUTE => '0',
                         Configuration::HOUR => '0',
