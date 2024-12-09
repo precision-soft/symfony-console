@@ -18,8 +18,8 @@ trait InstancesTrait
 
     protected function computeInstances(): array
     {
-        $maxInstances = (int)$this->input->getoption(self::MAX_INSTANCES);
-        $instanceIndex = (int)$this->input->getoption(self::INSTANCE_INDEX);
+        $maxInstances = (int)$this->input->getOption(self::MAX_INSTANCES);
+        $instanceIndex = (int)$this->input->getOption(self::INSTANCE_INDEX);
 
         if ($maxInstances < 1 || $instanceIndex < 1 || $instanceIndex > $maxInstances) {
             throw new Exception('invalid instances and instance index provided');
