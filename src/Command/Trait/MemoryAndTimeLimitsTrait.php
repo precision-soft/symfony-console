@@ -17,7 +17,7 @@ trait MemoryAndTimeLimitsTrait
     protected const MEMORY_LIMIT = 'memory-limit';
     protected const TIME_LIMIT = 'time-limit';
 
-    private int $startTime;
+    protected int $startTime;
     protected ?string $memoryLimit;
     protected ?int $timeLimit;
 
@@ -81,7 +81,7 @@ trait MemoryAndTimeLimitsTrait
         return false;
     }
 
-    private function initializeMemoryAndTimeLimits(): void
+    protected function initializeMemoryAndTimeLimits(): void
     {
         $this->startTime = \time();
         $this->memoryLimit = null;
@@ -98,7 +98,7 @@ trait MemoryAndTimeLimitsTrait
         }
     }
 
-    private function configureMemoryAndTimeLimits(): void
+    protected function configureMemoryAndTimeLimits(): void
     {
         $this->addOption(
             self::MEMORY_LIMIT,

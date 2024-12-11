@@ -20,7 +20,10 @@ class SupervisorTemplate implements TemplateInterface
 {
     use WorkerNumberOfProcessesTrait;
 
-    /** @param ConfigDto $configDto */
+    /**
+     * @param ConfigDto $configDto
+     * @param CommandDto[] $commands
+     */
     public function generate(
         ConfigInterface $configDto,
         array $commands,

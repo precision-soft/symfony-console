@@ -19,12 +19,12 @@ trait SymfonyStyleTrait
 {
     protected SymfonyStyle $style;
 
-    public function writeln(string $text): void
+    protected function writeln(string $text): void
     {
         $this->style->writeln($this->format($text));
     }
 
-    public function error(string $text, Throwable $t = null, bool $exposeTrace = false): void
+    protected function error(string $text, Throwable $t = null, bool $exposeTrace = false): void
     {
         if ($t !== null) {
             $text = sprintf('%s / %s', $text, $this->formatThrowable($t, $exposeTrace));
@@ -33,12 +33,12 @@ trait SymfonyStyleTrait
         $this->style->error($this->format($text));
     }
 
-    public function warning(string $text): void
+    protected function warning(string $text): void
     {
         $this->style->warning($this->format($text));
     }
 
-    public function success(string $text): void
+    protected function success(string $text): void
     {
         $this->style->success($this->format($text));
     }

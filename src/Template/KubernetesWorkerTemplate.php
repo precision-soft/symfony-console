@@ -21,7 +21,10 @@ class KubernetesWorkerTemplate implements TemplateInterface
     use KubernetesJobTrait;
     use WorkerNumberOfProcessesTrait;
 
-    /** @param ConfigDto $configDto */
+    /**
+     * @param ConfigDto $configDto
+     * @param CommandDto[] $commands
+     */
     public function generate(
         ConfigInterface $configDto,
         array $commands,

@@ -17,35 +17,45 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
 
 class CrontabTemplate implements TemplateInterface
 {
-    /** @param ConfigDto $configDto */
+    /**
+     * @param ConfigDto $configDto
+     * @param CommandDto[] $commands
+     */
     public function generate(
         ConfigInterface $configDto,
         array $commands,
     ): ConfFilesDto {
         $cronjobs = [];
 
+        $defaultDestinationFile = $configDto->getSettings()->getDestinationFile();
+
         foreach ($commands as $commandDto) {
-            $cronjobs[] = $this->buildCommand($commandDto, $configDto);
+            $destinationFile = $commandDto->getDestinationFile() ?? $defaultDestinationFile;
+            $cronjobs[$destinationFile] ??= [];
+
+            $cronjobs[$destinationFile][] = $this->buildCommand($commandDto, $configDto);
         }
-
-        $content = \str_replace(
-            [
-                '%commands%',
-            ],
-            [
-                \implode(\PHP_EOL . \PHP_EOL, $cronjobs),
-            ],
-            $this->getTemplate(),
-        );
-
-        /* crontab files need to end with an empty line */
-        $content .= \PHP_EOL;
-
-        $crontabPath = $configDto->getConfFilesDir() . '/' . $configDto->getSettings()->getDestinationFile();
 
         $confFilesDto = new ConfFilesDto();
 
-        $confFilesDto->addFile($crontabPath, $content);
+        foreach ($cronjobs as $destinationFile => $commands) {
+            $content = \str_replace(
+                [
+                    '%commands%',
+                ],
+                [
+                    \implode(\PHP_EOL . \PHP_EOL, $commands),
+                ],
+                $this->getTemplate(),
+            );
+
+            /* crontab files need to end with an empty line */
+            $content .= \PHP_EOL;
+
+            $crontabPath = $configDto->getConfFilesDir() . '/' . $destinationFile;
+
+            $confFilesDto->addFile($crontabPath, $content);
+        }
 
         return $confFilesDto;
     }

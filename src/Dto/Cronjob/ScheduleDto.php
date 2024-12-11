@@ -12,11 +12,11 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 
 class ScheduleDto
 {
-    private string $minute;
-    private string $hour;
-    private string $dayOfMonth;
-    private string $month;
-    private string $dayOfWeek;
+    private readonly string $minute;
+    private readonly string $hour;
+    private readonly string $dayOfMonth;
+    private readonly string $month;
+    private readonly string $dayOfWeek;
 
     public function __construct(array $schedule)
     {

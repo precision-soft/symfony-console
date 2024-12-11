@@ -1,7 +1,7 @@
 {
     "name": "precision-soft/symfony-console",
     "type": "symfony-bundle",
-    "version": "v1.2.1",
+    "version": "v2.0.0",
     "description": "symfony console utilities",
     "keywords": [
         "symfony",

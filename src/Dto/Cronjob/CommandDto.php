@@ -13,20 +13,20 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 
 class CommandDto implements SettingsInterface
 {
-    private string $name;
-    private ?string $logFileName;
-    private ?string $user;
-    private array $command;
-    private ScheduleDto $schedule;
-    private CommandSettingsDto $settings;
+    private readonly ?string $logFileName;
+    private readonly ?string $user;
+    private readonly ?string $destinationFile;
+    private readonly array $command;
+    private readonly ScheduleDto $schedule;
+    private readonly CommandSettingsDto $settings;
 
     public function __construct(
-        string $name,
+        private readonly string $name,
         array $parameters,
     ) {
-        $this->name = $name;
         $this->logFileName = $parameters[Configuration::LOG_FILE_NAME] ?? null;
         $this->user = $parameters[Configuration::USER] ?? null;
+        $this->destinationFile = $parameters[Configuration::DESTINATION_FILE] ?? null;
         $this->command = $parameters[Configuration::COMMAND];
         $this->schedule = new ScheduleDto($parameters[Configuration::SCHEDULE]);
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS]);
@@ -45,6 +45,11 @@ class CommandDto implements SettingsInterface
     public function getUser(): ?string
     {
         return $this->user;
+    }
+
+    public function getDestinationFile(): ?string
+    {
+        return $this->destinationFile;
     }
 
     public function getCommand(): array

@@ -89,7 +89,8 @@ class Configuration implements ConfigurationInterface
 
         $commandsTree->scalarNode(static::NAME)->end()
             ->scalarNode(static::LOG_FILE_NAME)->defaultNull()->end()
-            ->scalarNode(static::USER)->defaultNull()->end();
+            ->scalarNode(static::USER)->defaultNull()->end()
+            ->scalarNode(static::DESTINATION_FILE)->defaultNull()->end();
 
         $commandsTree->arrayNode(static::COMMAND)
             ->isRequired()

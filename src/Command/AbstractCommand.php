@@ -18,8 +18,8 @@ abstract class AbstractCommand extends Command
 {
     use SymfonyStyleTrait;
 
-    protected InputInterface $input;
-    protected OutputInterface $output;
+    protected readonly InputInterface $input;
+    protected readonly OutputInterface $output;
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {

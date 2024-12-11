@@ -18,14 +18,12 @@ class CronjobCreateCommand extends AbstractCommand
 {
     public const NAME = 'precision-soft:symfony:console:cronjob-create';
 
-    private ConfGenerateService $confGenerateService;
-    private ?CronjobDto $cronjobDto;
+    private readonly ?CronjobDto $cronjobDto;
 
     public function __construct(
-        ConfGenerateService $confGenerateService,
+        private readonly ConfGenerateService $confGenerateService,
         ?array $config,
     ) {
-        $this->confGenerateService = $confGenerateService;
         $this->cronjobDto = null === $config ? null : new CronjobDto($config);
 
         parent::__construct(static::NAME);
@@ -57,7 +55,7 @@ class CronjobCreateCommand extends AbstractCommand
                 }
             }
         } catch (Throwable $t) {
-            $this->error($t->getMessage());
+            $this->error($t->getMessage(), $t);
 
             return static::FAILURE;
         }

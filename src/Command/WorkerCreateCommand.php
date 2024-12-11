@@ -18,14 +18,12 @@ class WorkerCreateCommand extends AbstractCommand
 {
     public const NAME = 'precision-soft:symfony:console:worker-create';
 
-    private ConfGenerateService $confGenerateService;
-    private ?WorkerDto $workerDto;
+    private readonly ?WorkerDto $workerDto;
 
     public function __construct(
-        ConfGenerateService $confGenerateService,
+        private readonly ConfGenerateService $confGenerateService,
         ?array $config,
     ) {
-        $this->confGenerateService = $confGenerateService;
         $this->workerDto = null === $config ? null : new WorkerDto($config);
 
         parent::__construct(static::NAME);
@@ -57,7 +55,7 @@ class WorkerCreateCommand extends AbstractCommand
                 }
             }
         } catch (Throwable $t) {
-            $this->error($t->getMessage());
+            $this->error($t->getMessage(), $t);
 
             return static::FAILURE;
         }

@@ -13,15 +13,13 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 
 class CommandDto implements SettingsInterface
 {
-    private string $name;
-    private array $command;
-    private CommandSettingsDto $settings;
+    private readonly array $command;
+    private readonly CommandSettingsDto $settings;
 
     public function __construct(
-        string $name,
+        private readonly string $name,
         array $parameters,
     ) {
-        $this->name = $name;
         $this->command = $parameters[Configuration::COMMAND];
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);
     }

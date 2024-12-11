@@ -28,13 +28,13 @@ trait InstancesTrait
         return [$maxInstances, $instanceIndex];
     }
 
-    private function configureInstances(): void
+    protected function configureInstances(): void
     {
         $this->addOption(self::MAX_INSTANCES, null, InputOption::VALUE_OPTIONAL, 'the number of instances of this command', 1)
             ->addOption(self::INSTANCE_INDEX, null, InputOption::VALUE_OPTIONAL, 'the index of the current command instance up to the max instances', 1);
     }
 
-    private function formatMessageWithInstances(string $message): string
+    protected function formatMessageWithInstances(string $message): string
     {
         [$maxInstances, $instanceIndex] = $this->computeInstances();
 
