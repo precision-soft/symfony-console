@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Template;
 
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
+use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
@@ -29,6 +30,12 @@ class CrontabTemplate implements TemplateInterface
 
         $defaultDestinationFile = $configDto->getSettings()->getDestinationFile();
 
+        $heartbeat = null;
+        if (true === isset($commands[Configuration::HEARTBEAT])) {
+            $heartbeat = $commands[Configuration::HEARTBEAT];
+            unset($commands[Configuration::HEARTBEAT]);
+        }
+
         foreach ($commands as $commandDto) {
             $destinationFile = $commandDto->getDestinationFile() ?? $defaultDestinationFile;
             $cronjobs[$destinationFile] ??= [];
@@ -39,6 +46,10 @@ class CrontabTemplate implements TemplateInterface
         $confFilesDto = new ConfFilesDto();
 
         foreach ($cronjobs as $destinationFile => $commands) {
+            if (null !== $heartbeat) {
+                $commands[] = $this->buildCommand($heartbeat, $configDto);
+            }
+
             $content = \str_replace(
                 [
                     '%commands%',
