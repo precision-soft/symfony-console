@@ -46,8 +46,11 @@ class CrontabTemplate implements TemplateInterface
         $confFilesDto = new ConfFilesDto();
 
         foreach ($cronjobs as $destinationFile => $commands) {
-            if (null !== $heartbeat) {
-                $commands[] = $this->buildCommand($heartbeat, $configDto);
+            if (null !== $heartbeat || true === $configDto->getSettings()->getHeartbeat()) {
+                $commands[] = $this->buildCommand(
+                    $heartbeat ?? $this->getHeartbeatCommand($configDto, $destinationFile),
+                    $configDto
+                );
             }
 
             $content = \str_replace(
@@ -117,6 +120,28 @@ class CrontabTemplate implements TemplateInterface
                 $schedule->getDayOfMonth(),
                 $schedule->getMonth(),
                 $schedule->getDayOfWeek(),
+            ],
+        );
+    }
+
+    protected function getHeartbeatCommand(
+        ConfigDto $configDto,
+        string $destinationFile,
+    ): CommandDto {
+        return new CommandDto(
+            Configuration::HEARTBEAT,
+            [
+                Configuration::COMMAND => ['/bin/touch', \sprintf('%s/heartbeat.%s', $configDto->getLogsDir(), $destinationFile)],
+                Configuration::SCHEDULE => [
+                    Configuration::MINUTE => '*',
+                    Configuration::HOUR => '*',
+                    Configuration::DAY_OF_MONTH => '*',
+                    Configuration::MONTH => '*',
+                    Configuration::DAY_OF_WEEK => '*',
+                ],
+                Configuration::SETTINGS => [
+                    Configuration::LOG => false,
+                ],
             ],
         );
     }
