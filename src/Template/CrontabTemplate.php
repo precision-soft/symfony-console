@@ -49,7 +49,7 @@ class CrontabTemplate implements TemplateInterface
             if (null !== $heartbeat || true === $configDto->getSettings()->getHeartbeat()) {
                 $commands[] = $this->buildCommand(
                     $heartbeat ?? $this->getHeartbeatCommand($configDto, $destinationFile),
-                    $configDto
+                    $configDto,
                 );
             }
 

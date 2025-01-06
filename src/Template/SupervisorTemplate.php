@@ -54,14 +54,13 @@ class SupervisorTemplate implements TemplateInterface
         ConfigDto $configDto,
     ): string {
         $configurationParams = [
-            '%logsDir%' => $configDto->getLogsDir(),
             '%programGroupName%' => \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
-            '%programName%' => $commandDto->getName(),
             '%command%' => \implode(' ', $commandDto->getCommand()),
             '%user%' => $this->getUser($configDto, $commandDto),
             '%numberOfProcesses%' => $this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
             '%autoRestart%' => true === $this->getAutoRestart($configDto, $commandDto) ? 'true' : 'false',
+            '%logFile%' => $commandDto->getSettings()->getLogFile() ?? sprintf('%s/%s.log', $configDto->getLogsDir(), $commandDto->getName()),
         ];
 
         return \str_replace(
@@ -131,8 +130,8 @@ process_name = %(program_name)s_%(process_num)s
 numprocs = %numberOfProcesses%
 autostart = %autoStart%
 autorestart = %autoRestart%
-stdout_logfile = %logsDir%/%programName%.log
-stderr_logfile = %logsDir%/%programName%.log
+stdout_logfile = %logFile%
+stderr_logfile = %logFile%
 user = %user%
 stopwaitsecs = 30
 stdout_logfile_maxbytes = 0

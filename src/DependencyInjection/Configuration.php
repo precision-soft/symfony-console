@@ -22,6 +22,7 @@ class Configuration implements ConfigurationInterface
     public const SCHEDULE = 'schedule';
     public const LOG = 'log';
     public const LOG_FILE_NAME = 'log_file_name';
+    public const LOG_FILE = 'log_file';
     public const TEMPLATE_CLASS = 'template_class';
     public const CONF_FILES_DIR = 'conf_files_dir';
     public const LOGS_DIR = 'logs_dir';
@@ -161,6 +162,7 @@ class Configuration implements ConfigurationInterface
             ->booleanNode(static::AUTO_START)->defaultTrue()->end()
             ->booleanNode(static::AUTO_RESTART)->defaultTrue()->end()
             ->scalarNode(static::PREFIX)->defaultNull()->end()
-            ->scalarNode(static::USER)->defaultNull()->end();
+            ->scalarNode(static::USER)->defaultNull()->end()
+            ->scalarNode(static::LOG_FILE)->defaultNull()->end();
     }
 }

@@ -15,6 +15,7 @@ trait SupervisorSettingsTrait
     private ?bool $autoRestart = null;
     private ?string $prefix = null;
     private ?string $user = null;
+    private ?string $logFile = null;
 
     public function getNumberOfProcesses(): ?int
     {
@@ -41,6 +42,11 @@ trait SupervisorSettingsTrait
         return $this->user;
     }
 
+    public function getLogFile(): ?string
+    {
+        return $this->logFile;
+    }
+
     private function initSupervisorSettings(): void
     {
         $this->numberOfProcesses = null;
@@ -48,5 +54,6 @@ trait SupervisorSettingsTrait
         $this->autoRestart = null;
         $this->prefix = null;
         $this->user = null;
+        $this->logFile = null;
     }
 }
