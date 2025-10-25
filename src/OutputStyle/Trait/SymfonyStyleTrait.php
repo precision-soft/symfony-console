@@ -24,13 +24,21 @@ trait SymfonyStyleTrait
         $this->style->writeln($this->format($text));
     }
 
-    protected function error(string $text, Throwable $t = null, bool $exposeTrace = false): void
-    {
+    protected function error(
+        string $text,
+        ?Throwable $t = null,
+        bool $exposeTrace = false
+    ): void {
         if ($t !== null) {
             $text = sprintf('%s / %s', $text, $this->formatThrowable($t, $exposeTrace));
         }
 
         $this->style->error($this->format($text));
+    }
+
+    protected function info(string $text): void
+    {
+        $this->style->info($this->format($text));
     }
 
     protected function warning(string $text): void
