@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Command;
 
-use DateTime;
+use DateTimeImmutable;
 use PrecisionSoft\Symfony\Console\OutputStyle\Trait\SymfonyStyleTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,6 +28,6 @@ abstract class AbstractCommand extends Command
 
         $this->initializeSymfonyStyle($input, $output);
 
-        $this->style->title(\sprintf('<bg=blue>[%s]</> %s', (new DateTime())->format('Y-m-d'), $this->getName()));
+        $this->style->title(\sprintf('<bg=blue>[%s]</> %s', (new DateTimeImmutable())->format('Y-m-d'), $this->getName()));
     }
 }

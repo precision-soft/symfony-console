@@ -21,7 +21,7 @@ trait InstancesTrait
         $maxInstances = (int)$this->input->getOption(self::MAX_INSTANCES);
         $instanceIndex = (int)$this->input->getOption(self::INSTANCE_INDEX);
 
-        if ($maxInstances < 1 || $instanceIndex < 1 || $instanceIndex > $maxInstances) {
+        if (1 > $maxInstances || 1 > $instanceIndex || $instanceIndex > $maxInstances) {
             throw new Exception('invalid instances and instance index provided');
         }
 
@@ -38,6 +38,6 @@ trait InstancesTrait
     {
         [$maxInstances, $instanceIndex] = $this->computeInstances();
 
-        return sprintf('[%s/%s] %s', $instanceIndex, $maxInstances, $message);
+        return \sprintf('[%s/%s] %s', $instanceIndex, $maxInstances, $message);
     }
 }

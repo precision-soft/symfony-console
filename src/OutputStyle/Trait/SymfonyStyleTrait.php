@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\OutputStyle\Trait;
 
-use DateTime;
+use DateTimeImmutable;
 use PrecisionSoft\Symfony\Console\Service\MemoryService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,11 +26,11 @@ trait SymfonyStyleTrait
 
     protected function error(
         string $text,
-        ?Throwable $t = null,
-        bool $exposeTrace = false
+        ?Throwable $throwable = null,
+        bool $exposeTrace = false,
     ): void {
-        if ($t !== null) {
-            $text = sprintf('%s / %s', $text, $this->formatThrowable($t, $exposeTrace));
+        if (null !== $throwable) {
+            $text = \sprintf('%s / %s', $text, $this->formatThrowable($throwable, $exposeTrace));
         }
 
         $this->style->error($this->format($text));
@@ -51,12 +51,12 @@ trait SymfonyStyleTrait
         $this->style->success($this->format($text));
     }
 
-    protected function formatThrowable(Throwable $t, bool $exposeTrace = false): string
+    protected function formatThrowable(Throwable $throwable, bool $exposeTrace = false): string
     {
-        $text = \sprintf('%s::%s::%s', $t::class, $t->getFile(), $t->getLine());
+        $text = \sprintf('%s::%s::%s', $throwable::class, $throwable->getFile(), $throwable->getLine());
 
         if (true === $exposeTrace) {
-            $text = \sprintf('%s / %s', $text, $t->getTraceAsString());
+            $text = \sprintf('%s / %s', $text, $throwable->getTraceAsString());
         }
 
         return $text;
@@ -66,7 +66,7 @@ trait SymfonyStyleTrait
     {
         return \sprintf(
             '[%s][%s] %s',
-            (new DateTime())->format('H:i:s'),
+            (new DateTimeImmutable())->format('H:i:s'),
             MemoryService::getMemoryUsage(),
             $text,
         );

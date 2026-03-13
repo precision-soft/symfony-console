@@ -22,10 +22,14 @@ trait MemoryLimitTrait
     {
         $this->memoryLimit = null;
 
-        if (true === $this->input->hasOption(self::MEMORY_LIMIT) && $memoryLimit = $this->input->getOption(self::MEMORY_LIMIT)) {
-            $this->memoryLimit = (string)$memoryLimit;
+        if (true === $this->input->hasOption(self::MEMORY_LIMIT)) {
+            $memoryLimit = $this->input->getOption(self::MEMORY_LIMIT);
 
-            MemoryService::setMemoryLimitIfNotHigher($this->memoryLimit);
+            if (false === empty($memoryLimit)) {
+                $this->memoryLimit = (string)$memoryLimit;
+
+                MemoryService::setMemoryLimitIfNotHigher($this->memoryLimit);
+            }
         }
     }
 
@@ -50,7 +54,7 @@ trait MemoryLimitTrait
         $memoryLimit = MemoryService::returnBytes($this->memoryLimit);
         $memoryUsage = \memory_get_usage(true);
 
-        if ($memoryUsage > $memoryLimit) {
+        if ($memoryLimit < $memoryUsage) {
             $humanReadableMemoryUsed = MemoryService::convertBytesToHumanReadable($memoryUsage);
             $humanReadableMemoryLimit = MemoryService::convertBytesToHumanReadable($memoryLimit);
 

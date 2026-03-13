@@ -37,23 +37,23 @@ class ConfGenerateService
 
         $template = $this->getTemplate($config);
 
-        $confFilesDto = $template->generate($config, $commands);
+        $configurationFilesDto = $template->generate($config, $commands);
 
-        return $this->save($confFilesDto);
+        return $this->save($configurationFilesDto);
     }
 
-    private function save(ConfFilesDto $confFilesDto): array
+    private function save(ConfFilesDto $configurationFilesDto): array
     {
         $filesystem = new Filesystem();
-        $confFiles = [];
+        $configurationFiles = [];
 
-        foreach ($confFilesDto->getFiles() as $path => $content) {
+        foreach ($configurationFilesDto->getFiles() as $path => $content) {
             $filesystem->appendToFile($path, $content);
 
-            $confFiles[] = $path;
+            $configurationFiles[] = $path;
         }
 
-        return $confFiles;
+        return $configurationFiles;
     }
 
     private function getTemplate(ConfigInterface $config): TemplateInterface

@@ -23,8 +23,12 @@ trait TimeLimitTrait
         $this->startTime = \time();
         $this->timeLimit = null;
 
-        if (true === $this->input->hasOption(self::TIME_LIMIT) && $timeLimit = $this->input->getOption(self::TIME_LIMIT)) {
-            $this->timeLimit = (int)$timeLimit;
+        if (true === $this->input->hasOption(self::TIME_LIMIT)) {
+            $timeLimit = $this->input->getOption(self::TIME_LIMIT);
+
+            if (false === empty($timeLimit)) {
+                $this->timeLimit = (int)$timeLimit;
+            }
         }
     }
 
@@ -48,7 +52,7 @@ trait TimeLimitTrait
 
         $timeUsed = \time() - $this->startTime;
 
-        if ($timeUsed >= $this->timeLimit) {
+        if ($this->timeLimit <= $timeUsed) {
             $this->warning(\sprintf('max run time reached `%s`/`%s` seconds', $timeUsed, $this->timeLimit));
 
             return true;

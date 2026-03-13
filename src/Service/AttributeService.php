@@ -10,10 +10,14 @@ namespace PrecisionSoft\Symfony\Console\Service;
 
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 use ReflectionClass;
+use ReflectionException;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 class AttributeService
 {
+    /**
+     * @throws ReflectionException
+     */
     public static function getCommandName(string $commandClass): string
     {
         $reflectionClass = new ReflectionClass($commandClass);
@@ -26,7 +30,7 @@ class AttributeService
         }
 
         throw new Exception(
-            sprintf('could not compute the name for `%s`', $commandClass),
+            \sprintf('could not compute the name for `%s`', $commandClass),
         );
     }
 }
