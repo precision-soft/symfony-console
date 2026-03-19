@@ -32,7 +32,7 @@ class MemoryService
             return '0 ' . $unit[0];
         }
 
-        $i = (int)\floor(\log($bytes, 1024));
+        $i = \min((int)\floor(\log($bytes, 1024)), \count($unit) - 1);
 
         return \round($bytes / 1024 ** $i, 2) . ' ' . $unit[$i];
     }
