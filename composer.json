@@ -1,7 +1,7 @@
 {
     "name": "precision-soft/symfony-console",
     "type": "symfony-bundle",
-    "version": "v2.3.2",
+    "version": "v2.3.3",
     "description": "symfony console utilities",
     "keywords": [
         "symfony",
@@ -42,7 +42,7 @@
     },
     "scripts": {
         "install-hooks": [
-            "[ $COMPOSER_DEV_MODE -eq 1 ] && rm -rf .git/hooks && ln -s ../dev/git-hooks .git/hooks || exit 0"
+            "[ $COMPOSER_DEV_MODE -eq 1 ] && rm -rf .git/hooks && ln -s ../.dev/git-hooks .git/hooks || exit 0"
         ],
         "post-install-cmd": [
             "@install-hooks"
