@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 use Symfony\Component\Filesystem\Filesystem;
+use Throwable;
 
 class ConfGenerateService
 {
@@ -29,28 +30,47 @@ class ConfGenerateService
 
     public function generate(
         ConfigInterface $config,
-        array $commands,
+        array           $commands,
     ): array {
-        $this->initConfFilesDir($config);
-
         $this->initLogsDir($config);
 
         $template = $this->getTemplate($config);
 
         $configurationFilesDto = $template->generate($config, $commands);
 
-        return $this->save($configurationFilesDto);
+        return $this->save($configurationFilesDto, $config->getConfFilesDir());
     }
 
-    private function save(ConfFilesDto $configurationFilesDto): array
+    private function save(ConfFilesDto $configurationFilesDto, string $destinationDir): array
     {
         $filesystem = new Filesystem();
-        $configurationFiles = [];
+        $tempDir = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
 
-        foreach ($configurationFilesDto->getFiles() as $path => $content) {
-            $filesystem->appendToFile($path, $content);
+        $filesystem->mkdir($tempDir, 0755);
 
-            $configurationFiles[] = $path;
+        try {
+            $configurationFiles = [];
+
+            foreach ($configurationFilesDto->getFiles() as $path => $content) {
+                $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
+                $tempPath = $tempDir . '/' . $relativePath;
+
+                $filesystem->appendToFile($tempPath, $content);
+
+                $configurationFiles[] = $path;
+            }
+
+            if ($filesystem->exists($destinationDir)) {
+                $filesystem->remove($destinationDir);
+            }
+
+            $filesystem->rename($tempDir, $destinationDir);
+        } catch (Throwable $e) {
+            if ($filesystem->exists($tempDir)) {
+                $filesystem->remove($tempDir);
+            }
+
+            throw $e;
         }
 
         return $configurationFiles;
@@ -72,14 +92,5 @@ class ConfGenerateService
         $filesystem = new Filesystem();
 
         $filesystem->mkdir($config->getLogsDir(), 0755);
-    }
-
-    private function initConfFilesDir(ConfigInterface $config): void
-    {
-        $filesystem = new Filesystem();
-
-        $filesystem->remove($config->getConfFilesDir());
-
-        $filesystem->mkdir($config->getConfFilesDir(), 0755);
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "726bb32e677f830434c92c2a053d136b",
+    "content-hash": "ac57d80cafa73ff452a2899045f1a5d3",
     "packages": [
         {
             "name": "psr/container",
@@ -2398,16 +2398,16 @@
         },
         {
             "name": "precision-soft/symfony-phpunit",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/precision-soft/symfony-phpunit.git",
-                "reference": "eb8cb7f9fd1275084b50192bf279685ad504b319"
+                "reference": "f5984a18918615ad17caeebc6a186f4d521056f3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/eb8cb7f9fd1275084b50192bf279685ad504b319",
-                "reference": "eb8cb7f9fd1275084b50192bf279685ad504b319",
+                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/f5984a18918615ad17caeebc6a186f4d521056f3",
+                "reference": "f5984a18918615ad17caeebc6a186f4d521056f3",
                 "shasum": ""
             },
             "require": {
@@ -2439,7 +2439,7 @@
                 }
             ],
             "description": "library used to make writing phpunit tests easier",
-            "homepage": "https://gitlab.com/precision-soft-open-source/symfony/phpunit",
+            "homepage": "https://github.com/precision-soft/symfony-phpunit",
             "keywords": [
                 "mockery",
                 "phpunit",
@@ -2447,9 +2447,9 @@
             ],
             "support": {
                 "issues": "https://github.com/precision-soft/symfony-phpunit/issues",
-                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v1.1.0"
+                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v1.1.1"
             },
-            "time": "2026-03-18T15:31:46+00:00"
+            "time": "2026-03-19T12:55:38+00:00"
         },
         {
             "name": "react/cache",

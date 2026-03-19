@@ -26,7 +26,7 @@ trait TimeLimitTrait
         if (true === $this->input->hasOption(self::TIME_LIMIT)) {
             $timeLimit = $this->input->getOption(self::TIME_LIMIT);
 
-            if (false === empty($timeLimit)) {
+            if (null !== $timeLimit && '' !== $timeLimit) {
                 $this->timeLimit = (int)$timeLimit;
             }
         }

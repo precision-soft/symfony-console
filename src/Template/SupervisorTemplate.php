@@ -102,7 +102,7 @@ class SupervisorTemplate implements TemplateInterface
     ): string {
         $prefix = $commandDto->getSettings()->getPrefix() ?? $configDto->getSettings()->getPrefix();
 
-        if (true === empty($prefix)) {
+        if (null === $prefix || '' === $prefix) {
             throw new Exception('the `prefix` is mandatory');
         }
 
@@ -115,7 +115,7 @@ class SupervisorTemplate implements TemplateInterface
     ): string {
         $user = $commandDto->getSettings()->getUser() ?? $configDto->getSettings()->getUser();
 
-        if (true === empty($user)) {
+        if (null === $user || '' === $user) {
             throw new Exception('the `user` is mandatory');
         }
 
