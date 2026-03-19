@@ -25,13 +25,13 @@ class WorkerDto
         }
     }
 
-    public function getConfig(): ?ConfigDto
+    public function getConfig(): ConfigDto
     {
         return $this->config;
     }
 
     /** @return CommandDto[] */
-    public function getCommands(): ?array
+    public function getCommands(): array
     {
         return $this->commands;
     }

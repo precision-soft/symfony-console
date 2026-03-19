@@ -87,7 +87,7 @@ class CrontabTemplate implements TemplateInterface
             $commandParts[] = $user;
         }
 
-        $commandParts = array_merge($commandParts, $commandDto->getCommand());
+        $commandParts = \array_merge($commandParts, $commandDto->getCommand());
 
         $logPart = $this->buildLog($commandDto, $configDto);
         if (null !== $logPart) {
@@ -101,11 +101,11 @@ class CrontabTemplate implements TemplateInterface
         CommandDto $commandDto,
         ConfigDto $configDto,
     ): ?string {
-        if (($commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog()) !== true) {
+        if (true !== ($commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog())) {
             return null;
         }
 
-        $logFileName = $commandDto->getLogFileName() ?? sprintf('%s.log', $commandDto->getName());
+        $logFileName = $commandDto->getLogFileName() ?? \sprintf('%s.log', $commandDto->getName());
 
         return \sprintf('>> %s/%s 2>&1', $configDto->getLogsDir(), $logFileName);
     }

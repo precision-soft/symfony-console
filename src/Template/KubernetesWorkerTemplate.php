@@ -47,7 +47,7 @@ class KubernetesWorkerTemplate implements TemplateInterface
         /* crontab files need to end with an empty line */
         $content .= \PHP_EOL;
 
-        $crontabPath = $configDto->getConfFilesDir() . '/' . $configDto->getSettings()->getSetting('destinationFile');
+        $crontabPath = $configDto->getConfFilesDir() . '/' . $configDto->getSettings()->getDestinationFile();
 
         $confFilesDto = new ConfFilesDto();
 

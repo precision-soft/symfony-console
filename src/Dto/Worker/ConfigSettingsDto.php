@@ -17,10 +17,17 @@ class ConfigSettingsDto implements SettingInterface
     use SettingsTrait;
     use SupervisorSettingsTrait;
 
+    private ?string $destinationFile = null;
+
     public function __construct(array $settings)
     {
         $this->initSupervisorSettings();
 
         $this->loadProperties($settings);
+    }
+
+    public function getDestinationFile(): ?string
+    {
+        return $this->destinationFile;
     }
 }

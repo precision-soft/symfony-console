@@ -24,12 +24,12 @@ class CommandDto implements SettingsInterface
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getCommand(): ?array
+    public function getCommand(): array
     {
         return $this->command;
     }

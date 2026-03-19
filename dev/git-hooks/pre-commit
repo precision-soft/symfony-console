@@ -124,7 +124,7 @@ if [[ "${STAGED_FILES_PHP}" != "" ]]; then
 
     println ""
 
-    php_unit "${STAGED_FILES}"
+    php_unit
 fi
 
 println ""

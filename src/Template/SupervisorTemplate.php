@@ -60,7 +60,7 @@ class SupervisorTemplate implements TemplateInterface
             '%numberOfProcesses%' => $this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
             '%autoRestart%' => true === $this->getAutoRestart($configDto, $commandDto) ? 'true' : 'false',
-            '%logFile%' => $commandDto->getSettings()->getLogFile() ?? sprintf('%s/%s.log', $configDto->getLogsDir(), $commandDto->getName()),
+            '%logFile%' => $commandDto->getSettings()->getLogFile() ?? \sprintf('%s/%s.log', $configDto->getLogsDir(), $commandDto->getName()),
         ];
 
         return \str_replace(

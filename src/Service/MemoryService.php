@@ -28,7 +28,13 @@ class MemoryService
     {
         $unit = ['B ', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
-        return @\round($bytes / 1024 ** ($i = \floor(\log($bytes, 1024))), 2) . ' ' . $unit[(int)$i];
+        if (0 === $bytes) {
+            return '0 ' . $unit[0];
+        }
+
+        $i = (int)\floor(\log($bytes, 1024));
+
+        return \round($bytes / 1024 ** $i, 2) . ' ' . $unit[$i];
     }
 
     public static function returnBytes(string $value): int
