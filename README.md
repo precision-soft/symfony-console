@@ -61,7 +61,7 @@ services:
 ## Dev
 
 ```shell
-git clone git@gitlab.com:precision-soft-open-source/symfony/console.git
+git clone git@github.com:precision-soft/symfony-console.git
 cd console
 
 ./dc build && ./dc up -d
