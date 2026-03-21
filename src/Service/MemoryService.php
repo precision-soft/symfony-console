@@ -26,7 +26,7 @@ class MemoryService
 
     public static function convertBytesToHumanReadable(int $bytes): string
     {
-        $unit = ['B ', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        $unit = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
         if (0 === $bytes) {
             return '0 ' . $unit[0];
