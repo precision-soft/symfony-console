@@ -10,10 +10,10 @@ namespace PrecisionSoft\Symfony\Console\Test\Command;
 
 use Mockery;
 use Mockery\MockInterface;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\WorkerDto;
+use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;

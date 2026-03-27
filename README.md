@@ -23,10 +23,10 @@ composer require precision-soft/symfony-console
 
 ## Commands
 
-| Command | Description |
-|---|---|
+| Command                                         | Description                                                       |
+|-------------------------------------------------|-------------------------------------------------------------------|
 | `precision-soft:symfony:console:cronjob-create` | Generates cron job configuration files based on the bundle config |
-| `precision-soft:symfony:console:worker-create` | Generates worker configuration files based on the bundle config |
+| `precision-soft:symfony:console:worker-create`  | Generates worker configuration files based on the bundle config   |
 
 ## Configuration
 
@@ -129,12 +129,12 @@ The `destination_file` setting is mandatory for the Kubernetes Worker template.
 
 ## Available templates
 
-| Template class | Output format |
-|---|---|
-| `CrontabTemplate` | Standard crontab file |
-| `SupervisorTemplate` | Supervisor `.conf` files (one per command) |
-| `KubernetesCronjobTemplate` | Kubernetes CronJob manifest |
-| `KubernetesWorkerTemplate` | Kubernetes Worker manifest |
+| Template class              | Output format                              |
+|-----------------------------|--------------------------------------------|
+| `CrontabTemplate`           | Standard crontab file                      |
+| `SupervisorTemplate`        | Supervisor `.conf` files (one per command) |
+| `KubernetesCronjobTemplate` | Kubernetes CronJob manifest                |
+| `KubernetesWorkerTemplate`  | Kubernetes Worker manifest                 |
 
 ## For custom templates
 

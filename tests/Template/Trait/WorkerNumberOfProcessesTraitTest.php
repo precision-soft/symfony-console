@@ -9,12 +9,12 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
+use ReflectionMethod;
 
 /**
  * @internal

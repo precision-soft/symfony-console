@@ -34,7 +34,7 @@ class ConfGenerateService
 
     public function generate(
         ConfigInterface $config,
-        array           $commands,
+        array $commands,
     ): array {
         $this->initLogsDir($config);
 

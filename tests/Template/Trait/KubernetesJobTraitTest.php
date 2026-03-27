@@ -9,8 +9,8 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
+use ReflectionMethod;
 
 /**
  * @internal
