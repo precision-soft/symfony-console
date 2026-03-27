@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b7a31ba54bd87490ac9a47a89e581d17",
+    "content-hash": "cfa28dab28f7d1bd0de4247e568dc3af",
     "packages": [
         {
             "name": "psr/container",
@@ -2451,16 +2451,16 @@
         },
         {
             "name": "precision-soft/symfony-phpunit",
-            "version": "v1.2.1",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/precision-soft/symfony-phpunit.git",
-                "reference": "700fc6df62464f0ccd84a5014f483828f270add1"
+                "reference": "cfa4ee3e8e10d1d08dfcdb4a7e18186b2828e593"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/700fc6df62464f0ccd84a5014f483828f270add1",
-                "reference": "700fc6df62464f0ccd84a5014f483828f270add1",
+                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/cfa4ee3e8e10d1d08dfcdb4a7e18186b2828e593",
+                "reference": "cfa4ee3e8e10d1d08dfcdb4a7e18186b2828e593",
                 "shasum": ""
             },
             "require": {
@@ -2501,9 +2501,9 @@
             ],
             "support": {
                 "issues": "https://github.com/precision-soft/symfony-phpunit/issues",
-                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v1.2.1"
+                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.0.0"
             },
-            "time": "2026-03-27T21:30:29+00:00"
+            "time": "2026-03-27T21:32:59+00:00"
         },
         {
             "name": "react/cache",
