@@ -63,6 +63,13 @@ final class CrontabTemplateTest extends AbstractTestCase
 
         $confFilesDto = $mock->generate($config, $commands);
 
-        static::assertCount(1, $confFilesDto->getFiles());
+        $files = $confFilesDto->getFiles();
+        static::assertCount(1, $files);
+
+        $content = \reset($files);
+        static::assertStringContainsString('* * * * * test', $content);
+        static::assertStringContainsString('GENERATED FILE', $content);
+        static::assertStringContainsString('>> test/test.log 2>&1', $content);
+        static::assertStringContainsString('/bin/touch', $content);
     }
 }

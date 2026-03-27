@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Command;
 
-use Exception;
 use Mockery;
 use Mockery\MockInterface;
+use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\WorkerDto;

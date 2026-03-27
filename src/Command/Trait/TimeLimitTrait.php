@@ -14,10 +14,9 @@ trait TimeLimitTrait
 {
     protected const TIME_LIMIT = 'time-limit';
 
-    protected readonly int $startTime;
+    protected int $startTime;
     protected ?int $timeLimit = null;
 
-    /** @info call this in initialize() */
     protected function initializeTimeLimit(): void
     {
         $this->startTime = \time();
@@ -32,7 +31,6 @@ trait TimeLimitTrait
         }
     }
 
-    /** @info call this in configure() */
     protected function configureTimeLimit(int $default = 600): void
     {
         $this->addOption(
@@ -52,7 +50,7 @@ trait TimeLimitTrait
 
         $timeUsed = \time() - $this->startTime;
 
-        if ($this->timeLimit <= $timeUsed) {
+        if ($timeUsed >= $this->timeLimit) {
             $this->warning(\sprintf('max run time reached `%s`/`%s` seconds', $timeUsed, $this->timeLimit));
 
             return true;

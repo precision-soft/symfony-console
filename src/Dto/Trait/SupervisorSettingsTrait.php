@@ -46,14 +46,4 @@ trait SupervisorSettingsTrait
     {
         return $this->logFile;
     }
-
-    private function initSupervisorSettings(): void
-    {
-        $this->numberOfProcesses = null;
-        $this->autoStart = null;
-        $this->autoRestart = null;
-        $this->prefix = null;
-        $this->user = null;
-        $this->logFile = null;
-    }
 }

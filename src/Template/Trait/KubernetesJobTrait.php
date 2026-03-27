@@ -19,22 +19,22 @@ trait KubernetesJobTrait
 
         $baseIndent = $this->getIndent($baseIndentLevel, $indentSize);
 
-        foreach ($array as $key => $value) {
-            if (true === \is_array($value)) {
-                $command[] = \sprintf('%s%s:', $baseIndent, $key);
-                $command[] = $this->convertArrayToString($value, $baseIndentLevel + 1, $indentSize);
+        foreach ($array as $entryKey => $entryValue) {
+            if (true === \is_array($entryValue)) {
+                $command[] = \sprintf('%s%s:', $baseIndent, $entryKey);
+                $command[] = $this->convertArrayToString($entryValue, $baseIndentLevel + 1, $indentSize);
                 continue;
             }
 
-            $command[] = \sprintf('%s%s: %s', $baseIndent, $key, $value);
+            $command[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, $entryValue);
         }
 
         return \implode(\PHP_EOL, $command);
     }
 
-    private function sanitize(string $string): string
+    private function sanitize(string $input): string
     {
-        return \preg_replace('/[^a-z0-9\\-]+/i', '-', $string);
+        return (string)\preg_replace('/[^a-z0-9\\-]+/i', '-', $input);
     }
 
     private function getIndent(int $level = 1, int $size = 4): string

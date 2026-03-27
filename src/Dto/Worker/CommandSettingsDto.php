@@ -19,8 +19,6 @@ class CommandSettingsDto implements SettingInterface
 
     public function __construct(array $settings)
     {
-        $this->initSupervisorSettings();
-
         $this->loadProperties($settings);
     }
 }

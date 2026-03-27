@@ -58,6 +58,15 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
         $confFilesDto = $mock->generate($config, $commands);
 
-        static::assertCount(1, $confFilesDto->getFiles());
+        $files = $confFilesDto->getFiles();
+        static::assertCount(1, $files);
+
+        $content = \reset($files);
+        static::assertStringContainsString('[program:test-test]', $content);
+        static::assertStringContainsString('command = test', $content);
+        static::assertStringContainsString('numprocs = 1', $content);
+        static::assertStringContainsString('autostart = true', $content);
+        static::assertStringContainsString('autorestart = true', $content);
+        static::assertStringContainsString('user = test', $content);
     }
 }

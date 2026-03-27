@@ -8,21 +8,19 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Command\Trait;
 
-use Symfony\Component\Console\Command\Command;
+use PrecisionSoft\Symfony\Console\Exception\LimitExceededException;
 
 trait MemoryAndTimeLimitsTrait
 {
     use TimeLimitTrait;
     use MemoryLimitTrait;
 
-    /** @info call this in initialize() */
     protected function initializeMemoryAndTimeLimits(): void
     {
         $this->initializeMemoryLimit();
         $this->initializeTimeLimit();
     }
 
-    /** @info call this in configure() */
     protected function configureMemoryAndTimeLimits(
         string $defaultMemoryLimit = '512M',
         int $defaultTimeLimit = 600,
@@ -34,12 +32,12 @@ trait MemoryAndTimeLimitsTrait
 
     protected function stopScriptIfLimitsReached(): void
     {
-        if (true === $this->didScriptReachedLimits()) {
-            exit(Command::INVALID);
+        if (true === $this->hasScriptReachedLimits()) {
+            throw new LimitExceededException('memory or time limit exceeded');
         }
     }
 
-    protected function didScriptReachedLimits(): bool
+    protected function hasScriptReachedLimits(): bool
     {
         return $this->isMemoryLimitReached() || $this->isTimeLimitReached();
     }

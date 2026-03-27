@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Copyright (c) Precision Soft
+ */
+
+namespace PrecisionSoft\Symfony\Console\Test\Dto\Worker;
+
+use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
+use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigSettingsDto;
+
+/**
+ * @internal
+ */
+final class ConfigSettingsDtoTest extends TestCase
+{
+    public function testDefaultsAreNull(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto([]);
+
+        static::assertNull($configSettingsDto->getNumberOfProcesses());
+        static::assertNull($configSettingsDto->getAutoStart());
+        static::assertNull($configSettingsDto->getAutoRestart());
+        static::assertNull($configSettingsDto->getPrefix());
+        static::assertNull($configSettingsDto->getUser());
+        static::assertNull($configSettingsDto->getLogFile());
+        static::assertNull($configSettingsDto->getDestinationFile());
+    }
+
+    public function testAllSettingsAreSet(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto([
+            Configuration::NUMBER_OF_PROCESSES => 3,
+            Configuration::AUTO_START => false,
+            Configuration::AUTO_RESTART => true,
+            Configuration::PREFIX => 'app',
+            Configuration::USER => 'root',
+            Configuration::LOG_FILE => '/var/log/app.log',
+            Configuration::DESTINATION_FILE => 'workers.conf',
+        ]);
+
+        static::assertSame(3, $configSettingsDto->getNumberOfProcesses());
+        static::assertFalse($configSettingsDto->getAutoStart());
+        static::assertTrue($configSettingsDto->getAutoRestart());
+        static::assertSame('app', $configSettingsDto->getPrefix());
+        static::assertSame('root', $configSettingsDto->getUser());
+        static::assertSame('/var/log/app.log', $configSettingsDto->getLogFile());
+        static::assertSame('workers.conf', $configSettingsDto->getDestinationFile());
+    }
+}

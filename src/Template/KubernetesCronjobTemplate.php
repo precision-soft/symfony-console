@@ -43,14 +43,13 @@ class KubernetesCronjobTemplate implements TemplateInterface
             ],
         );
 
-        /* crontab files need to end with an empty line */
         $content .= \PHP_EOL;
 
         $crontabPath = $configDto->getConfFilesDir() . '/' . $configDto->getSettings()->getDestinationFile();
 
         $confFilesDto = new ConfFilesDto();
 
-        if (\count($cronjobs) > 0) {
+        if (0 < \count($cronjobs)) {
             $confFilesDto->addFile($crontabPath, $content);
         }
 

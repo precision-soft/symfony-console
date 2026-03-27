@@ -8,11 +8,19 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Service;
 
+use PrecisionSoft\Symfony\Console\Exception\Exception;
+
 class MemoryService
 {
     public static function setMemoryLimitIfNotHigher(string $newLimit): void
     {
-        if (static::returnBytes(\ini_get('memory_limit')) < static::returnBytes($newLimit)) {
+        $currentLimit = \ini_get('memory_limit');
+
+        if ('-1' === $currentLimit) {
+            return;
+        }
+
+        if (static::returnBytes($newLimit) > static::returnBytes($currentLimit)) {
             \ini_set('memory_limit', $newLimit);
         }
     }
@@ -26,43 +34,41 @@ class MemoryService
 
     public static function convertBytesToHumanReadable(int $bytes): string
     {
-        $unit = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
-        if (0 === $bytes) {
-            return '0 ' . $unit[0];
+        if (0 >= $bytes) {
+            return '0 ' . $units[0];
         }
 
-        $i = \min((int)\floor(\log($bytes, 1024)), \count($unit) - 1);
+        $unitIndex = \min((int)\floor(\log($bytes, 1024)), \count($units) - 1);
 
-        return \round($bytes / 1024 ** $i, 2) . ' ' . $unit[$i];
+        return \round($bytes / 1024 ** $unitIndex, 2) . ' ' . $units[$unitIndex];
     }
 
     public static function returnBytes(string $value): int
     {
         $value = \trim($value);
 
-        \preg_match('#([0-9]+)[\s]*([a-z]+)#i', $value, $matches);
-
-        $value = (int)($matches[1] ?? $value);
-        $unitOfMeasurement = $matches[2] ?? null;
-
-        if (null !== $unitOfMeasurement) {
-            switch (\strtolower($unitOfMeasurement)) {
-                case 'g':
-                case 'gb':
-                    $value *= 1024 * 1024 * 1024;
-                    break;
-                case 'm':
-                case 'mb':
-                    $value *= 1024 * 1024;
-                    break;
-                case 'k':
-                case 'kb':
-                    $value *= 1024;
-                    break;
-            }
+        if (1 === \preg_match('/^-?\d+$/', $value)) {
+            return (int)$value;
         }
 
-        return $value;
+        if (1 !== \preg_match('#([0-9]+)[\s]*([a-z]+)#i', $value, $matches)) {
+            return (int)$value;
+        }
+
+        $numericValue = (int)$matches[1];
+        $unitOfMeasurement = \strtolower($matches[2]);
+
+        $multiplier = match ($unitOfMeasurement) {
+            'p', 'pb' => 1024 * 1024 * 1024 * 1024 * 1024,
+            't', 'tb' => 1024 * 1024 * 1024 * 1024,
+            'g', 'gb' => 1024 * 1024 * 1024,
+            'm', 'mb' => 1024 * 1024,
+            'k', 'kb' => 1024,
+            default => throw new Exception(\sprintf('unrecognized unit of measurement `%s`', $unitOfMeasurement)),
+        };
+
+        return $numericValue * $multiplier;
     }
 }

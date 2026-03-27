@@ -20,7 +20,7 @@ trait WorkerNumberOfProcessesTrait
     ): int {
         $numberOfProcesses = $commandDto->getSettings()->getNumberOfProcesses() ?? $configDto->getSettings()->getNumberOfProcesses();
 
-        if (null === $numberOfProcesses || 0 === $numberOfProcesses) {
+        if (null === $numberOfProcesses || 1 > $numberOfProcesses) {
             throw new Exception('invalid `number of processes`');
         }
 

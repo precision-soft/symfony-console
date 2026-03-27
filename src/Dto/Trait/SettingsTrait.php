@@ -23,29 +23,33 @@ trait SettingsTrait
 
         $value = $this->settings->{$setting};
 
-        return null !== $value ? (string)$value : $value;
+        return null !== $value ? (string)$value : null;
     }
 
-    private function loadProperties(array $data): void
+    protected function loadProperties(array $data): void
     {
         $this->settings = new stdClass();
 
-        foreach ($data as $key => $value) {
-            $propertyName = $this->toCamelCase($key);
+        foreach ($data as $dataKey => $dataValue) {
+            $propertyName = $this->toCamelCase($dataKey);
 
-            if (true === \property_exists($this, $propertyName)) {
-                $this->{$propertyName} = $value;
+            if ('settings' === $propertyName) {
                 continue;
             }
 
-            $this->settings->{$propertyName} = $value;
+            if (true === \property_exists($this, $propertyName)) {
+                $this->{$propertyName} = $dataValue;
+                continue;
+            }
+
+            $this->settings->{$propertyName} = $dataValue;
         }
     }
 
-    private function toCamelCase(string $string): string
+    private function toCamelCase(string $input): string
     {
-        $string = \str_replace(' ', '', \ucwords(\str_replace('_', ' ', $string)));
+        $camelCaseString = \str_replace(' ', '', \ucwords(\str_replace('_', ' ', $input)));
 
-        return \lcfirst($string);
+        return \lcfirst($camelCaseString);
     }
 }

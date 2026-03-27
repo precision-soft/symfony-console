@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
+use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
@@ -44,14 +45,19 @@ class KubernetesWorkerTemplate implements TemplateInterface
             ],
         );
 
-        /* crontab files need to end with an empty line */
         $content .= \PHP_EOL;
 
-        $crontabPath = $configDto->getConfFilesDir() . '/' . $configDto->getSettings()->getDestinationFile();
+        $destinationFile = $configDto->getSettings()->getDestinationFile();
+
+        if (null === $destinationFile || '' === $destinationFile) {
+            throw new Exception('the `destination file` is mandatory for kubernetes worker template');
+        }
+
+        $crontabPath = $configDto->getConfFilesDir() . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 
-        if (\count($workers) > 0) {
+        if (0 < \count($workers)) {
             $confFilesDto->addFile($crontabPath, $content);
         }
 

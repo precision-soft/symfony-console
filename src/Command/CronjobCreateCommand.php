@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CronjobDto;
+use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
 
 class CronjobCreateCommand extends AbstractCommand
 {
@@ -38,24 +38,24 @@ class CronjobCreateCommand extends AbstractCommand
         }
 
         try {
-            $confFiles = $this->confGenerateService->generate(
+            $configurationFiles = $this->confGenerateService->generate(
                 $this->cronjobDto->getConfig(),
                 $this->cronjobDto->getCommands(),
             );
 
-            $confFilesCount = \count($confFiles);
+            $configurationFilesCount = \count($configurationFiles);
 
-            if (0 === $confFilesCount) {
+            if (0 === $configurationFilesCount) {
                 $this->warning('no conf files were generated');
             } else {
-                $this->success(\sprintf('generated `%s` conf files', $confFilesCount));
+                $this->success(\sprintf('generated `%s` conf files', $configurationFilesCount));
 
-                foreach ($confFiles as $confFile) {
-                    $this->writeln($confFile);
+                foreach ($configurationFiles as $configurationFile) {
+                    $this->writeln($configurationFile);
                 }
             }
-        } catch (Throwable $throwable) {
-            $this->error($throwable->getMessage(), $throwable);
+        } catch (Exception $exception) {
+            $this->error($exception->getMessage(), $exception);
 
             return static::FAILURE;
         }

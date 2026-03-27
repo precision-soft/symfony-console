@@ -1,0 +1,296 @@
+parameters:
+    ignoreErrors:
+        -
+            message: '#^Class PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand has an uninitialized readonly property \$input\. Assign it in the constructor\.$#'
+            identifier: property.uninitializedReadonly
+            count: 1
+            path: src/Command/AbstractCommand.php
+
+        -
+            message: '#^Class PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand has an uninitialized readonly property \$output\. Assign it in the constructor\.$#'
+            identifier: property.uninitializedReadonly
+            count: 1
+            path: src/Command/AbstractCommand.php
+
+        -
+            message: '#^Readonly property PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand\:\:\$input is assigned outside of the constructor\.$#'
+            identifier: property.readOnlyAssignNotInConstructor
+            count: 1
+            path: src/Command/AbstractCommand.php
+
+        -
+            message: '#^Readonly property PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand\:\:\$output is assigned outside of the constructor\.$#'
+            identifier: property.readOnlyAssignNotInConstructor
+            count: 1
+            path: src/Command/AbstractCommand.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Command\\CronjobCreateCommand\:\:__construct\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Command/CronjobCreateCommand.php
+
+        -
+            message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\InstancesTrait is used zero times and is not analysed\.$#'
+            identifier: trait.unused
+            count: 1
+            path: src/Command/Trait/InstancesTrait.php
+
+        -
+            message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\MemoryAndTimeLimitsTrait is used zero times and is not analysed\.$#'
+            identifier: trait.unused
+            count: 1
+            path: src/Command/Trait/MemoryAndTimeLimitsTrait.php
+
+        -
+            message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\MemoryLimitTrait is used zero times and is not analysed\.$#'
+            identifier: trait.unused
+            count: 1
+            path: src/Command/Trait/MemoryLimitTrait.php
+
+        -
+            message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\TimeLimitTrait is used zero times and is not analysed\.$#'
+            identifier: trait.unused
+            count: 1
+            path: src/Command/Trait/TimeLimitTrait.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Command\\WorkerCreateCommand\:\:__construct\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Command/WorkerCreateCommand.php
+
+        -
+            message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\ArrayNodeDefinition\|Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder\:\:arrayNode\(\)\.$#'
+            identifier: method.notFound
+            count: 3
+            path: src/DependencyInjection/Configuration.php
+
+        -
+            message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\ArrayNodeDefinition\|Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder\:\:children\(\)\.$#'
+            identifier: method.notFound
+            count: 2
+            path: src/DependencyInjection/Configuration.php
+
+        -
+            message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\ArrayNodeDefinition\|Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder\:\:scalarNode\(\)\.$#'
+            identifier: method.notFound
+            count: 1
+            path: src/DependencyInjection/Configuration.php
+
+        -
+            message: '#^Unsafe access to private constant PrecisionSoft\\Symfony\\Console\\DependencyInjection\\Configuration\:\:NAME through static\:\:\.$#'
+            identifier: staticClassAccess.privateConstant
+            count: 4
+            path: src/DependencyInjection/Configuration.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\ConfFilesDto\:\:getFiles\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/ConfFilesDto.php
+
+        -
+            message: '#^Property PrecisionSoft\\Symfony\\Console\\Dto\\ConfFilesDto\:\:\$files type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/ConfFilesDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CommandDto\:\:__construct\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CommandDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CommandDto\:\:getCommand\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CommandDto.php
+
+        -
+            message: '#^Property PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CommandDto\:\:\$command type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CommandDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CommandSettingsDto\:\:__construct\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CommandSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CommandSettingsDto\:\:loadProperties\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CommandSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\:\:__construct\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/ConfigDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\:\:setConfigs\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/ConfigDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigSettingsDto\:\:__construct\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/ConfigSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigSettingsDto\:\:loadProperties\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/ConfigSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CronjobDto\:\:__construct\(\) has parameter \$cron with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CronjobDto.php
+
+        -
+            message: '#^Property PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\CronjobDto\:\:\$commands type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/CronjobDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ScheduleDto\:\:__construct\(\) has parameter \$schedule with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Cronjob/ScheduleDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\CommandDto\:\:__construct\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/CommandDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\CommandDto\:\:getCommand\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/CommandDto.php
+
+        -
+            message: '#^Property PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\CommandDto\:\:\$command type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/CommandDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\CommandSettingsDto\:\:__construct\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/CommandSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\CommandSettingsDto\:\:loadProperties\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/CommandSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto\:\:__construct\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/ConfigDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto\:\:setConfigs\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/ConfigDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigSettingsDto\:\:__construct\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/ConfigSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigSettingsDto\:\:loadProperties\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/ConfigSettingsDto.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\WorkerDto\:\:__construct\(\) has parameter \$worker with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/WorkerDto.php
+
+        -
+            message: '#^Property PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\WorkerDto\:\:\$commands type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Dto/Worker/WorkerDto.php
+
+        -
+            message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+            identifier: argument.type
+            count: 1
+            path: src/Service/AttributeService.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerateService\:\:__construct\(\) has parameter \$templates with no value type specified in iterable type iterable\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Service/ConfGenerateService.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerateService\:\:generate\(\) has parameter \$commands with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Service/ConfGenerateService.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerateService\:\:generate\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Service/ConfGenerateService.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerateService\:\:save\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Service/ConfGenerateService.php
+
+        -
+            message: '#^Parameter \#1 \$configDto of method PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\|PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto, PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface given\.$#'
+            identifier: argument.type
+            count: 1
+            path: src/Service/ConfGenerateService.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Template\\KubernetesCronjobTemplate\:\:buildCommand\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Template/KubernetesCronjobTemplate.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Template\\KubernetesCronjobTemplate\:\:convertArrayToString\(\) has parameter \$array with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Template/KubernetesCronjobTemplate.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Template\\KubernetesWorkerTemplate\:\:buildCommand\(\) return type has no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Template/KubernetesWorkerTemplate.php
+
+        -
+            message: '#^Method PrecisionSoft\\Symfony\\Console\\Template\\KubernetesWorkerTemplate\:\:convertArrayToString\(\) has parameter \$array with no value type specified in iterable type array\.$#'
+            identifier: missingType.iterableValue
+            count: 1
+            path: src/Template/KubernetesWorkerTemplate.php
+

@@ -20,12 +20,16 @@ class ConfGenerateService
     /** @var TemplateInterface[] */
     private array $templates;
 
+    private readonly Filesystem $filesystem;
+
     public function __construct(iterable $templates)
     {
         $this->templates = [];
         foreach ($templates as $template) {
             $this->templates[$template::class] = $template;
         }
+
+        $this->filesystem = new Filesystem();
     }
 
     public function generate(
@@ -36,41 +40,60 @@ class ConfGenerateService
 
         $template = $this->getTemplate($config);
 
-        $configurationFilesDto = $template->generate($config, $commands);
+        $confFilesDto = $template->generate($config, $commands);
 
-        return $this->save($configurationFilesDto, $config->getConfFilesDir());
+        return $this->save($confFilesDto, $config->getConfFilesDir());
     }
 
-    private function save(ConfFilesDto $configurationFilesDto, string $destinationDir): array
+    private function save(ConfFilesDto $confFilesDto, string $destinationDir): array
     {
-        $filesystem = new Filesystem();
         $tempDir = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
 
-        $filesystem->mkdir($tempDir, 0755);
+        $this->filesystem->mkdir($tempDir, 0755);
 
         try {
             $configurationFiles = [];
 
-            foreach ($configurationFilesDto->getFiles() as $path => $content) {
+            foreach ($confFilesDto->getFiles() as $path => $content) {
                 $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
                 $tempPath = $tempDir . '/' . $relativePath;
 
-                $filesystem->appendToFile($tempPath, $content);
+                $this->filesystem->dumpFile($tempPath, $content);
 
                 $configurationFiles[] = $path;
             }
 
-            if ($filesystem->exists($destinationDir)) {
-                $filesystem->remove($destinationDir);
+            $backupDir = null;
+            if (true === $this->filesystem->exists($destinationDir)) {
+                $backupDir = $destinationDir . '.bak_' . \uniqid('', true);
+                $this->filesystem->rename($destinationDir, $backupDir);
             }
 
-            $filesystem->rename($tempDir, $destinationDir);
-        } catch (Throwable $e) {
-            if ($filesystem->exists($tempDir)) {
-                $filesystem->remove($tempDir);
+            try {
+                $this->filesystem->rename($tempDir, $destinationDir);
+            } catch (Throwable $throwable) {
+                if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
+                    $this->filesystem->rename($backupDir, $destinationDir);
+                }
+
+                throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
             }
 
-            throw $e;
+            if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
+                $this->filesystem->remove($backupDir);
+            }
+        } catch (Exception $exception) {
+            if (true === $this->filesystem->exists($tempDir)) {
+                $this->filesystem->remove($tempDir);
+            }
+
+            throw $exception;
+        } catch (Throwable $throwable) {
+            if (true === $this->filesystem->exists($tempDir)) {
+                $this->filesystem->remove($tempDir);
+            }
+
+            throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
         }
 
         return $configurationFiles;
@@ -89,8 +112,6 @@ class ConfGenerateService
 
     private function initLogsDir(ConfigInterface $config): void
     {
-        $filesystem = new Filesystem();
-
-        $filesystem->mkdir($config->getLogsDir(), 0755);
+        $this->filesystem->mkdir($config->getLogsDir(), 0755);
     }
 }

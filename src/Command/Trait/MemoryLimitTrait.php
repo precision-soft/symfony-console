@@ -17,7 +17,6 @@ trait MemoryLimitTrait
 
     protected ?string $memoryLimit = null;
 
-    /** @info call this in initialize() */
     protected function initializeMemoryLimit(): void
     {
         $this->memoryLimit = null;
@@ -33,7 +32,6 @@ trait MemoryLimitTrait
         }
     }
 
-    /** @info call this in configure() */
     protected function configureMemoryLimit(string $default = '512M'): void
     {
         $this->addOption(
@@ -54,7 +52,7 @@ trait MemoryLimitTrait
         $memoryLimit = MemoryService::returnBytes($this->memoryLimit);
         $memoryUsage = \memory_get_usage(true);
 
-        if ($memoryLimit < $memoryUsage) {
+        if ($memoryUsage > $memoryLimit) {
             $humanReadableMemoryUsed = MemoryService::convertBytesToHumanReadable($memoryUsage);
             $humanReadableMemoryLimit = MemoryService::convertBytesToHumanReadable($memoryLimit);
 

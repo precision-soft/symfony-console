@@ -31,12 +31,13 @@ class CrontabTemplate implements TemplateInterface
         $defaultDestinationFile = $configDto->getSettings()->getDestinationFile();
 
         $heartbeat = null;
-        if (true === isset($commands[Configuration::HEARTBEAT])) {
-            $heartbeat = $commands[Configuration::HEARTBEAT];
-            unset($commands[Configuration::HEARTBEAT]);
-        }
 
-        foreach ($commands as $commandDto) {
+        foreach ($commands as $commandKey => $commandDto) {
+            if (Configuration::HEARTBEAT === $commandKey) {
+                $heartbeat = $commandDto;
+                continue;
+            }
+
             $destinationFile = $commandDto->getDestinationFile() ?? $defaultDestinationFile;
             $cronjobs[$destinationFile] ??= [];
 
@@ -45,9 +46,9 @@ class CrontabTemplate implements TemplateInterface
 
         $confFilesDto = new ConfFilesDto();
 
-        foreach ($cronjobs as $destinationFile => $commands) {
-            if (null !== $heartbeat || true === $configDto->getSettings()->getHeartbeat()) {
-                $commands[] = $this->buildCommand(
+        foreach ($cronjobs as $destinationFile => $cronjobCommands) {
+            if (true === $configDto->getSettings()->getHeartbeat()) {
+                $cronjobCommands[] = $this->buildCommand(
                     $heartbeat ?? $this->getHeartbeatCommand($configDto, $destinationFile),
                     $configDto,
                 );
@@ -58,12 +59,11 @@ class CrontabTemplate implements TemplateInterface
                     '%commands%',
                 ],
                 [
-                    \implode(\PHP_EOL . \PHP_EOL, $commands),
+                    \implode(\PHP_EOL . \PHP_EOL, $cronjobCommands),
                 ],
                 $this->getTemplate(),
             );
 
-            /* crontab files need to end with an empty line */
             $content .= \PHP_EOL;
 
             $crontabPath = $configDto->getConfFilesDir() . '/' . $destinationFile;
@@ -82,7 +82,7 @@ class CrontabTemplate implements TemplateInterface
             $this->buildSchedule($commandDto->getSchedule()),
         ];
 
-        $user = $configDto->getSettings()->getUser() ?? $commandDto->getUser();
+        $user = $commandDto->getUser() ?? $configDto->getSettings()->getUser();
         if (null !== $user) {
             $commandParts[] = $user;
         }
