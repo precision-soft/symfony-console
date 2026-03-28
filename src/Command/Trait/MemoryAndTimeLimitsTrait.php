@@ -39,6 +39,6 @@ trait MemoryAndTimeLimitsTrait
 
     protected function hasScriptReachedLimits(): bool
     {
-        return $this->isMemoryLimitReached() || $this->isTimeLimitReached();
+        return true === $this->isMemoryLimitReached() || true === $this->isTimeLimitReached();
     }
 }

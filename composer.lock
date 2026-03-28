@@ -2451,16 +2451,16 @@
         },
         {
             "name": "precision-soft/symfony-phpunit",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/precision-soft/symfony-phpunit.git",
-                "reference": "cfa4ee3e8e10d1d08dfcdb4a7e18186b2828e593"
+                "reference": "05bd9d067edf952ec4fb3045904b816ba1895b90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/cfa4ee3e8e10d1d08dfcdb4a7e18186b2828e593",
-                "reference": "cfa4ee3e8e10d1d08dfcdb4a7e18186b2828e593",
+                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/05bd9d067edf952ec4fb3045904b816ba1895b90",
+                "reference": "05bd9d067edf952ec4fb3045904b816ba1895b90",
                 "shasum": ""
             },
             "require": {
@@ -2473,8 +2473,12 @@
                 "doctrine/orm": "3.*",
                 "friendsofphp/php-cs-fixer": "3.*",
                 "phpstan/phpstan": "^1.0",
-                "squizlabs/php_codesniffer": "3.*",
                 "symfony/framework-bundle": "7.*"
+            },
+            "suggest": {
+                "doctrine/doctrine-bundle": "Required to use ManagerRegistryMock",
+                "doctrine/orm": "Required to use ManagerRegistryMock",
+                "symfony/string": "Required to use SluggerInterfaceMock"
             },
             "type": "library",
             "autoload": {
@@ -2501,9 +2505,9 @@
             ],
             "support": {
                 "issues": "https://github.com/precision-soft/symfony-phpunit/issues",
-                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.0.0"
+                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.0.1"
             },
-            "time": "2026-03-27T21:32:59+00:00"
+            "time": "2026-03-28T19:55:10+00:00"
         },
         {
             "name": "react/cache",

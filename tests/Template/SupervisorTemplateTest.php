@@ -28,10 +28,10 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function test(): void
     {
-        /** @var SupervisorTemplate|MockInterface $mock */
-        $mock = $this->get(SupervisorTemplate::class);
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -56,7 +56,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);

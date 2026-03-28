@@ -19,16 +19,16 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
 class CrontabTemplate implements TemplateInterface
 {
     /**
-     * @param ConfigDto $configDto
+     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      */
     public function generate(
-        ConfigInterface $configDto,
+        ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
         $cronjobs = [];
 
-        $defaultDestinationFile = $configDto->getSettings()->getDestinationFile();
+        $defaultDestinationFile = $configInterface->getSettings()->getDestinationFile();
 
         $heartbeat = null;
 
@@ -41,16 +41,16 @@ class CrontabTemplate implements TemplateInterface
             $destinationFile = $commandDto->getDestinationFile() ?? $defaultDestinationFile;
             $cronjobs[$destinationFile] ??= [];
 
-            $cronjobs[$destinationFile][] = $this->buildCommand($commandDto, $configDto);
+            $cronjobs[$destinationFile][] = $this->buildCommand($commandDto, $configInterface);
         }
 
         $confFilesDto = new ConfFilesDto();
 
         foreach ($cronjobs as $destinationFile => $cronjobCommands) {
-            if (true === $configDto->getSettings()->getHeartbeat()) {
+            if (true === $configInterface->getSettings()->getHeartbeat()) {
                 $cronjobCommands[] = $this->buildCommand(
-                    $heartbeat ?? $this->getHeartbeatCommand($configDto, $destinationFile),
-                    $configDto,
+                    $heartbeat ?? $this->getHeartbeatCommand($configInterface, $destinationFile),
+                    $configInterface,
                 );
             }
 
@@ -66,7 +66,7 @@ class CrontabTemplate implements TemplateInterface
 
             $content .= \PHP_EOL;
 
-            $crontabPath = $configDto->getConfFilesDir() . '/' . $destinationFile;
+            $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
 
             $confFilesDto->addFile($crontabPath, $content);
         }

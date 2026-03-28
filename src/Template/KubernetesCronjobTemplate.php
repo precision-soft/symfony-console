@@ -21,18 +21,18 @@ class KubernetesCronjobTemplate implements TemplateInterface
     use KubernetesJobTrait;
 
     /**
-     * @param ConfigDto $configDto
+     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      */
     public function generate(
-        ConfigInterface $configDto,
+        ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
         $cronjobs = [];
         $index = 0;
 
         foreach ($commands as $commandDto) {
-            $cronjobs['"' . ($index++) . '"'] = $this->buildCommand($commandDto, $configDto);
+            $cronjobs['"' . ($index++) . '"'] = $this->buildCommand($commandDto, $configInterface);
         }
 
         $content = $this->convertArrayToString(
@@ -45,7 +45,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         $content .= \PHP_EOL;
 
-        $crontabPath = $configDto->getConfFilesDir() . '/' . $configDto->getSettings()->getDestinationFile();
+        $crontabPath = $configInterface->getConfFilesDir() . '/' . $configInterface->getSettings()->getDestinationFile();
 
         $confFilesDto = new ConfFilesDto();
 

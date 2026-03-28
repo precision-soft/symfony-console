@@ -33,16 +33,20 @@ class ConfGenerateService
     }
 
     public function generate(
-        ConfigInterface $config,
+        ConfigInterface $configInterface,
         array $commands,
     ): array {
-        $this->initLogsDir($config);
+        try {
+            $this->initLogsDir($configInterface);
+        } catch (Throwable $throwable) {
+            throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
+        }
 
-        $template = $this->getTemplate($config);
+        $templateInterface = $this->getTemplate($configInterface);
 
-        $confFilesDto = $template->generate($config, $commands);
+        $confFilesDto = $templateInterface->generate($configInterface, $commands);
 
-        return $this->save($confFilesDto, $config->getConfFilesDir());
+        return $this->save($confFilesDto, $configInterface->getConfFilesDir());
     }
 
     private function save(ConfFilesDto $confFilesDto, string $destinationDir): array
@@ -50,6 +54,8 @@ class ConfGenerateService
         $tempDir = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
 
         $this->filesystem->mkdir($tempDir, 0755);
+
+        $backupDir = null;
 
         try {
             $configurationFiles = [];
@@ -63,7 +69,6 @@ class ConfGenerateService
                 $configurationFiles[] = $path;
             }
 
-            $backupDir = null;
             if (true === $this->filesystem->exists($destinationDir)) {
                 $backupDir = $destinationDir . '.bak_' . \uniqid('', true);
                 $this->filesystem->rename($destinationDir, $backupDir);
@@ -87,10 +92,18 @@ class ConfGenerateService
                 $this->filesystem->remove($tempDir);
             }
 
+            if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
+                $this->filesystem->remove($backupDir);
+            }
+
             throw $exception;
         } catch (Throwable $throwable) {
             if (true === $this->filesystem->exists($tempDir)) {
                 $this->filesystem->remove($tempDir);
+            }
+
+            if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
+                $this->filesystem->remove($backupDir);
             }
 
             throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
@@ -99,9 +112,9 @@ class ConfGenerateService
         return $configurationFiles;
     }
 
-    private function getTemplate(ConfigInterface $config): TemplateInterface
+    private function getTemplate(ConfigInterface $configInterface): TemplateInterface
     {
-        $templateClass = $config->getTemplateClass();
+        $templateClass = $configInterface->getTemplateClass();
 
         if (false === isset($this->templates[$templateClass])) {
             throw new Exception(\sprintf('the template `%s` does not exist', $templateClass));
@@ -110,8 +123,8 @@ class ConfGenerateService
         return $this->templates[$templateClass];
     }
 
-    private function initLogsDir(ConfigInterface $config): void
+    private function initLogsDir(ConfigInterface $configInterface): void
     {
-        $this->filesystem->mkdir($config->getLogsDir(), 0755);
+        $this->filesystem->mkdir($configInterface->getLogsDir(), 0755);
     }
 }

@@ -32,7 +32,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -51,8 +51,8 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        static::assertSame(CrontabTemplate::class, $config[Configuration::CRONJOB][Configuration::CONFIG][Configuration::TEMPLATE_CLASS]);
-        static::assertStringContainsString('cron', $config[Configuration::CRONJOB][Configuration::CONFIG][Configuration::CONF_FILES_DIR]);
+        static::assertSame(CrontabTemplate::class, $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::TEMPLATE_CLASS]);
+        static::assertStringContainsString('cron', $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::CONF_FILES_DIR]);
     }
 
     public function testWorkerDefaultConfiguration(): void
@@ -60,7 +60,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -79,8 +79,8 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        static::assertSame(SupervisorTemplate::class, $config[Configuration::WORKER][Configuration::CONFIG][Configuration::TEMPLATE_CLASS]);
-        static::assertStringContainsString('worker', $config[Configuration::WORKER][Configuration::CONFIG][Configuration::CONF_FILES_DIR]);
+        static::assertSame(SupervisorTemplate::class, $processedConfiguration[Configuration::WORKER][Configuration::CONFIG][Configuration::TEMPLATE_CLASS]);
+        static::assertStringContainsString('worker', $processedConfiguration[Configuration::WORKER][Configuration::CONFIG][Configuration::CONF_FILES_DIR]);
     }
 
     public function testCronjobSettingsDefaults(): void
@@ -88,7 +88,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -107,7 +107,7 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        $settings = $config[Configuration::CRONJOB][Configuration::CONFIG][Configuration::SETTINGS];
+        $settings = $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::SETTINGS];
         static::assertTrue($settings[Configuration::LOG]);
         static::assertSame('crontab', $settings[Configuration::DESTINATION_FILE]);
         static::assertTrue($settings[Configuration::HEARTBEAT]);
@@ -119,7 +119,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -138,7 +138,7 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        $settings = $config[Configuration::WORKER][Configuration::CONFIG][Configuration::SETTINGS];
+        $settings = $processedConfiguration[Configuration::WORKER][Configuration::CONFIG][Configuration::SETTINGS];
         static::assertSame(1, $settings[Configuration::NUMBER_OF_PROCESSES]);
         static::assertTrue($settings[Configuration::AUTO_START]);
         static::assertTrue($settings[Configuration::AUTO_RESTART]);
@@ -151,7 +151,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -171,7 +171,7 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        $schedule = $config[Configuration::CRONJOB][Configuration::COMMANDS]['test'][Configuration::SCHEDULE];
+        $schedule = $processedConfiguration[Configuration::CRONJOB][Configuration::COMMANDS]['test'][Configuration::SCHEDULE];
         static::assertSame('*', $schedule[Configuration::MINUTE]);
         static::assertSame('*', $schedule[Configuration::HOUR]);
         static::assertSame('*', $schedule[Configuration::DAY_OF_MONTH]);
@@ -184,7 +184,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -203,9 +203,8 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        // String command should be normalized to array
-        static::assertIsArray($config[Configuration::CRONJOB][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
-        static::assertSame(['single-command'], $config[Configuration::CRONJOB][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
+        static::assertIsArray($processedConfiguration[Configuration::CRONJOB][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
+        static::assertSame(['single-command'], $processedConfiguration[Configuration::CRONJOB][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
     }
 
     public function testWorkerCommandStringNormalization(): void
@@ -213,7 +212,7 @@ final class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $processor = new Processor();
 
-        $config = $processor->processConfiguration($configuration, [
+        $processedConfiguration = $processor->processConfiguration($configuration, [
             'precision_soft_symfony_console' => [
                 Configuration::CRONJOB => [
                     Configuration::COMMANDS => [
@@ -232,8 +231,8 @@ final class ConfigurationTest extends TestCase
             ],
         ]);
 
-        static::assertIsArray($config[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
-        static::assertSame(['single-command'], $config[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
+        static::assertIsArray($processedConfiguration[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
+        static::assertSame(['single-command'], $processedConfiguration[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
     }
 
     public function testConstantsExist(): void

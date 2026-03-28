@@ -61,10 +61,10 @@ final class WorkerCreateCommandTest extends AbstractTestCase
             $class,
             null,
             false,
-            function (MockInterface $mock) use ($config, $class): void {
+            function (MockInterface $workerCreateCommand) use ($config, $class): void {
                 $property = new ReflectionProperty($class, 'workerDto');
                 $property->setAccessible(true);
-                $property->setValue($mock, new WorkerDto($config));
+                $property->setValue($workerCreateCommand, new WorkerDto($config));
 
                 $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
 
@@ -74,11 +74,11 @@ final class WorkerCreateCommandTest extends AbstractTestCase
 
                 $property = new ReflectionProperty($class, 'confGenerateService');
                 $property->setAccessible(true);
-                $property->setValue($mock, $confGenerateServiceMock);
+                $property->setValue($workerCreateCommand, $confGenerateServiceMock);
 
-                $mock->shouldAllowMockingProtectedMethods();
+                $workerCreateCommand->shouldAllowMockingProtectedMethods();
 
-                $mock->shouldReceive('error')
+                $workerCreateCommand->shouldReceive('error')
                     ->byDefault()
                     ->andReturnUsing(
                         function (string $message): void {
@@ -86,10 +86,10 @@ final class WorkerCreateCommandTest extends AbstractTestCase
                         },
                     );
 
-                $mock->shouldReceive('writeln')
+                $workerCreateCommand->shouldReceive('writeln')
                     ->once();
 
-                $mock->shouldReceive('success')
+                $workerCreateCommand->shouldReceive('success')
                     ->once();
             },
         );
@@ -103,9 +103,9 @@ final class WorkerCreateCommandTest extends AbstractTestCase
         $input = Mockery::mock(InputInterface::class);
         $output = Mockery::mock(OutputInterface::class);
 
-        $mock = $this->get(WorkerCreateCommand::class);
+        $workerCreateCommand = $this->get(WorkerCreateCommand::class);
 
-        $response = $method->invoke($mock, $input, $output);
+        $response = $method->invoke($workerCreateCommand, $input, $output);
 
         static::assertSame(WorkerCreateCommand::SUCCESS, $response);
     }

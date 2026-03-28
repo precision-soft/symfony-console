@@ -15,12 +15,10 @@ class CommandSettingsDto implements SettingInterface
 {
     use SettingsTrait;
 
-    private ?bool $log;
+    private ?bool $log = null;
 
     public function __construct(array $settings)
     {
-        $this->log = null;
-
         $this->loadProperties($settings);
     }
 

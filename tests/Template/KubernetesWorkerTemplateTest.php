@@ -28,10 +28,10 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateWithSingleCommand(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -55,17 +55,17 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         static::assertCount(1, $confFilesDto->getFiles());
     }
 
     public function testGenerateWithEmptyCommands(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -77,17 +77,17 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ],
         );
 
-        $confFilesDto = $mock->generate($config, []);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, []);
 
         static::assertCount(0, $confFilesDto->getFiles());
     }
 
     public function testGenerateContentContainsWorkerName(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -111,7 +111,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
@@ -120,10 +120,10 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateContentContainsCommand(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -147,7 +147,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
@@ -156,10 +156,10 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateContentContainsParallelism(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -183,7 +183,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
@@ -192,10 +192,10 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateWithMultipleCommands(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -228,7 +228,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         static::assertCount(1, $confFilesDto->getFiles());
 
@@ -240,10 +240,10 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateFallsBackToConfigNumberOfProcesses(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesWorkerTemplate::class);
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -265,7 +265,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);

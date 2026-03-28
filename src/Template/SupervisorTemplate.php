@@ -21,20 +21,19 @@ class SupervisorTemplate implements TemplateInterface
     use WorkerNumberOfProcessesTrait;
 
     /**
-     * @param ConfigDto $configDto
+     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      */
     public function generate(
-        ConfigInterface $configDto,
+        ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
         $confFilesDto = new ConfFilesDto();
 
-        /** @var CommandDto $commandDto */
         foreach ($commands as $commandDto) {
-            $worker = $this->buildCommand($commandDto, $configDto);
+            $worker = $this->buildCommand($commandDto, $configInterface);
 
-            $confPath = $this->getPath($configDto, $commandDto);
+            $confPath = $this->getPath($configInterface, $commandDto);
 
             $confFilesDto->addFile($confPath, $worker);
         }

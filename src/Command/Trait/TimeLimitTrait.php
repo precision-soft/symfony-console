@@ -50,7 +50,7 @@ trait TimeLimitTrait
 
         $timeUsed = \time() - $this->startTime;
 
-        if ($timeUsed >= $this->timeLimit) {
+        if ($this->timeLimit <= $timeUsed) {
             $this->warning(\sprintf('max run time reached `%s`/`%s` seconds', $timeUsed, $this->timeLimit));
 
             return true;

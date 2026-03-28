@@ -67,10 +67,10 @@ final class ConfGenerateServiceTest extends AbstractTestCase
 
     public function testGenerateCallsTemplateAndSavesFiles(): void
     {
-        $tempDir = \sys_get_temp_dir() . '/test_conf_generate_' . \uniqid('', true);
+        $temporaryDirectory = \sys_get_temp_dir() . '/test_conf_generate_' . \uniqid('', true);
 
         $confFilesDto = new ConfFilesDto();
-        $confFilesDto->addFile($tempDir . '/test.conf', 'test content');
+        $confFilesDto->addFile($temporaryDirectory . '/test.conf', 'test content');
 
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')
@@ -82,26 +82,26 @@ final class ConfGenerateServiceTest extends AbstractTestCase
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
         $configInterfaceMock->shouldReceive('getLogsDir')->andReturn(\sys_get_temp_dir() . '/test_logs_' . \uniqid('', true));
-        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($tempDir);
+        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($temporaryDirectory);
 
         $result = $confGenerateService->generate($configInterfaceMock, []);
 
         static::assertCount(1, $result);
-        static::assertSame($tempDir . '/test.conf', $result[0]);
+        static::assertSame($temporaryDirectory . '/test.conf', $result[0]);
 
         $filesystem = new Filesystem();
-        if (true === $filesystem->exists($tempDir)) {
-            $filesystem->remove($tempDir);
+        if (true === $filesystem->exists($temporaryDirectory)) {
+            $filesystem->remove($temporaryDirectory);
         }
     }
 
     public function testGenerateCreatesLogsDirectory(): void
     {
-        $tempDir = \sys_get_temp_dir() . '/test_conf_generate_logs_' . \uniqid('', true);
-        $logsDir = \sys_get_temp_dir() . '/test_logs_dir_' . \uniqid('', true);
+        $temporaryDirectory = \sys_get_temp_dir() . '/test_conf_generate_logs_' . \uniqid('', true);
+        $logsDirectory = \sys_get_temp_dir() . '/test_logs_dir_' . \uniqid('', true);
 
         $confFilesDto = new ConfFilesDto();
-        $confFilesDto->addFile($tempDir . '/test.conf', 'content');
+        $confFilesDto->addFile($temporaryDirectory . '/test.conf', 'content');
 
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
@@ -110,14 +110,14 @@ final class ConfGenerateServiceTest extends AbstractTestCase
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
-        $configInterfaceMock->shouldReceive('getLogsDir')->andReturn($logsDir);
-        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($tempDir);
+        $configInterfaceMock->shouldReceive('getLogsDir')->andReturn($logsDirectory);
+        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($temporaryDirectory);
 
         $confGenerateService->generate($configInterfaceMock, []);
 
-        static::assertDirectoryExists($logsDir);
+        static::assertDirectoryExists($logsDirectory);
 
         $filesystem = new Filesystem();
-        $filesystem->remove([$tempDir, $logsDir]);
+        $filesystem->remove([$temporaryDirectory, $logsDirectory]);
     }
 }

@@ -28,10 +28,10 @@ final class CrontabTemplateTest extends AbstractTestCase
 
     public function test(): void
     {
-        /** @var CrontabTemplate|MockInterface $mock */
-        $mock = $this->get(CrontabTemplate::class);
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -61,7 +61,7 @@ final class CrontabTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);

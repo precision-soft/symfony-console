@@ -66,10 +66,10 @@ final class CronjobCreateCommandTest extends AbstractTestCase
             $class,
             null,
             false,
-            function (MockInterface $mock) use ($config, $class): void {
+            function (MockInterface $cronjobCreateCommand) use ($config, $class): void {
                 $property = new ReflectionProperty($class, 'cronjobDto');
                 $property->setAccessible(true);
-                $property->setValue($mock, new CronjobDto($config));
+                $property->setValue($cronjobCreateCommand, new CronjobDto($config));
 
                 $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
 
@@ -79,11 +79,11 @@ final class CronjobCreateCommandTest extends AbstractTestCase
 
                 $property = new ReflectionProperty($class, 'confGenerateService');
                 $property->setAccessible(true);
-                $property->setValue($mock, $confGenerateServiceMock);
+                $property->setValue($cronjobCreateCommand, $confGenerateServiceMock);
 
-                $mock->shouldAllowMockingProtectedMethods();
+                $cronjobCreateCommand->shouldAllowMockingProtectedMethods();
 
-                $mock->shouldReceive('error')
+                $cronjobCreateCommand->shouldReceive('error')
                     ->byDefault()
                     ->andReturnUsing(
                         function (string $message): void {
@@ -91,10 +91,10 @@ final class CronjobCreateCommandTest extends AbstractTestCase
                         },
                     );
 
-                $mock->shouldReceive('writeln')
+                $cronjobCreateCommand->shouldReceive('writeln')
                     ->once();
 
-                $mock->shouldReceive('success')
+                $cronjobCreateCommand->shouldReceive('success')
                     ->once();
             },
         );
@@ -108,9 +108,9 @@ final class CronjobCreateCommandTest extends AbstractTestCase
         $input = Mockery::mock(InputInterface::class);
         $output = Mockery::mock(OutputInterface::class);
 
-        $mock = $this->get(CronjobCreateCommand::class);
+        $cronjobCreateCommand = $this->get(CronjobCreateCommand::class);
 
-        $response = $method->invoke($mock, $input, $output);
+        $response = $method->invoke($cronjobCreateCommand, $input, $output);
 
         static::assertSame(CronjobCreateCommand::SUCCESS, $response);
     }

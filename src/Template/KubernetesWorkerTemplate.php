@@ -23,18 +23,18 @@ class KubernetesWorkerTemplate implements TemplateInterface
     use WorkerNumberOfProcessesTrait;
 
     /**
-     * @param ConfigDto $configDto
+     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      */
     public function generate(
-        ConfigInterface $configDto,
+        ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
         $workers = [];
         $index = 0;
 
         foreach ($commands as $commandDto) {
-            $workers['"' . ($index++) . '"'] = $this->buildCommand($commandDto, $configDto);
+            $workers['"' . ($index++) . '"'] = $this->buildCommand($commandDto, $configInterface);
         }
 
         $content = $this->convertArrayToString(
@@ -47,13 +47,13 @@ class KubernetesWorkerTemplate implements TemplateInterface
 
         $content .= \PHP_EOL;
 
-        $destinationFile = $configDto->getSettings()->getDestinationFile();
+        $destinationFile = $configInterface->getSettings()->getDestinationFile();
 
         if (null === $destinationFile || '' === $destinationFile) {
             throw new Exception('the `destination file` is mandatory for kubernetes worker template');
         }
 
-        $crontabPath = $configDto->getConfFilesDir() . '/' . $destinationFile;
+        $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 

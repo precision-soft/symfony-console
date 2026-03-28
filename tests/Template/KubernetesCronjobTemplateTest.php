@@ -28,10 +28,10 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateWithSingleCommand(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesCronjobTemplate::class);
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -62,17 +62,17 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         static::assertCount(1, $confFilesDto->getFiles());
     }
 
     public function testGenerateWithEmptyCommands(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesCronjobTemplate::class);
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -84,17 +84,17 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
             ],
         );
 
-        $confFilesDto = $mock->generate($config, []);
+        $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, []);
 
         static::assertCount(0, $confFilesDto->getFiles());
     }
 
     public function testGenerateWithMultipleCommands(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesCronjobTemplate::class);
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -141,7 +141,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         static::assertCount(1, $confFilesDto->getFiles());
 
@@ -153,10 +153,10 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateContentContainsSchedule(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesCronjobTemplate::class);
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -187,7 +187,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
@@ -196,10 +196,10 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateContentContainsCommandParts(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesCronjobTemplate::class);
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -230,7 +230,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
@@ -239,10 +239,10 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateSanitizesName(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $mock */
-        $mock = $this->get(KubernetesCronjobTemplate::class);
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
-        $config = new ConfigDto(
+        $configDto = new ConfigDto(
             [
                 Configuration::TEMPLATE_CLASS => 'test',
                 Configuration::CONF_FILES_DIR => 'test',
@@ -273,11 +273,10 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
             ),
         ];
 
-        $confFilesDto = $mock->generate($config, $commands);
+        $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        // Colons should be replaced with dashes by sanitize
         static::assertStringContainsString('app-test-command', $content);
     }
 }

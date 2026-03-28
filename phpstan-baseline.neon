@@ -265,7 +265,7 @@ parameters:
             path: src/Service/ConfGenerateService.php
 
         -
-            message: '#^Parameter \#1 \$configDto of method PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\|PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto, PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface given\.$#'
+            message: '#^Parameter \#1 \$configInterface of method PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\|PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto, PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface given\.$#'
             identifier: argument.type
             count: 1
             path: src/Service/ConfGenerateService.php

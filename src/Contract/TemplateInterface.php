@@ -17,8 +17,8 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto as WorkerConfigDto;
 interface TemplateInterface
 {
     /**
-     * @param WorkerConfigDto|CronjobConfigDto $configDto
+     * @param WorkerConfigDto|CronjobConfigDto $configInterface
      * @param WorkerCommandDto[]|CronjobCommandDto[] $commands
      */
-    public function generate(ConfigInterface $configDto, array $commands): ConfFilesDto;
+    public function generate(ConfigInterface $configInterface, array $commands): ConfFilesDto;
 }

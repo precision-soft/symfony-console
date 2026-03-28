@@ -11,3 +11,4 @@
 .dev/docker/.env.local
 /.phpcs-cache
 /*.tar.gz
+/.temp/

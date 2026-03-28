@@ -19,66 +19,66 @@ final class KubernetesJobTraitTest extends TestCase
 {
     public function testConvertArrayToStringFlat(): void
     {
-        $object = $this->createTraitObject();
+        $kubernetesJobTraitObject = $this->createTraitObject();
 
-        $result = $this->callMethod($object, 'convertArrayToString', [
+        $convertedString = $this->callMethod($kubernetesJobTraitObject, 'convertArrayToString', [
             ['key1' => 'value1', 'key2' => 'value2'],
         ]);
 
-        static::assertStringContainsString('key1: value1', $result);
-        static::assertStringContainsString('key2: value2', $result);
+        static::assertStringContainsString('key1: value1', $convertedString);
+        static::assertStringContainsString('key2: value2', $convertedString);
     }
 
     public function testConvertArrayToStringNested(): void
     {
-        $object = $this->createTraitObject();
+        $kubernetesJobTraitObject = $this->createTraitObject();
 
-        $result = $this->callMethod($object, 'convertArrayToString', [
+        $convertedString = $this->callMethod($kubernetesJobTraitObject, 'convertArrayToString', [
             ['parent' => ['child' => 'value']],
         ]);
 
-        static::assertStringContainsString('parent:', $result);
-        static::assertStringContainsString('    child: value', $result);
+        static::assertStringContainsString('parent:', $convertedString);
+        static::assertStringContainsString('    child: value', $convertedString);
     }
 
     public function testConvertArrayToStringWithCustomIndent(): void
     {
-        $object = $this->createTraitObject();
+        $kubernetesJobTraitObject = $this->createTraitObject();
 
-        $result = $this->callMethod($object, 'convertArrayToString', [
+        $convertedString = $this->callMethod($kubernetesJobTraitObject, 'convertArrayToString', [
             ['key' => 'value'],
             1,
             2,
         ]);
 
-        static::assertStringContainsString('  key: value', $result);
+        static::assertStringContainsString('  key: value', $convertedString);
     }
 
     public function testSanitizeReplacesSpecialCharacters(): void
     {
-        $object = $this->createTraitObject();
+        $kubernetesJobTraitObject = $this->createTraitObject();
 
-        static::assertSame('app-test-command', $this->callMethod($object, 'sanitize', ['app:test:command']));
-        static::assertSame('simple', $this->callMethod($object, 'sanitize', ['simple']));
-        static::assertSame('with-spaces', $this->callMethod($object, 'sanitize', ['with spaces']));
-        static::assertSame('test-123', $this->callMethod($object, 'sanitize', ['test_123']));
+        static::assertSame('app-test-command', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['app:test:command']));
+        static::assertSame('simple', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['simple']));
+        static::assertSame('with-spaces', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['with spaces']));
+        static::assertSame('test-123', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['test_123']));
     }
 
     public function testSanitizePreservesAlphanumericAndDash(): void
     {
-        $object = $this->createTraitObject();
+        $kubernetesJobTraitObject = $this->createTraitObject();
 
-        static::assertSame('already-valid-123', $this->callMethod($object, 'sanitize', ['already-valid-123']));
+        static::assertSame('already-valid-123', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['already-valid-123']));
     }
 
     public function testGetIndent(): void
     {
-        $object = $this->createTraitObject();
+        $kubernetesJobTraitObject = $this->createTraitObject();
 
-        static::assertSame('    ', $this->callMethod($object, 'getIndent', [1, 4]));
-        static::assertSame('        ', $this->callMethod($object, 'getIndent', [2, 4]));
-        static::assertSame('', $this->callMethod($object, 'getIndent', [0, 4]));
-        static::assertSame('  ', $this->callMethod($object, 'getIndent', [1, 2]));
+        static::assertSame('    ', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [1, 4]));
+        static::assertSame('        ', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [2, 4]));
+        static::assertSame('', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [0, 4]));
+        static::assertSame('  ', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [1, 2]));
     }
 
     private function createTraitObject(): object
@@ -88,11 +88,11 @@ final class KubernetesJobTraitTest extends TestCase
         };
     }
 
-    private function callMethod(object $object, string $method, array $args = []): mixed
+    private function callMethod(object $kubernetesJobTraitObject, string $method, array $args = []): mixed
     {
-        $reflection = new ReflectionMethod($object, $method);
+        $reflection = new ReflectionMethod($kubernetesJobTraitObject, $method);
         $reflection->setAccessible(true);
 
-        return $reflection->invokeArgs($object, $args);
+        return $reflection->invokeArgs($kubernetesJobTraitObject, $args);
     }
 }

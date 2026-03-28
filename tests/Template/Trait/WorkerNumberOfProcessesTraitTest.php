@@ -23,7 +23,7 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
 {
     public function testGetNumberOfProcessesFromCommand(): void
     {
-        $object = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -44,14 +44,14 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
             ],
         );
 
-        $result = $this->callMethod($object, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $numberOfProcesses = $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
 
-        static::assertSame(5, $result);
+        static::assertSame(5, $numberOfProcesses);
     }
 
     public function testGetNumberOfProcessesFallsBackToConfig(): void
     {
-        $object = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -70,14 +70,14 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
             ],
         );
 
-        $result = $this->callMethod($object, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $numberOfProcesses = $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
 
-        static::assertSame(3, $result);
+        static::assertSame(3, $numberOfProcesses);
     }
 
     public function testGetNumberOfProcessesThrowsExceptionWhenNull(): void
     {
-        $object = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -97,12 +97,12 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
-        $this->callMethod($object, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
     }
 
     public function testGetNumberOfProcessesThrowsExceptionWhenZero(): void
     {
-        $object = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -126,12 +126,12 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
-        $this->callMethod($object, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
     }
 
     public function testGetNumberOfProcessesThrowsExceptionWhenNegative(): void
     {
-        $object = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -155,7 +155,7 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
-        $this->callMethod($object, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
     }
 
     private function createTraitObject(): object
@@ -165,11 +165,11 @@ final class WorkerNumberOfProcessesTraitTest extends TestCase
         };
     }
 
-    private function callMethod(object $object, string $method, array $args = []): mixed
+    private function callMethod(object $workerNumberOfProcessesTraitObject, string $method, array $args = []): mixed
     {
-        $reflection = new ReflectionMethod($object, $method);
+        $reflection = new ReflectionMethod($workerNumberOfProcessesTraitObject, $method);
         $reflection->setAccessible(true);
 
-        return $reflection->invokeArgs($object, $args);
+        return $reflection->invokeArgs($workerNumberOfProcessesTraitObject, $args);
     }
 }

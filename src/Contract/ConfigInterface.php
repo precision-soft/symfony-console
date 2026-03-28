@@ -15,4 +15,6 @@ interface ConfigInterface
     public function getLogsDir(): string;
 
     public function getConfFilesDir(): string;
+
+    public function getSettings(): SettingInterface;
 }

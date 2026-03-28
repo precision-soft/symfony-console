@@ -52,7 +52,7 @@ trait MemoryLimitTrait
         $memoryLimit = MemoryService::returnBytes($this->memoryLimit);
         $memoryUsage = \memory_get_usage(true);
 
-        if ($memoryUsage > $memoryLimit) {
+        if ($memoryLimit < $memoryUsage) {
             $humanReadableMemoryUsed = MemoryService::convertBytesToHumanReadable($memoryUsage);
             $humanReadableMemoryLimit = MemoryService::convertBytesToHumanReadable($memoryLimit);
 

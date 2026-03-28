@@ -1,4 +1,4 @@
-# Symfony Console Bundle
+# Symfony Console
 
 A Symfony bundle for generating configuration files for cron jobs and workers. It supports multiple output templates including crontab, Supervisor, and Kubernetes (CronJob and Worker) formats.
 

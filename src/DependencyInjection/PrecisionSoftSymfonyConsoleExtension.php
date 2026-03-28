@@ -23,9 +23,9 @@ class PrecisionSoftSymfonyConsoleExtension extends Extension
         $loader->load('services.php');
 
         $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
+        $processedConfiguration = $this->processConfiguration($configuration, $configs);
 
-        $containerBuilder->setParameter('precision_soft_symfony_console.cronjob', $config[Configuration::CRONJOB] ?? null);
-        $containerBuilder->setParameter('precision_soft_symfony_console.worker', $config[Configuration::WORKER] ?? null);
+        $containerBuilder->setParameter('precision_soft_symfony_console.cronjob', $processedConfiguration[Configuration::CRONJOB] ?? null);
+        $containerBuilder->setParameter('precision_soft_symfony_console.worker', $processedConfiguration[Configuration::WORKER] ?? null);
     }
 }
