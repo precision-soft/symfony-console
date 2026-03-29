@@ -9,57 +9,26 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CronjobDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class CronjobCreateCommand extends AbstractCommand
+class CronjobCreateCommand extends AbstractCreateConfigCommand
 {
     public const NAME = 'precision-soft:symfony:console:cronjob-create';
 
-    private readonly ?CronjobDto $cronjobDto;
-
+    /**
+     * @param array<string, mixed>|null $cronjobConfiguration
+     */
     public function __construct(
-        private readonly ConfGenerateService $confGenerateService,
-        ?array $config,
+        ConfGenerateService $confGenerateService,
+        ?array $cronjobConfiguration,
     ) {
-        $this->cronjobDto = null === $config ? null : new CronjobDto($config);
+        $cronjobDto = null === $cronjobConfiguration ? null : new CronjobDto($cronjobConfiguration);
 
-        parent::__construct(static::NAME);
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        if (null === $this->cronjobDto) {
-            $this->warning('no configuration is set');
-
-            return static::SUCCESS;
-        }
-
-        try {
-            $configurationFiles = $this->confGenerateService->generate(
-                $this->cronjobDto->getConfig(),
-                $this->cronjobDto->getCommands(),
-            );
-
-            $configurationFilesCount = \count($configurationFiles);
-
-            if (0 === $configurationFilesCount) {
-                $this->warning('no conf files were generated');
-            } else {
-                $this->success(\sprintf('generated `%s` conf files', $configurationFilesCount));
-
-                foreach ($configurationFiles as $configurationFile) {
-                    $this->writeln($configurationFile);
-                }
-            }
-        } catch (Exception $exception) {
-            $this->error($exception->getMessage(), $exception);
-
-            return static::FAILURE;
-        }
-
-        return static::SUCCESS;
+        parent::__construct(
+            $confGenerateService,
+            $cronjobDto?->getConfig(),
+            $cronjobDto?->getCommands() ?? [],
+            self::NAME,
+        );
     }
 }

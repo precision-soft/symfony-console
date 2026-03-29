@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Service;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\AttributeService;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -20,8 +21,13 @@ class AttributeServiceTestCommand extends Command {}
 /**
  * @internal
  */
-final class AttributeServiceTest extends TestCase
+final class AttributeServiceTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(AttributeService::class);
+    }
+
     public function testGetCommandNameReturnsNameForClassWithAttribute(): void
     {
         $commandName = AttributeService::getCommandName(AttributeServiceTestCommand::class);

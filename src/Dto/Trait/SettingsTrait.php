@@ -26,6 +26,7 @@ trait SettingsTrait
         return null !== $value ? (string)$value : null;
     }
 
+    /** @param array<string, mixed> $data */
     protected function loadProperties(array $data): void
     {
         $this->settings = new stdClass();

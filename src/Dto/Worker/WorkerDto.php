@@ -13,8 +13,10 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 class WorkerDto
 {
     private ConfigDto $config;
+    /** @var array<string, CommandDto> */
     private array $commands;
 
+    /** @param array<string, mixed> $worker */
     public function __construct(array $worker)
     {
         $this->config = new ConfigDto($worker[Configuration::CONFIG]);

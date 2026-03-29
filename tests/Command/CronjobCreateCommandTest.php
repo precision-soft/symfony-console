@@ -9,19 +9,13 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Command;
 
 use Mockery;
-use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
-use PrecisionSoft\Symfony\Console\Dto\Cronjob\CronjobDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use ReflectionMethod;
-use ReflectionProperty;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 
 /**
  * @internal
@@ -29,6 +23,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class CronjobCreateCommandTest extends AbstractTestCase
 {
     public static function getMockDto(): MockDto
+    {
+        return new MockDto(
+            CronjobCreateCommand::class,
+            null,
+            true,
+        );
+    }
+
+    public function testExecuteGeneratesConfFiles(): void
     {
         $config = [
             Configuration::CONFIG => [
@@ -60,58 +63,34 @@ final class CronjobCreateCommandTest extends AbstractTestCase
             ],
         ];
 
-        $class = CronjobCreateCommand::class;
+        $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
+        $confGenerateServiceMock->shouldReceive('generate')
+            ->once()
+            ->andReturn(['test']);
 
-        return new MockDto(
-            $class,
-            null,
-            false,
-            function (MockInterface $cronjobCreateCommand) use ($config, $class): void {
-                $property = new ReflectionProperty($class, 'cronjobDto');
-                $property->setAccessible(true);
-                $property->setValue($cronjobCreateCommand, new CronjobDto($config));
+        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateServiceMock, $config);
+        $commandTester = new CommandTester($cronjobCreateCommand);
 
-                $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
+        $commandTester->execute([]);
 
-                $confGenerateServiceMock->shouldReceive('generate')
-                    ->once()
-                    ->andReturn(['test']);
+        static::assertSame(CronjobCreateCommand::SUCCESS, $commandTester->getStatusCode());
 
-                $property = new ReflectionProperty($class, 'confGenerateService');
-                $property->setAccessible(true);
-                $property->setValue($cronjobCreateCommand, $confGenerateServiceMock);
-
-                $cronjobCreateCommand->shouldAllowMockingProtectedMethods();
-
-                $cronjobCreateCommand->shouldReceive('error')
-                    ->byDefault()
-                    ->andReturnUsing(
-                        function (string $message): void {
-                            throw new Exception($message);
-                        },
-                    );
-
-                $cronjobCreateCommand->shouldReceive('writeln')
-                    ->once();
-
-                $cronjobCreateCommand->shouldReceive('success')
-                    ->once();
-            },
-        );
+        $display = $commandTester->getDisplay();
+        static::assertStringContainsString('test', $display);
     }
 
-    public function test(): void
+    public function testExecuteWithNullConfigOutputsWarning(): void
     {
-        $method = new ReflectionMethod(CronjobCreateCommand::class, 'execute');
-        $method->setAccessible(true);
+        $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $output = Mockery::mock(OutputInterface::class);
+        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateServiceMock, null);
+        $commandTester = new CommandTester($cronjobCreateCommand);
 
-        $cronjobCreateCommand = $this->get(CronjobCreateCommand::class);
+        $commandTester->execute([]);
 
-        $response = $method->invoke($cronjobCreateCommand, $input, $output);
+        static::assertSame(CronjobCreateCommand::SUCCESS, $commandTester->getStatusCode());
 
-        static::assertSame(CronjobCreateCommand::SUCCESS, $response);
+        $display = $commandTester->getDisplay();
+        static::assertStringContainsString('no configuration is set', $display);
     }
 }

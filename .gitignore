@@ -4,6 +4,7 @@
 /.php-cs-fixer.cache
 /.phpunit.result.cache
 /.phpunit.cache/
+/phpunit.xml
 /var/
 /.claude/
 /CLAUDE.md

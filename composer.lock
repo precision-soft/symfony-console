@@ -2451,16 +2451,16 @@
         },
         {
             "name": "precision-soft/symfony-phpunit",
-            "version": "v2.0.1",
+            "version": "v2.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/precision-soft/symfony-phpunit.git",
-                "reference": "05bd9d067edf952ec4fb3045904b816ba1895b90"
+                "reference": "23276f32c2d9596fecb4358068fec8228ea3809a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/05bd9d067edf952ec4fb3045904b816ba1895b90",
-                "reference": "05bd9d067edf952ec4fb3045904b816ba1895b90",
+                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/23276f32c2d9596fecb4358068fec8228ea3809a",
+                "reference": "23276f32c2d9596fecb4358068fec8228ea3809a",
                 "shasum": ""
             },
             "require": {
@@ -2472,7 +2472,7 @@
                 "doctrine/doctrine-bundle": "2.*",
                 "doctrine/orm": "3.*",
                 "friendsofphp/php-cs-fixer": "3.*",
-                "phpstan/phpstan": "^1.0",
+                "phpstan/phpstan": "1.*",
                 "symfony/framework-bundle": "7.*"
             },
             "suggest": {
@@ -2496,7 +2496,7 @@
                     "email": "adrian.jeledintan@precision-soft.com"
                 }
             ],
-            "description": "library used to make writing phpunit tests easier",
+            "description": "Mockery-based mock container and test utilities for Symfony PHPUnit",
             "homepage": "https://github.com/precision-soft/symfony-phpunit",
             "keywords": [
                 "mockery",
@@ -2505,9 +2505,9 @@
             ],
             "support": {
                 "issues": "https://github.com/precision-soft/symfony-phpunit/issues",
-                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.0.1"
+                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.0.3"
             },
-            "time": "2026-03-28T19:55:10+00:00"
+            "time": "2026-03-29T19:16:52+00:00"
         },
         {
             "name": "react/cache",

@@ -8,8 +8,13 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Template\Trait;
 
+use PrecisionSoft\Symfony\Console\Exception\Exception;
+
 trait KubernetesJobTrait
 {
+    /**
+     * @param array<string, mixed> $array
+     */
     private function convertArrayToString(
         array $array,
         int $baseIndentLevel = 0,
@@ -26,7 +31,7 @@ trait KubernetesJobTrait
                 continue;
             }
 
-            $command[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, $entryValue);
+            $command[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, $this->escapeYamlValue((string)$entryValue));
         }
 
         return \implode(\PHP_EOL, $command);
@@ -34,7 +39,26 @@ trait KubernetesJobTrait
 
     private function sanitize(string $input): string
     {
-        return (string)\preg_replace('/[^a-z0-9\\-]+/i', '-', $input);
+        $sanitizedInput = \preg_replace('/[^a-z0-9\\-]+/i', '-', $input);
+
+        if (null === $sanitizedInput) {
+            throw new Exception(\sprintf('failed to sanitize input `%s`', $input));
+        }
+
+        return $sanitizedInput;
+    }
+
+    private function escapeYamlValue(string $value): string
+    {
+        if (1 === \preg_match('/[:#{}\\[\\],&*?|\\-<>=!%@\\\\\'"\\n\\r\\t]/', $value)) {
+            return \sprintf('"%s"', \str_replace(
+                ['\\', '"', "\n", "\r", "\t"],
+                ['\\\\', '\\"', '\\n', '\\r', '\\t'],
+                $value,
+            ));
+        }
+
+        return $value;
     }
 
     private function getIndent(int $level = 1, int $size = 4): string

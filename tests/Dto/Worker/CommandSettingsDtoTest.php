@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Worker;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandSettingsDto;
 
 /**
  * @internal
  */
-final class CommandSettingsDtoTest extends TestCase
+final class CommandSettingsDtoTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(CommandSettingsDto::class);
+    }
+
     public function testDefaultsAreNull(): void
     {
         $commandSettingsDto = new CommandSettingsDto([]);

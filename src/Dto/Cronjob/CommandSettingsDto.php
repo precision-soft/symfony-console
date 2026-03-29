@@ -17,6 +17,7 @@ class CommandSettingsDto implements SettingInterface
 
     private ?bool $log = null;
 
+    /** @param array<string, mixed> $settings */
     public function __construct(array $settings)
     {
         $this->loadProperties($settings);

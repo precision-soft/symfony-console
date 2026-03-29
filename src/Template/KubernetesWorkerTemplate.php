@@ -53,17 +53,20 @@ class KubernetesWorkerTemplate implements TemplateInterface
             throw new Exception('the `destination file` is mandatory for kubernetes worker template');
         }
 
-        $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
+        $workerConfigPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 
         if (0 < \count($workers)) {
-            $confFilesDto->addFile($crontabPath, $content);
+            $confFilesDto->addFile($workerConfigPath, $content);
         }
 
         return $confFilesDto;
     }
 
+    /**
+     * @return array<string, string|int>
+     */
     protected function buildCommand(
         CommandDto $commandDto,
         ConfigDto $configDto,

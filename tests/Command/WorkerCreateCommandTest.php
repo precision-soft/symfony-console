@@ -9,19 +9,13 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Command;
 
 use Mockery;
-use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
-use PrecisionSoft\Symfony\Console\Dto\Worker\WorkerDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use ReflectionMethod;
-use ReflectionProperty;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 
 /**
  * @internal
@@ -29,6 +23,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class WorkerCreateCommandTest extends AbstractTestCase
 {
     public static function getMockDto(): MockDto
+    {
+        return new MockDto(
+            WorkerCreateCommand::class,
+            null,
+            true,
+        );
+    }
+
+    public function testExecuteGeneratesConfFiles(): void
     {
         $config = [
             Configuration::CONFIG => [
@@ -55,58 +58,34 @@ final class WorkerCreateCommandTest extends AbstractTestCase
             ],
         ];
 
-        $class = WorkerCreateCommand::class;
+        $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
+        $confGenerateServiceMock->shouldReceive('generate')
+            ->once()
+            ->andReturn(['test']);
 
-        return new MockDto(
-            $class,
-            null,
-            false,
-            function (MockInterface $workerCreateCommand) use ($config, $class): void {
-                $property = new ReflectionProperty($class, 'workerDto');
-                $property->setAccessible(true);
-                $property->setValue($workerCreateCommand, new WorkerDto($config));
+        $workerCreateCommand = new WorkerCreateCommand($confGenerateServiceMock, $config);
+        $commandTester = new CommandTester($workerCreateCommand);
 
-                $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
+        $commandTester->execute([]);
 
-                $confGenerateServiceMock->shouldReceive('generate')
-                    ->once()
-                    ->andReturn(['test']);
+        static::assertSame(WorkerCreateCommand::SUCCESS, $commandTester->getStatusCode());
 
-                $property = new ReflectionProperty($class, 'confGenerateService');
-                $property->setAccessible(true);
-                $property->setValue($workerCreateCommand, $confGenerateServiceMock);
-
-                $workerCreateCommand->shouldAllowMockingProtectedMethods();
-
-                $workerCreateCommand->shouldReceive('error')
-                    ->byDefault()
-                    ->andReturnUsing(
-                        function (string $message): void {
-                            throw new Exception($message);
-                        },
-                    );
-
-                $workerCreateCommand->shouldReceive('writeln')
-                    ->once();
-
-                $workerCreateCommand->shouldReceive('success')
-                    ->once();
-            },
-        );
+        $display = $commandTester->getDisplay();
+        static::assertStringContainsString('test', $display);
     }
 
-    public function test(): void
+    public function testExecuteWithNullConfigOutputsWarning(): void
     {
-        $method = new ReflectionMethod(WorkerCreateCommand::class, 'execute');
-        $method->setAccessible(true);
+        $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $output = Mockery::mock(OutputInterface::class);
+        $workerCreateCommand = new WorkerCreateCommand($confGenerateServiceMock, null);
+        $commandTester = new CommandTester($workerCreateCommand);
 
-        $workerCreateCommand = $this->get(WorkerCreateCommand::class);
+        $commandTester->execute([]);
 
-        $response = $method->invoke($workerCreateCommand, $input, $output);
+        static::assertSame(WorkerCreateCommand::SUCCESS, $commandTester->getStatusCode());
 
-        static::assertSame(WorkerCreateCommand::SUCCESS, $response);
+        $display = $commandTester->getDisplay();
+        static::assertStringContainsString('no configuration is set', $display);
     }
 }

@@ -16,6 +16,7 @@ trait InstancesTrait
     protected const MAX_INSTANCES = 'max-instances';
     protected const INSTANCE_INDEX = 'instance-index';
 
+    /** @return array{int, int} */
     protected function computeInstances(): array
     {
         $maxInstancesOption = $this->input->getOption(self::MAX_INSTANCES);

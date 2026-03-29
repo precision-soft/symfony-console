@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Service;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\MemoryService;
 
 /**
  * @internal
  */
-final class MemoryServiceTest extends TestCase
+final class MemoryServiceTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(MemoryService::class);
+    }
+
     public function testReturnBytesWithPlainNumber(): void
     {
         static::assertSame(1024, MemoryService::returnBytes('1024'));
@@ -162,66 +168,74 @@ final class MemoryServiceTest extends TestCase
 
     public function testConvertBytesToHumanReadableWithDecimal(): void
     {
-        $result = MemoryService::convertBytesToHumanReadable(1536);
-        static::assertSame('1.5 KB', $result);
+        $humanReadableBytes = MemoryService::convertBytesToHumanReadable(1536);
+        static::assertSame('1.5 KB', $humanReadableBytes);
     }
 
     public function testGetMemoryUsageReturnsString(): void
     {
-        $result = MemoryService::getMemoryUsage();
-        static::assertIsString($result);
-        static::assertMatchesRegularExpression('/^\d+\.?\d*\s(B|KB|MB|GB|TB|PB)$/', $result);
+        $memoryUsage = MemoryService::getMemoryUsage();
+        static::assertIsString($memoryUsage);
+        static::assertMatchesRegularExpression('/^\d+\.?\d*\s(B|KB|MB|GB|TB|PB)$/', $memoryUsage);
     }
 
     public function testSetMemoryLimitIfNotHigherWithUnlimitedMemory(): void
     {
         $originalLimit = \ini_get('memory_limit');
 
-        \ini_set('memory_limit', '-1');
+        try {
+            \ini_set('memory_limit', '-1');
 
-        MemoryService::setMemoryLimitIfNotHigher('512M');
+            MemoryService::setMemoryLimitIfNotHigher('512M');
 
-        static::assertSame('-1', \ini_get('memory_limit'));
-
-        \ini_set('memory_limit', $originalLimit);
+            static::assertSame('-1', \ini_get('memory_limit'));
+        } finally {
+            \ini_set('memory_limit', $originalLimit);
+        }
     }
 
     public function testSetMemoryLimitIfNotHigherWhenNewLimitIsHigher(): void
     {
         $originalLimit = \ini_get('memory_limit');
 
-        \ini_set('memory_limit', '64M');
+        try {
+            \ini_set('memory_limit', '64M');
 
-        MemoryService::setMemoryLimitIfNotHigher('256M');
+            MemoryService::setMemoryLimitIfNotHigher('256M');
 
-        static::assertSame('256M', \ini_get('memory_limit'));
-
-        \ini_set('memory_limit', $originalLimit);
+            static::assertSame('256M', \ini_get('memory_limit'));
+        } finally {
+            \ini_set('memory_limit', $originalLimit);
+        }
     }
 
     public function testSetMemoryLimitIfNotHigherWhenCurrentLimitIsHigher(): void
     {
         $originalLimit = \ini_get('memory_limit');
 
-        \ini_set('memory_limit', '512M');
+        try {
+            \ini_set('memory_limit', '512M');
 
-        MemoryService::setMemoryLimitIfNotHigher('128M');
+            MemoryService::setMemoryLimitIfNotHigher('128M');
 
-        static::assertSame('512M', \ini_get('memory_limit'));
-
-        \ini_set('memory_limit', $originalLimit);
+            static::assertSame('512M', \ini_get('memory_limit'));
+        } finally {
+            \ini_set('memory_limit', $originalLimit);
+        }
     }
 
     public function testSetMemoryLimitIfNotHigherWhenEqual(): void
     {
         $originalLimit = \ini_get('memory_limit');
 
-        \ini_set('memory_limit', '256M');
+        try {
+            \ini_set('memory_limit', '256M');
 
-        MemoryService::setMemoryLimitIfNotHigher('256M');
+            MemoryService::setMemoryLimitIfNotHigher('256M');
 
-        static::assertSame('256M', \ini_get('memory_limit'));
-
-        \ini_set('memory_limit', $originalLimit);
+            static::assertSame('256M', \ini_get('memory_limit'));
+        } finally {
+            \ini_set('memory_limit', $originalLimit);
+        }
     }
 }

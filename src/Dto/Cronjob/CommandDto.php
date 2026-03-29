@@ -17,10 +17,14 @@ class CommandDto implements SettingsInterface
     private readonly ?string $logFileName;
     private readonly ?string $user;
     private readonly ?string $destinationFile;
+    /** @var array<int, string> */
     private readonly array $command;
     private readonly ScheduleDto $schedule;
     private readonly CommandSettingsDto $settings;
 
+    /**
+     * @param array<string, mixed> $parameters
+     */
     public function __construct(
         private readonly string $name,
         array $parameters,
@@ -35,7 +39,7 @@ class CommandDto implements SettingsInterface
         }
 
         $this->schedule = new ScheduleDto($parameters[Configuration::SCHEDULE]);
-        $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS]);
+        $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);
     }
 
     public function getName(): string
@@ -58,6 +62,7 @@ class CommandDto implements SettingsInterface
         return $this->destinationFile;
     }
 
+    /** @return array<int, string> */
     public function getCommand(): array
     {
         return $this->command;

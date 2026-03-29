@@ -25,11 +25,11 @@ final class SymfonyStyleTest extends AbstractTestCase
     public static function getMockDto(): MockDto
     {
         return new MockDto(SymfonyStyle::class, [
-            new MockDto(InputInterface::class, null, false, function ($inputInterfaceMock): void {
+            new MockDto(InputInterface::class, null, false, static function ($inputInterfaceMock): void {
                 $inputInterfaceMock->shouldReceive('isInteractive')->andReturn(false);
                 $inputInterfaceMock->shouldReceive('hasArgument')->andReturn(false);
             }),
-            new MockDto(OutputInterface::class, null, false, function ($outputInterfaceMock): void {
+            new MockDto(OutputInterface::class, null, false, static function ($outputInterfaceMock): void {
                 $outputInterfaceMock->shouldReceive('getFormatter')->andReturn(new OutputFormatter());
                 $outputInterfaceMock->shouldReceive('getVerbosity')->andReturn(OutputInterface::VERBOSITY_NORMAL);
                 $outputInterfaceMock->shouldReceive('isDecorated')->andReturn(false);

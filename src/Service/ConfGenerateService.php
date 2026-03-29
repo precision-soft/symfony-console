@@ -11,7 +11,7 @@ namespace PrecisionSoft\Symfony\Console\Service;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use Symfony\Component\Filesystem\Filesystem;
 use Throwable;
 
@@ -20,27 +20,26 @@ class ConfGenerateService
     /** @var TemplateInterface[] */
     private array $templates;
 
-    private readonly Filesystem $filesystem;
-
-    public function __construct(iterable $templates)
-    {
+    /** @param iterable<TemplateInterface> $templates */
+    public function __construct(
+        iterable $templates,
+        private readonly Filesystem $filesystem,
+    ) {
         $this->templates = [];
-        foreach ($templates as $template) {
-            $this->templates[$template::class] = $template;
+        foreach ($templates as $templateInterface) {
+            $this->templates[$templateInterface::class] = $templateInterface;
         }
-
-        $this->filesystem = new Filesystem();
     }
 
+    /**
+     * @param array<string, mixed> $commands
+     * @return array<int, string>
+     */
     public function generate(
         ConfigInterface $configInterface,
         array $commands,
     ): array {
-        try {
-            $this->initLogsDir($configInterface);
-        } catch (Throwable $throwable) {
-            throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
-        }
+        $this->initLogsDir($configInterface);
 
         $templateInterface = $this->getTemplate($configInterface);
 
@@ -49,6 +48,7 @@ class ConfGenerateService
         return $this->save($confFilesDto, $configInterface->getConfFilesDir());
     }
 
+    /** @return array<int, string> */
     private function save(ConfFilesDto $confFilesDto, string $destinationDir): array
     {
         $tempDir = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
@@ -61,7 +61,16 @@ class ConfGenerateService
             $configurationFiles = [];
 
             foreach ($confFilesDto->getFiles() as $path => $content) {
+                if (false === \str_starts_with($path, $destinationDir)) {
+                    throw new ConfGenerateException(\sprintf('path `%s` is outside destination directory `%s`', $path, $destinationDir));
+                }
+
                 $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
+
+                if (false !== \strpos($relativePath, '..')) {
+                    throw new ConfGenerateException(\sprintf('path traversal detected in `%s`', $path));
+                }
+
                 $tempPath = $tempDir . '/' . $relativePath;
 
                 $this->filesystem->dumpFile($tempPath, $content);
@@ -81,22 +90,12 @@ class ConfGenerateService
                     $this->filesystem->rename($backupDir, $destinationDir);
                 }
 
-                throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
+                throw new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
             }
 
             if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
                 $this->filesystem->remove($backupDir);
             }
-        } catch (Exception $exception) {
-            if (true === $this->filesystem->exists($tempDir)) {
-                $this->filesystem->remove($tempDir);
-            }
-
-            if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
-                $this->filesystem->remove($backupDir);
-            }
-
-            throw $exception;
         } catch (Throwable $throwable) {
             if (true === $this->filesystem->exists($tempDir)) {
                 $this->filesystem->remove($tempDir);
@@ -106,7 +105,9 @@ class ConfGenerateService
                 $this->filesystem->remove($backupDir);
             }
 
-            throw new Exception($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
+            throw $throwable instanceof ConfGenerateException
+                ? $throwable
+                : new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
         }
 
         return $configurationFiles;
@@ -116,8 +117,8 @@ class ConfGenerateService
     {
         $templateClass = $configInterface->getTemplateClass();
 
-        if (false === isset($this->templates[$templateClass])) {
-            throw new Exception(\sprintf('the template `%s` does not exist', $templateClass));
+        if (false === \array_key_exists($templateClass, $this->templates)) {
+            throw new ConfGenerateException(\sprintf('the template `%s` does not exist', $templateClass));
         }
 
         return $this->templates[$templateClass];

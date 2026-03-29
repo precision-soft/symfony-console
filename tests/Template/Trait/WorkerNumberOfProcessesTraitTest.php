@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
@@ -19,8 +20,13 @@ use ReflectionMethod;
 /**
  * @internal
  */
-final class WorkerNumberOfProcessesTraitTest extends TestCase
+final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(self::class);
+    }
+
     public function testGetNumberOfProcessesFromCommand(): void
     {
         $workerNumberOfProcessesTraitObject = $this->createTraitObject();

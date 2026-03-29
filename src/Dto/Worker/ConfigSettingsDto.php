@@ -19,6 +19,7 @@ class ConfigSettingsDto implements SettingInterface
 
     private ?string $destinationFile = null;
 
+    /** @param array<string, mixed> $settings */
     public function __construct(array $settings)
     {
         $this->loadProperties($settings);

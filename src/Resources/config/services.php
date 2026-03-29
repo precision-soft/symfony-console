@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
-return function (ContainerConfigurator $containerConfigurator) {
+return static function (ContainerConfigurator $containerConfigurator): void {
     $services = $containerConfigurator->services();
 
     $services->set(CronjobCreateCommand::class)
@@ -32,6 +32,8 @@ return function (ContainerConfigurator $containerConfigurator) {
         ->tag('console.command');
 
     $services->set(ConfGenerateService::class)
+        ->autowire()
+        ->autoconfigure()
         ->arg('$templates', new TaggedIteratorArgument(PrecisionSoftSymfonyConsoleExtension::CONSOLE_TEMPLATE));
 
     $services->set(CrontabTemplate::class)

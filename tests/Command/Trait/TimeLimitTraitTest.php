@@ -42,11 +42,11 @@ final class TimeLimitTraitTest extends AbstractTestCase
         /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('time-limit')->andReturn(false);
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('time-limit')->andReturn(false);
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeTimeLimit');
         $reflectionMethod->invoke($traitObject);
@@ -63,12 +63,12 @@ final class TimeLimitTraitTest extends AbstractTestCase
         /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('time-limit')->andReturn('300');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
+        $inputInterface->shouldReceive('getOption')->with('time-limit')->andReturn('300');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeTimeLimit');
         $reflectionMethod->invoke($traitObject);
@@ -83,12 +83,12 @@ final class TimeLimitTraitTest extends AbstractTestCase
         /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('time-limit')->andReturn(null);
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
+        $inputInterface->shouldReceive('getOption')->with('time-limit')->andReturn(null);
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeTimeLimit');
         $reflectionMethod->invoke($traitObject);
@@ -103,12 +103,12 @@ final class TimeLimitTraitTest extends AbstractTestCase
         /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('time-limit')->andReturn('');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
+        $inputInterface->shouldReceive('getOption')->with('time-limit')->andReturn('');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeTimeLimit');
         $reflectionMethod->invoke($traitObject);
@@ -127,9 +127,9 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $timeLimitProperty->setValue($traitObject, null);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($result);
+        static::assertFalse($isTimeLimitReached);
     }
 
     public function testIsTimeLimitReachedReturnsFalseWhenUnderLimit(): void
@@ -144,9 +144,9 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $startTimeProperty->setValue($traitObject, \time());
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($result);
+        static::assertFalse($isTimeLimitReached);
     }
 
     public function testIsTimeLimitReachedReturnsTrueWhenOverLimit(): void
@@ -167,9 +167,9 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($result);
+        static::assertTrue($isTimeLimitReached);
     }
 
     public function testIsTimeLimitReachedReturnsTrueWhenExactlyAtLimit(): void
@@ -190,8 +190,8 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($result);
+        static::assertTrue($isTimeLimitReached);
     }
 }

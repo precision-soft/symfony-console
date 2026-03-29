@@ -61,94 +61,94 @@ class Configuration implements ConfigurationInterface
 
     private function buildCronjob(): NodeDefinition
     {
-        $cronjobTree = (new TreeBuilder(static::CRONJOB))->getRootNode()
+        $cronjobTree = (new TreeBuilder(self::CRONJOB))->getRootNode()
             ->addDefaultsIfNotSet();
 
-        $configTree = $cronjobTree->children()->arrayNode(static::CONFIG)
+        $configTree = $cronjobTree->children()->arrayNode(self::CONFIG)
             ->addDefaultsIfNotSet();
 
         $configTree->children()
-            ->scalarNode(static::TEMPLATE_CLASS)->defaultValue(CrontabTemplate::class)->end()
-            ->scalarNode(static::CONF_FILES_DIR)->defaultValue(static::DESTINATION_DIR . 'cron')->end()
-            ->scalarNode(static::LOGS_DIR)->defaultValue('%kernel.logs_dir%/cron')->end();
+            ->scalarNode(self::TEMPLATE_CLASS)->defaultValue(CrontabTemplate::class)->end()
+            ->scalarNode(self::CONF_FILES_DIR)->defaultValue(self::DESTINATION_DIR . 'cron')->end()
+            ->scalarNode(self::LOGS_DIR)->defaultValue('%kernel.logs_dir%/cron')->end();
 
-        $configTree->children()->arrayNode(static::SETTINGS)
+        $configTree->children()->arrayNode(self::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet()
             ->children()
-            ->booleanNode(static::LOG)->defaultTrue()->end()
-            ->scalarNode(static::DESTINATION_FILE)->defaultValue('crontab')->end()
-            ->booleanNode(static::HEARTBEAT)->defaultTrue()->end()
-            ->scalarNode(static::USER)->defaultNull()->end();
+            ->booleanNode(self::LOG)->defaultTrue()->end()
+            ->scalarNode(self::DESTINATION_FILE)->defaultValue('crontab')->end()
+            ->booleanNode(self::HEARTBEAT)->defaultTrue()->end()
+            ->scalarNode(self::USER)->defaultNull()->end();
 
         /** @var NodeBuilder|ArrayNodeDefinition $commandsTree */
-        $commandsTree = $cronjobTree->children()->arrayNode(static::COMMANDS)
+        $commandsTree = $cronjobTree->children()->arrayNode(self::COMMANDS)
             ->isRequired()
-            ->useAttributeAsKey(static::NAME)
+            ->useAttributeAsKey(self::NAME)
             ->prototype('array')
             ->children();
 
-        $commandsTree->scalarNode(static::NAME)->end()
-            ->scalarNode(static::LOG_FILE_NAME)->defaultNull()->end()
-            ->scalarNode(static::USER)->defaultNull()->end()
-            ->scalarNode(static::DESTINATION_FILE)->defaultNull()->end();
+        $commandsTree->scalarNode(self::NAME)->end()
+            ->scalarNode(self::LOG_FILE_NAME)->defaultNull()->end()
+            ->scalarNode(self::USER)->defaultNull()->end()
+            ->scalarNode(self::DESTINATION_FILE)->defaultNull()->end();
 
-        $commandsTree->arrayNode(static::COMMAND)
+        $commandsTree->arrayNode(self::COMMAND)
             ->isRequired()
-            ->beforeNormalization()->ifString()->then(fn($command) => [$command])->end()
+            ->beforeNormalization()->ifString()->then(fn($commandValue) => [$commandValue])->end()
             ->scalarPrototype()->end();
 
-        $commandsTree->arrayNode(static::SCHEDULE)
+        $commandsTree->arrayNode(self::SCHEDULE)
             ->children()
-            ->scalarNode(static::MINUTE)->defaultValue('*')->end()
-            ->scalarNode(static::HOUR)->defaultValue('*')->end()
-            ->scalarNode(static::DAY_OF_MONTH)->defaultValue('*')->end()
-            ->scalarNode(static::MONTH)->defaultValue('*')->end()
-            ->scalarNode(static::DAY_OF_WEEK)->defaultValue('*')->end()
+            ->scalarNode(self::MINUTE)->defaultValue('*')->end()
+            ->scalarNode(self::HOUR)->defaultValue('*')->end()
+            ->scalarNode(self::DAY_OF_MONTH)->defaultValue('*')->end()
+            ->scalarNode(self::MONTH)->defaultValue('*')->end()
+            ->scalarNode(self::DAY_OF_WEEK)->defaultValue('*')->end()
             ->end();
 
-        $commandsTree->arrayNode(static::SETTINGS)
+        $commandsTree->arrayNode(self::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet()
             ->children()
-            ->booleanNode(static::LOG)->defaultNull()->end();
+            ->booleanNode(self::LOG)->defaultNull()->end();
 
         return $cronjobTree;
     }
 
     private function buildWorker(): NodeDefinition
     {
-        $workerTree = (new TreeBuilder(static::WORKER))->getRootNode()
+        $workerTree = (new TreeBuilder(self::WORKER))->getRootNode()
             ->addDefaultsIfNotSet();
 
-        $configTree = $workerTree->children()->arrayNode(static::CONFIG)
+        $configTree = $workerTree->children()->arrayNode(self::CONFIG)
             ->addDefaultsIfNotSet();
 
         $configTree->children()
-            ->scalarNode(static::TEMPLATE_CLASS)->defaultValue(SupervisorTemplate::class)->end()
-            ->scalarNode(static::CONF_FILES_DIR)->defaultValue(static::DESTINATION_DIR . 'worker')->end()
-            ->scalarNode(static::LOGS_DIR)->defaultValue('%kernel.logs_dir%/worker')->end();
+            ->scalarNode(self::TEMPLATE_CLASS)->defaultValue(SupervisorTemplate::class)->end()
+            ->scalarNode(self::CONF_FILES_DIR)->defaultValue(self::DESTINATION_DIR . 'worker')->end()
+            ->scalarNode(self::LOGS_DIR)->defaultValue('%kernel.logs_dir%/worker')->end();
 
-        $settingsTree = $configTree->children()->arrayNode(static::SETTINGS)
+        $settingsTree = $configTree->children()->arrayNode(self::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet();
         $this->appendSupervisorConfig($settingsTree->children());
 
         /** @var NodeBuilder|ArrayNodeDefinition $commandsTree */
-        $commandsTree = $workerTree->children()->arrayNode(static::COMMANDS)
+        $commandsTree = $workerTree->children()->arrayNode(self::COMMANDS)
             ->isRequired()
-            ->useAttributeAsKey(static::NAME)
+            ->useAttributeAsKey(self::NAME)
             ->prototype('array');
 
         $commandsTree->children()
-            ->scalarNode(static::NAME)->end()
-            ->arrayNode(static::COMMAND)
+            ->scalarNode(self::NAME)->end()
+            ->arrayNode(self::COMMAND)
             ->isRequired()
-            ->beforeNormalization()->ifString()->then(fn($command) => [$command])->end()
+            ->beforeNormalization()->ifString()->then(fn($commandValue) => [$commandValue])->end()
             ->scalarPrototype()->end()
             ->end();
 
-        $settingsTree = $commandsTree->children()->arrayNode(static::SETTINGS)
+        $settingsTree = $commandsTree->children()->arrayNode(self::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet();
         $this->appendSupervisorConfig($settingsTree->children());
@@ -156,13 +156,13 @@ class Configuration implements ConfigurationInterface
         return $workerTree;
     }
 
-    private function appendSupervisorConfig(NodeBuilder $node): void
+    private function appendSupervisorConfig(NodeBuilder $nodeBuilder): void
     {
-        $node->integerNode(static::NUMBER_OF_PROCESSES)->defaultValue(1)->end()
-            ->booleanNode(static::AUTO_START)->defaultTrue()->end()
-            ->booleanNode(static::AUTO_RESTART)->defaultTrue()->end()
-            ->scalarNode(static::PREFIX)->defaultNull()->end()
-            ->scalarNode(static::USER)->defaultNull()->end()
-            ->scalarNode(static::LOG_FILE)->defaultNull()->end();
+        $nodeBuilder->integerNode(self::NUMBER_OF_PROCESSES)->defaultValue(1)->end()
+            ->booleanNode(self::AUTO_START)->defaultTrue()->end()
+            ->booleanNode(self::AUTO_RESTART)->defaultTrue()->end()
+            ->scalarNode(self::PREFIX)->defaultNull()->end()
+            ->scalarNode(self::USER)->defaultNull()->end()
+            ->scalarNode(self::LOG_FILE)->defaultNull()->end();
     }
 }

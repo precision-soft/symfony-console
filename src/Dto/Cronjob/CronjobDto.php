@@ -13,8 +13,10 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 class CronjobDto
 {
     private ConfigDto $config;
+    /** @var array<string, CommandDto> */
     private array $commands;
 
+    /** @param array<string, mixed> $cron */
     public function __construct(array $cron)
     {
         $this->config = new ConfigDto($cron[Configuration::CONFIG]);

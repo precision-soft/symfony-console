@@ -48,8 +48,6 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'writeln');
         $reflectionMethod->invoke($traitObject, 'test message');
-
-        static::assertTrue(true);
     }
 
     public function testError(): void
@@ -67,8 +65,6 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'error');
         $reflectionMethod->invoke($traitObject, 'error message');
-
-        static::assertTrue(true);
     }
 
     public function testErrorWithThrowable(): void
@@ -88,8 +84,6 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'error');
         $reflectionMethod->invoke($traitObject, 'error message', $exception);
-
-        static::assertTrue(true);
     }
 
     public function testErrorWithThrowableAndExposeTrace(): void
@@ -97,20 +91,21 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
         /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
+        $exception = new Exception('inner error');
+
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
         $symfonyStyle->shouldReceive('error')
             ->once()
-            ->with(Mockery::pattern('/error message.*Exception/'));
+            ->with(Mockery::on(function (string $argument) use ($exception): bool {
+                return 1 === \preg_match('/error message.*Exception/', $argument)
+                    && false !== \strpos($argument, $exception->getTraceAsString());
+            }));
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'style');
         $reflectionProperty->setValue($traitObject, $symfonyStyle);
 
-        $exception = new Exception('inner error');
-
         $reflectionMethod = new ReflectionMethod($traitObject, 'error');
         $reflectionMethod->invoke($traitObject, 'error message', $exception, true);
-
-        static::assertTrue(true);
     }
 
     public function testInfo(): void
@@ -128,8 +123,6 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'info');
         $reflectionMethod->invoke($traitObject, 'info message');
-
-        static::assertTrue(true);
     }
 
     public function testWarning(): void
@@ -147,8 +140,6 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'warning');
         $reflectionMethod->invoke($traitObject, 'warning message');
-
-        static::assertTrue(true);
     }
 
     public function testSuccess(): void
@@ -166,8 +157,6 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'success');
         $reflectionMethod->invoke($traitObject, 'success message');
-
-        static::assertTrue(true);
     }
 
     public function testFormatIncludesTimestampAndMemory(): void
@@ -176,11 +165,11 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'format');
-        $result = $reflectionMethod->invoke($traitObject, 'test');
+        $formattedText = $reflectionMethod->invoke($traitObject, 'test');
 
-        static::assertMatchesRegularExpression('/^\[\d{2}:\d{2}:\d{2}\]/', $result);
-        static::assertMatchesRegularExpression('/\[[\d.]+ (B|KB|MB|GB|TB|PB)\]/', $result);
-        static::assertStringContainsString('test', $result);
+        static::assertMatchesRegularExpression('/^\[\d{2}:\d{2}:\d{2}\]/', $formattedText);
+        static::assertMatchesRegularExpression('/\[[\d.]+ (B|KB|MB|GB|TB|PB)\]/', $formattedText);
+        static::assertStringContainsString('test', $formattedText);
     }
 
     public function testFormatThrowableWithoutTrace(): void
@@ -191,11 +180,11 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
         $exception = new Exception('test error');
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
-        $result = $reflectionMethod->invoke($traitObject, $exception);
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $exception);
 
-        static::assertStringContainsString('Exception', $result);
-        static::assertStringContainsString($exception->getFile(), $result);
-        static::assertStringContainsString((string)$exception->getLine(), $result);
+        static::assertStringContainsString('Exception', $formattedThrowable);
+        static::assertStringContainsString($exception->getFile(), $formattedThrowable);
+        static::assertStringContainsString((string)$exception->getLine(), $formattedThrowable);
     }
 
     public function testFormatThrowableWithTrace(): void
@@ -206,9 +195,9 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
         $exception = new Exception('test error');
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
-        $result = $reflectionMethod->invoke($traitObject, $exception, true);
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $exception, true);
 
-        static::assertStringContainsString('Exception', $result);
-        static::assertStringContainsString($exception->getTraceAsString(), $result);
+        static::assertStringContainsString('Exception', $formattedThrowable);
+        static::assertStringContainsString($exception->getTraceAsString(), $formattedThrowable);
     }
 }

@@ -42,28 +42,30 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
     {
         $originalLimit = \ini_get('memory_limit');
 
-        /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
-        $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
+        try {
+            /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+            $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('memory-limit')->andReturn('512M');
-        $input->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('time-limit')->andReturn('600');
+            $inputInterface = Mockery::mock(InputInterface::class);
+            $inputInterface->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
+            $inputInterface->shouldReceive('getOption')->with('memory-limit')->andReturn('512M');
+            $inputInterface->shouldReceive('hasOption')->with('time-limit')->andReturn(true);
+            $inputInterface->shouldReceive('getOption')->with('time-limit')->andReturn('600');
 
-        $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+            $reflectionProperty = new ReflectionProperty($traitObject, 'input');
+            $reflectionProperty->setValue($traitObject, $inputInterface);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryAndTimeLimits');
-        $reflectionMethod->invoke($traitObject);
+            $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryAndTimeLimits');
+            $reflectionMethod->invoke($traitObject);
 
-        $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
-        $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
+            $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
+            $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
 
-        static::assertSame('512M', $memoryLimitProperty->getValue($traitObject));
-        static::assertSame(600, $timeLimitProperty->getValue($traitObject));
-
-        \ini_set('memory_limit', $originalLimit);
+            static::assertSame('512M', $memoryLimitProperty->getValue($traitObject));
+            static::assertSame(600, $timeLimitProperty->getValue($traitObject));
+        } finally {
+            \ini_set('memory_limit', $originalLimit);
+        }
     }
 
     public function testDidScriptReachedLimitsReturnsFalseWhenNoLimitsReached(): void
@@ -78,9 +80,9 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $timeLimitProperty->setValue($traitObject, null);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'hasScriptReachedLimits');
-        $result = $reflectionMethod->invoke($traitObject);
+        $hasScriptReachedLimits = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($result);
+        static::assertFalse($hasScriptReachedLimits);
     }
 
     public function testDidScriptReachedLimitsReturnsTrueWhenTimeLimitReached(): void
@@ -104,9 +106,9 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'hasScriptReachedLimits');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($result);
+        static::assertTrue($isTimeLimitReached);
     }
 
     public function testDidScriptReachedLimitsReturnsTrueWhenMemoryLimitReached(): void
@@ -127,9 +129,9 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'hasScriptReachedLimits');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($result);
+        static::assertTrue($isMemoryLimitReached);
     }
 
     public function testStopScriptIfLimitsReachedDoesNothingWhenNoLimits(): void

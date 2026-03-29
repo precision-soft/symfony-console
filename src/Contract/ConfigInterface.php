@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Contract;
 
-interface ConfigInterface
+interface ConfigInterface extends SettingsInterface
 {
     public function getTemplateClass(): string;
 

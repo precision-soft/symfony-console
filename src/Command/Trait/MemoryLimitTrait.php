@@ -25,7 +25,7 @@ trait MemoryLimitTrait
             $memoryLimit = $this->input->getOption(self::MEMORY_LIMIT);
 
             if (null !== $memoryLimit && '' !== $memoryLimit) {
-                $this->memoryLimit = (string)$memoryLimit;
+                $this->memoryLimit = $memoryLimit;
 
                 MemoryService::setMemoryLimitIfNotHigher($this->memoryLimit);
             }

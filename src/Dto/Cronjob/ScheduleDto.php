@@ -18,6 +18,7 @@ class ScheduleDto
     private readonly string $month;
     private readonly string $dayOfWeek;
 
+    /** @param array<string, string> $schedule */
     public function __construct(array $schedule)
     {
         $this->minute = $schedule[Configuration::MINUTE];

@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
@@ -17,8 +18,13 @@ use Symfony\Component\Config\Definition\Processor;
 /**
  * @internal
  */
-final class ConfigurationTest extends TestCase
+final class ConfigurationTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(Configuration::class);
+    }
+
     public function testGetConfigTreeBuilderReturnsTreeBuilder(): void
     {
         $configuration = new Configuration();

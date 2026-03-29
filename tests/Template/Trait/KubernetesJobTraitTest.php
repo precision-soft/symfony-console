@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 use ReflectionMethod;
 
 /**
  * @internal
  */
-final class KubernetesJobTraitTest extends TestCase
+final class KubernetesJobTraitTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(self::class);
+    }
+
     public function testConvertArrayToStringFlat(): void
     {
         $kubernetesJobTraitObject = $this->createTraitObject();
@@ -69,6 +75,24 @@ final class KubernetesJobTraitTest extends TestCase
         $kubernetesJobTraitObject = $this->createTraitObject();
 
         static::assertSame('already-valid-123', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['already-valid-123']));
+    }
+
+    public function testEscapeYamlValueWithNewlines(): void
+    {
+        $kubernetesJobTraitObject = $this->createTraitObject();
+
+        $escapedValue = $this->callMethod($kubernetesJobTraitObject, 'escapeYamlValue', ["line1\nline2"]);
+
+        static::assertSame('"line1\\nline2"', $escapedValue);
+    }
+
+    public function testEscapeYamlValueWithTab(): void
+    {
+        $kubernetesJobTraitObject = $this->createTraitObject();
+
+        $escapedValue = $this->callMethod($kubernetesJobTraitObject, 'escapeYamlValue', ["value\twith\ttabs"]);
+
+        static::assertSame('"value\\twith\\ttabs"', $escapedValue);
     }
 
     public function testGetIndent(): void

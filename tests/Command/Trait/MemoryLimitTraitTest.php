@@ -42,11 +42,11 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('memory-limit')->andReturn(false);
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('memory-limit')->andReturn(false);
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryLimit');
         $reflectionMethod->invoke($traitObject);
@@ -60,24 +60,26 @@ final class MemoryLimitTraitTest extends AbstractTestCase
     {
         $originalLimit = \ini_get('memory_limit');
 
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
-        $traitObject = $this->get(MemoryLimitTraitTestObject::class);
+        try {
+            /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+            $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('memory-limit')->andReturn('256M');
+            $inputInterface = Mockery::mock(InputInterface::class);
+            $inputInterface->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
+            $inputInterface->shouldReceive('getOption')->with('memory-limit')->andReturn('256M');
 
-        $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+            $reflectionProperty = new ReflectionProperty($traitObject, 'input');
+            $reflectionProperty->setValue($traitObject, $inputInterface);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryLimit');
-        $reflectionMethod->invoke($traitObject);
+            $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryLimit');
+            $reflectionMethod->invoke($traitObject);
 
-        $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
+            $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
 
-        static::assertSame('256M', $memoryLimitProperty->getValue($traitObject));
-
-        \ini_set('memory_limit', $originalLimit);
+            static::assertSame('256M', $memoryLimitProperty->getValue($traitObject));
+        } finally {
+            \ini_set('memory_limit', $originalLimit);
+        }
     }
 
     public function testInitializeMemoryLimitWithNullOption(): void
@@ -85,12 +87,12 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('memory-limit')->andReturn(null);
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
+        $inputInterface->shouldReceive('getOption')->with('memory-limit')->andReturn(null);
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryLimit');
         $reflectionMethod->invoke($traitObject);
@@ -105,12 +107,12 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
-        $input->shouldReceive('getOption')->with('memory-limit')->andReturn('');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('memory-limit')->andReturn(true);
+        $inputInterface->shouldReceive('getOption')->with('memory-limit')->andReturn('');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'initializeMemoryLimit');
         $reflectionMethod->invoke($traitObject);
@@ -129,9 +131,9 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $memoryLimitProperty->setValue($traitObject, null);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isMemoryLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($result);
+        static::assertFalse($isMemoryLimitReached);
     }
 
     public function testIsMemoryLimitReachedReturnsFalseWhenUnderLimit(): void
@@ -149,9 +151,9 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isMemoryLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($result);
+        static::assertFalse($isMemoryLimitReached);
     }
 
     public function testIsMemoryLimitReachedReturnsTrueWhenOverLimit(): void
@@ -169,8 +171,8 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'isMemoryLimitReached');
-        $result = $reflectionMethod->invoke($traitObject);
+        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($result);
+        static::assertTrue($isMemoryLimitReached);
     }
 }

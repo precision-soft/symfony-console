@@ -17,6 +17,7 @@ class CommandSettingsDto implements SettingInterface
     use SettingsTrait;
     use SupervisorSettingsTrait;
 
+    /** @param array<string, mixed> $settings */
     public function __construct(array $settings)
     {
         $this->loadProperties($settings);

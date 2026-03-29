@@ -69,7 +69,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         $content = \reset($files);
         static::assertStringContainsString('* * * * * test', $content);
         static::assertStringContainsString('GENERATED FILE', $content);
-        static::assertStringContainsString('>> test/test.log 2>&1', $content);
+        static::assertStringContainsString(">> 'test/test.log' 2>&1", $content);
         static::assertStringContainsString('/bin/touch', $content);
     }
 }

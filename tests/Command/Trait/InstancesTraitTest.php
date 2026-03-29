@@ -40,17 +40,17 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('3');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('2');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('3');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('2');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
-        $result = $reflectionMethod->invoke($traitObject);
+        $computedInstances = $reflectionMethod->invoke($traitObject);
 
-        static::assertSame([3, 2], $result);
+        static::assertSame([3, 2], $computedInstances);
     }
 
     public function testComputeInstancesThrowsExceptionWhenMaxInstancesIsZero(): void
@@ -58,12 +58,12 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('0');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('1');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('0');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('1');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('invalid instances and instance index provided');
@@ -77,12 +77,12 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('3');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('0');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('3');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('0');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('invalid instances and instance index provided');
@@ -96,12 +96,12 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('3');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('5');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('3');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('5');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('invalid instances and instance index provided');
@@ -115,12 +115,12 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('-1');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('1');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('-1');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('1');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $this->expectException(Exception::class);
 
@@ -133,17 +133,17 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('5');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('3');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('5');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('3');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'formatMessageWithInstances');
-        $result = $reflectionMethod->invoke($traitObject, 'Processing items');
+        $formattedMessage = $reflectionMethod->invoke($traitObject, 'Processing items');
 
-        static::assertSame('[3/5] Processing items', $result);
+        static::assertSame('[3/5] Processing items', $formattedMessage);
     }
 
     public function testComputeInstancesWithIndexEqualToMax(): void
@@ -151,17 +151,17 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('3');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('3');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('3');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('3');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
-        $result = $reflectionMethod->invoke($traitObject);
+        $computedInstances = $reflectionMethod->invoke($traitObject);
 
-        static::assertSame([3, 3], $result);
+        static::assertSame([3, 3], $computedInstances);
     }
 
     public function testComputeInstancesSingleInstance(): void
@@ -169,16 +169,16 @@ final class InstancesTraitTest extends AbstractTestCase
         /** @var InstancesTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
-        $input = Mockery::mock(InputInterface::class);
-        $input->shouldReceive('getOption')->with('max-instances')->andReturn('1');
-        $input->shouldReceive('getOption')->with('instance-index')->andReturn('1');
+        $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('1');
+        $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('1');
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
-        $reflectionProperty->setValue($traitObject, $input);
+        $reflectionProperty->setValue($traitObject, $inputInterface);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
-        $result = $reflectionMethod->invoke($traitObject);
+        $computedInstances = $reflectionMethod->invoke($traitObject);
 
-        static::assertSame([1, 1], $result);
+        static::assertSame([1, 1], $computedInstances);
     }
 }

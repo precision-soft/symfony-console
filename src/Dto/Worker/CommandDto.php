@@ -13,9 +13,13 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 
 class CommandDto implements SettingsInterface
 {
+    /** @var array<int, string> */
     private readonly array $command;
     private readonly CommandSettingsDto $settings;
 
+    /**
+     * @param array<string, mixed> $parameters
+     */
     public function __construct(
         private readonly string $name,
         array $parameters,
@@ -29,6 +33,7 @@ class CommandDto implements SettingsInterface
         return $this->name;
     }
 
+    /** @return array<int, string> */
     public function getCommand(): array
     {
         return $this->command;

@@ -16,17 +16,24 @@ use Symfony\Component\Console\Attribute\AsCommand;
 class AttributeService
 {
     /**
+     * @param class-string $commandClass
      * @throws ReflectionException
      */
     public static function getCommandName(string $commandClass): string
     {
         $reflectionClass = new ReflectionClass($commandClass);
-        $attributes = $reflectionClass->getAttributes(AsCommand::class);
+        $reflectionAttributes = $reflectionClass->getAttributes(AsCommand::class);
 
-        foreach ($attributes as $attribute) {
-            $instance = $attribute->newInstance();
+        foreach ($reflectionAttributes as $reflectionAttribute) {
+            $asCommand = $reflectionAttribute->newInstance();
 
-            return $instance->name;
+            if (null === $asCommand->name) {
+                throw new Exception(
+                    \sprintf('the `AsCommand` attribute on `%s` has a null name', $commandClass),
+                );
+            }
+
+            return $asCommand->name;
         }
 
         throw new Exception(

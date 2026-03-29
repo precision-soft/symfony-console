@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Cronjob;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigSettingsDto;
 
 /**
  * @internal
  */
-final class ConfigSettingsDtoTest extends TestCase
+final class ConfigSettingsDtoTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(ConfigSettingsDto::class);
+    }
+
     public function testAllGetters(): void
     {
         $configSettingsDto = new ConfigSettingsDto([

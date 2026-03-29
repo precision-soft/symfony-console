@@ -9,57 +9,26 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Dto\Worker\WorkerDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-class WorkerCreateCommand extends AbstractCommand
+class WorkerCreateCommand extends AbstractCreateConfigCommand
 {
     public const NAME = 'precision-soft:symfony:console:worker-create';
 
-    private readonly ?WorkerDto $workerDto;
-
+    /**
+     * @param array<string, mixed>|null $workerConfiguration
+     */
     public function __construct(
-        private readonly ConfGenerateService $confGenerateService,
-        ?array $config,
+        ConfGenerateService $confGenerateService,
+        ?array $workerConfiguration,
     ) {
-        $this->workerDto = null === $config ? null : new WorkerDto($config);
+        $workerDto = null === $workerConfiguration ? null : new WorkerDto($workerConfiguration);
 
-        parent::__construct(static::NAME);
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        if (null === $this->workerDto) {
-            $this->warning('no configuration is set');
-
-            return static::SUCCESS;
-        }
-
-        try {
-            $configurationFiles = $this->confGenerateService->generate(
-                $this->workerDto->getConfig(),
-                $this->workerDto->getCommands(),
-            );
-
-            $configurationFilesCount = \count($configurationFiles);
-
-            if (0 === $configurationFilesCount) {
-                $this->warning('no conf files were generated');
-            } else {
-                $this->success(\sprintf('generated `%s` conf files', $configurationFilesCount));
-
-                foreach ($configurationFiles as $configurationFile) {
-                    $this->writeln($configurationFile);
-                }
-            }
-        } catch (Exception $exception) {
-            $this->error($exception->getMessage(), $exception);
-
-            return static::FAILURE;
-        }
-
-        return static::SUCCESS;
+        parent::__construct(
+            $confGenerateService,
+            $workerDto?->getConfig(),
+            $workerDto?->getCommands() ?? [],
+            self::NAME,
+        );
     }
 }

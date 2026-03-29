@@ -19,8 +19,8 @@ class PrecisionSoftSymfonyConsoleExtension extends Extension
 
     public function load(array $configs, ContainerBuilder $containerBuilder): void
     {
-        $loader = new PhpFileLoader($containerBuilder, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('services.php');
+        $phpFileLoader = new PhpFileLoader($containerBuilder, new FileLocator(__DIR__ . '/../Resources/config'));
+        $phpFileLoader->load('services.php');
 
         $configuration = new Configuration();
         $processedConfiguration = $this->processConfiguration($configuration, $configs);

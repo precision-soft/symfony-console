@@ -20,6 +20,7 @@ class ConfigSettingsDto implements SettingInterface
     private bool $heartbeat;
     private ?string $user = null;
 
+    /** @param array<string, mixed> $settings */
     public function __construct(array $settings)
     {
         $this->loadProperties($settings);

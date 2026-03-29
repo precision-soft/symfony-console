@@ -56,6 +56,9 @@ class KubernetesCronjobTemplate implements TemplateInterface
         return $confFilesDto;
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function buildCommand(
         CommandDto $commandDto,
         ConfigDto $configDto,

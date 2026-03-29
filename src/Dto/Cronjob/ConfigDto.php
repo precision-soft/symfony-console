@@ -9,16 +9,16 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Dto\Cronjob;
 
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
-use PrecisionSoft\Symfony\Console\Contract\SettingsInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Trait\ConfigTrait;
 
-class ConfigDto implements ConfigInterface, SettingsInterface
+class ConfigDto implements ConfigInterface
 {
     use ConfigTrait;
 
     private ConfigSettingsDto $settings;
 
+    /** @param array<string, mixed> $config */
     public function __construct(array $config)
     {
         $this->setConfigs($config);

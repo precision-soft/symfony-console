@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Exception;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Exception as BaseException;
+use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Exception\LimitExceededException;
 use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
@@ -16,13 +19,18 @@ use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
 /**
  * @internal
  */
-final class ExceptionTest extends TestCase
+final class ExceptionTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(Exception::class);
+    }
+
     public function testExceptionExtendsBaseException(): void
     {
         $exception = new Exception('test message');
 
-        static::assertInstanceOf(\Exception::class, $exception);
+        static::assertInstanceOf(BaseException::class, $exception);
         static::assertSame('test message', $exception->getMessage());
     }
 
@@ -39,6 +47,22 @@ final class ExceptionTest extends TestCase
         $exception = new SettingNotFound('timeout', 'App\\Config\\Settings');
 
         static::assertSame('the setting `timeout` is not set for `App\\Config\\Settings`', $exception->getMessage());
+    }
+
+    public function testConfGenerateExceptionExtendsException(): void
+    {
+        $confGenerateException = new ConfGenerateException('generate failed');
+
+        static::assertInstanceOf(Exception::class, $confGenerateException);
+        static::assertSame('generate failed', $confGenerateException->getMessage());
+    }
+
+    public function testConfGenerateExceptionWithPreviousThrowable(): void
+    {
+        $previousException = new Exception('root cause');
+        $confGenerateException = new ConfGenerateException('generate failed', 0, $previousException);
+
+        static::assertSame($previousException, $confGenerateException->getPrevious());
     }
 
     public function testLimitExceededExceptionExtendsException(): void

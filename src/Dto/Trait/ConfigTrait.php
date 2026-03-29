@@ -31,6 +31,7 @@ trait ConfigTrait
         return $this->logsDir;
     }
 
+    /** @param array<string, mixed> $config */
     private function setConfigs(array $config): void
     {
         $this->templateClass = $config[Configuration::TEMPLATE_CLASS];

@@ -15,6 +15,11 @@ Any suggestions are welcomed.
 - Memory and time limit traits for long-running commands
 - Instance-aware commands for parallel execution
 
+## Requirements
+
+- PHP 8.2+
+- Symfony 7
+
 ## Installation
 
 ```shell
@@ -82,7 +87,7 @@ precision_soft_symfony_console:
                     number_of_processes: 2
 ```
 
-Each command generates a separate `.conf` file for Supervisor. The `prefix`, `user`, `auto_start`, and `auto_restart` are available settings with defaults (can be set at the config level and overridden per command).
+Each command generates a separate `.conf` file for Supervisor. The `prefix`, `user`, `auto_start`, `auto_restart`, and `log_file` are available settings with defaults (can be set at the config level and overridden per command).
 
 ### Kubernetes CronJob template
 
@@ -136,9 +141,159 @@ The `destination_file` setting is mandatory for the Kubernetes Worker template.
 | `KubernetesCronjobTemplate` | Kubernetes CronJob manifest                |
 | `KubernetesWorkerTemplate`  | Kubernetes Worker manifest                 |
 
+## Command traits
+
+The bundle provides traits for long-running Symfony commands.
+
+### MemoryLimitTrait
+
+Adds a `--memory-limit` option and monitors memory usage during execution.
+
+```php
+use PrecisionSoft\Symfony\Console\Command\AbstractCommand;
+use PrecisionSoft\Symfony\Console\Command\Trait\MemoryLimitTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class MyCommand extends AbstractCommand
+{
+    use MemoryLimitTrait;
+
+    protected function configure(): void
+    {
+        $this->configureMemoryLimit('512M');
+    }
+
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        $this->initializeMemoryLimit();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        foreach ($this->getItems() as $item) {
+            $this->processItem($item);
+
+            if (true === $this->isMemoryLimitReached()) {
+                break;
+            }
+        }
+
+        return self::SUCCESS;
+    }
+}
+```
+
+### TimeLimitTrait
+
+Adds a `--time-limit` option (seconds) to stop after a given runtime.
+
+```php
+use PrecisionSoft\Symfony\Console\Command\AbstractCommand;
+use PrecisionSoft\Symfony\Console\Command\Trait\TimeLimitTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class MyCommand extends AbstractCommand
+{
+    use TimeLimitTrait;
+
+    protected function configure(): void
+    {
+        $this->configureTimeLimit(600);
+    }
+
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        $this->initializeTimeLimit();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        foreach ($this->getItems() as $item) {
+            $this->processItem($item);
+
+            if (true === $this->isTimeLimitReached()) {
+                break;
+            }
+        }
+
+        return self::SUCCESS;
+    }
+}
+```
+
+### MemoryAndTimeLimitsTrait
+
+Combines both limits into one trait. Throws `LimitExceededException` when either limit is exceeded.
+
+```php
+use PrecisionSoft\Symfony\Console\Command\AbstractCommand;
+use PrecisionSoft\Symfony\Console\Command\Trait\MemoryAndTimeLimitsTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class MyCommand extends AbstractCommand
+{
+    use MemoryAndTimeLimitsTrait;
+
+    protected function configure(): void
+    {
+        $this->configureMemoryAndTimeLimits('512M', 600);
+    }
+
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        $this->initializeMemoryAndTimeLimits();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        foreach ($this->getItems() as $item) {
+            $this->stopScriptIfLimitsReached();
+            $this->processItem($item);
+        }
+
+        return self::SUCCESS;
+    }
+}
+```
+
+### InstancesTrait
+
+Adds `--max-instances` and `--instance-index` options for parallel execution of the same command.
+
+```php
+use PrecisionSoft\Symfony\Console\Command\AbstractCommand;
+use PrecisionSoft\Symfony\Console\Command\Trait\InstancesTrait;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class MyCommand extends AbstractCommand
+{
+    use InstancesTrait;
+
+    protected function configure(): void
+    {
+        $this->configureInstances();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        [$maxInstances, $instanceIndex] = $this->computeInstances();
+
+        $this->writeln($this->formatMessageWithInstances('processing'));
+        return self::SUCCESS;
+    }
+}
+```
+
 ## For custom templates
 
-Create a template service implementing `PrecisionSoft\Symfony\Console\Contract\TemplateInterface` and add to your **services.yaml**:
+Create a template service implementing `TemplateInterface` (`PrecisionSoft\Symfony\Console\Contract\TemplateInterface`) and add to your **services.yaml**:
 
 ```yaml
 services:
@@ -148,6 +303,8 @@ services:
 ```
 
 ## Dev
+
+The development environment uses Docker. The `./dc` script is a Docker Compose wrapper located in `.dev/`.
 
 ```shell
 git clone git@github.com:precision-soft/symfony-console.git

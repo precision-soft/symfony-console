@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Trait;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandSettingsDto;
 use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
 
 /**
  * @internal
  */
-final class SettingsTraitTest extends TestCase
+final class SettingsTraitTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(CommandSettingsDto::class);
+    }
+
     public function testGetSettingReturnsValueAsString(): void
     {
         $commandSettingsDto = new CommandSettingsDto([

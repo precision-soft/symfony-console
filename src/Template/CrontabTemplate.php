@@ -107,7 +107,7 @@ class CrontabTemplate implements TemplateInterface
 
         $logFileName = $commandDto->getLogFileName() ?? \sprintf('%s.log', $commandDto->getName());
 
-        return \sprintf('>> %s/%s 2>&1', $configDto->getLogsDir(), $logFileName);
+        return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', $configDto->getLogsDir(), $logFileName)));
     }
 
     protected function buildSchedule(ScheduleDto $schedule): string
@@ -131,7 +131,7 @@ class CrontabTemplate implements TemplateInterface
         return new CommandDto(
             Configuration::HEARTBEAT,
             [
-                Configuration::COMMAND => ['/bin/touch', \sprintf('%s/heartbeat.%s', $configDto->getLogsDir(), $destinationFile)],
+                Configuration::COMMAND => ['/bin/touch', \rtrim($configDto->getLogsDir(), '/') . '/heartbeat.' . \basename($destinationFile)],
                 Configuration::SCHEDULE => [
                     Configuration::MINUTE => '*',
                     Configuration::HOUR => '*',

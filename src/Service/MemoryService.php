@@ -16,11 +16,11 @@ class MemoryService
     {
         $currentLimit = \ini_get('memory_limit');
 
-        if ('-1' === $currentLimit) {
+        if (false === $currentLimit || '-1' === $currentLimit) {
             return;
         }
 
-        if (static::returnBytes($newLimit) > static::returnBytes($currentLimit)) {
+        if (static::returnBytes($currentLimit) < static::returnBytes($newLimit)) {
             \ini_set('memory_limit', $newLimit);
         }
     }
@@ -54,7 +54,7 @@ class MemoryService
         }
 
         if (1 !== \preg_match('#([0-9]+)[\s]*([a-z]+)#i', $value, $matches)) {
-            return (int)$value;
+            throw new Exception(\sprintf('unrecognized memory value `%s`', $value));
         }
 
         $numericValue = (int)$matches[1];

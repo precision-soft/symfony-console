@@ -12,7 +12,7 @@ use Mockery;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
@@ -28,17 +28,17 @@ final class ConfGenerateServiceTest extends AbstractTestCase
     {
         return new MockDto(
             ConfGenerateService::class,
-            [[]],
+            [[], new Filesystem()],
             true,
         );
     }
 
     public function testConstructorStoresTemplatesByClassName(): void
     {
-        $firstTemplateMock = Mockery::namedMock('Template1Mock', TemplateInterface::class);
-        $secondTemplateMock = Mockery::namedMock('Template2Mock', TemplateInterface::class);
+        $crontabTemplateMock = Mockery::namedMock('CrontabTemplateMock', TemplateInterface::class);
+        $supervisorTemplateMock = Mockery::namedMock('SupervisorTemplateMock', TemplateInterface::class);
 
-        $confGenerateService = new ConfGenerateService([$firstTemplateMock, $secondTemplateMock]);
+        $confGenerateService = new ConfGenerateService([$crontabTemplateMock, $supervisorTemplateMock], new Filesystem());
 
         $reflectionClass = new ReflectionClass($confGenerateService);
         $reflectionProperty = $reflectionClass->getProperty('templates');
@@ -47,19 +47,19 @@ final class ConfGenerateServiceTest extends AbstractTestCase
         $templates = $reflectionProperty->getValue($confGenerateService);
 
         static::assertCount(2, $templates);
-        static::assertArrayHasKey('Template1Mock', $templates);
-        static::assertArrayHasKey('Template2Mock', $templates);
+        static::assertArrayHasKey('CrontabTemplateMock', $templates);
+        static::assertArrayHasKey('SupervisorTemplateMock', $templates);
     }
 
     public function testGetTemplateThrowsExceptionWhenTemplateNotFound(): void
     {
-        $confGenerateService = new ConfGenerateService([]);
+        $confGenerateService = new ConfGenerateService([], new Filesystem());
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn('NonExistentTemplate');
         $configInterfaceMock->shouldReceive('getLogsDir')->andReturn(\sys_get_temp_dir() . '/test_logs');
 
-        $this->expectException(Exception::class);
+        $this->expectException(ConfGenerateException::class);
         $this->expectExceptionMessage('the template `NonExistentTemplate` does not exist');
 
         $confGenerateService->generate($configInterfaceMock, []);
@@ -77,22 +77,20 @@ final class ConfGenerateServiceTest extends AbstractTestCase
             ->once()
             ->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock]);
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
         $configInterfaceMock->shouldReceive('getLogsDir')->andReturn(\sys_get_temp_dir() . '/test_logs_' . \uniqid('', true));
         $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($temporaryDirectory);
 
-        $result = $confGenerateService->generate($configInterfaceMock, []);
+        $generatedFiles = $confGenerateService->generate($configInterfaceMock, []);
 
-        static::assertCount(1, $result);
-        static::assertSame($temporaryDirectory . '/test.conf', $result[0]);
+        static::assertCount(1, $generatedFiles);
+        static::assertSame($temporaryDirectory . '/test.conf', $generatedFiles[0]);
 
         $filesystem = new Filesystem();
-        if (true === $filesystem->exists($temporaryDirectory)) {
-            $filesystem->remove($temporaryDirectory);
-        }
+        $filesystem->remove([$temporaryDirectory, $configInterfaceMock->getLogsDir()]);
     }
 
     public function testGenerateCreatesLogsDirectory(): void
@@ -106,7 +104,7 @@ final class ConfGenerateServiceTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock]);
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);

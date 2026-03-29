@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Dto;
 
-use PHPUnit\Framework\TestCase;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
 
 /**
  * @internal
  */
-final class ConfFilesDtoTest extends TestCase
+final class ConfFilesDtoTest extends AbstractTestCase
 {
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(ConfFilesDto::class);
+    }
+
     public function testConstructorInitializesEmptyFiles(): void
     {
         $confFilesDto = new ConfFilesDto();
@@ -28,9 +34,9 @@ final class ConfFilesDtoTest extends TestCase
     {
         $confFilesDto = new ConfFilesDto();
 
-        $result = $confFilesDto->addFile('/path/to/file.conf', 'file content');
+        $chainedConfFilesDto = $confFilesDto->addFile('/path/to/file.conf', 'file content');
 
-        static::assertSame($confFilesDto, $result);
+        static::assertSame($confFilesDto, $chainedConfFilesDto);
         static::assertCount(1, $confFilesDto->getFiles());
         static::assertSame('file content', $confFilesDto->getFiles()['/path/to/file.conf']);
     }
@@ -60,11 +66,11 @@ final class ConfFilesDtoTest extends TestCase
     {
         $confFilesDto = new ConfFilesDto();
 
-        $result = $confFilesDto->addFile('/path/one.conf', 'one')
+        $chainedConfFilesDto = $confFilesDto->addFile('/path/one.conf', 'one')
             ->addFile('/path/two.conf', 'two')
             ->addFile('/path/three.conf', 'three');
 
-        static::assertSame($confFilesDto, $result);
+        static::assertSame($confFilesDto, $chainedConfFilesDto);
         static::assertCount(3, $confFilesDto->getFiles());
     }
 
