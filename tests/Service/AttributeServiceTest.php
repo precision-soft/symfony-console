@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Service;
 
-use PrecisionSoft\Symfony\Phpunit\MockDto;
-use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Service\AttributeService;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 

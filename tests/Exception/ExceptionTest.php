@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Exception;
 
-use PrecisionSoft\Symfony\Phpunit\MockDto;
-use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use Exception as BaseException;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
@@ -17,6 +15,8 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Exception\LimitExceededException;
 use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
 /**
  * @internal

@@ -72,16 +72,16 @@ class KubernetesCronjobTemplate implements TemplateInterface
         ];
     }
 
-    protected function buildSchedule(ScheduleDto $schedule): string
+    protected function buildSchedule(ScheduleDto $scheduleDto): string
     {
         return \implode(
             ' ',
             [
-                $schedule->getMinute(),
-                $schedule->getHour(),
-                $schedule->getDayOfMonth(),
-                $schedule->getMonth(),
-                $schedule->getDayOfWeek(),
+                $scheduleDto->getMinute(),
+                $scheduleDto->getHour(),
+                $scheduleDto->getDayOfMonth(),
+                $scheduleDto->getMonth(),
+                $scheduleDto->getDayOfWeek(),
             ],
         );
     }

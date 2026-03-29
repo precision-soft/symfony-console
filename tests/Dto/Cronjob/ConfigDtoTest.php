@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Cronjob;
 
-use PrecisionSoft\Symfony\Phpunit\MockDto;
-use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigSettingsDto;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
 /**
  * @internal

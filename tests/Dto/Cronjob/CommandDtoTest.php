@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Cronjob;
 
-use PrecisionSoft\Symfony\Phpunit\MockDto;
-use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandSettingsDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
 /**
  * @internal

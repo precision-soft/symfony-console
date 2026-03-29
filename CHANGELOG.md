@@ -5,6 +5,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 ## [v3.0.0] - 2026-03-29
 
 ### Breaking Changes
+
 - **`ConfigInterface` now extends `SettingsInterface`** — all implementations must add a `getSettings(): SettingInterface` method
 - **`MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException`** instead of calling `exit(Command::INVALID)` — callers must catch this exception
 - **`MemoryAndTimeLimitsTrait::didScriptReachedLimits()` renamed to `hasScriptReachedLimits()`** — grammar fix, update all call sites
@@ -18,6 +19,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - **Renamed `phpunit.xml` to `phpunit.xml.dist`** — local overrides via `phpunit.xml` are now gitignored
 
 ### Added
+
 - `AbstractCreateConfigCommand` base class — extracts shared `execute()` logic from `CronjobCreateCommand` and `WorkerCreateCommand`
 - `ConfGenerateException` — dedicated exception for config generation failures
 - `LimitExceededException` — dedicated exception for memory/time limit violations
@@ -31,6 +33,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - Pre-commit hook now runs php-cs-fixer, PHP lint, PHPStan, and PHPUnit (all exit on failure)
 
 ### Changed
+
 - Code style reformatted to PER-CS2.0 (replaced `phpcs.xml` with `.php-cs-fixer` configuration)
 - `TimeLimitTrait::$startTime` is no longer `readonly` (allows re-initialization)
 - `Configuration` DI tree builder — hardened with explicit type checks and non-nullable defaults
@@ -41,6 +44,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - README `MemoryAndTimeLimitsTrait` example now shows `LimitExceededException` try-catch pattern
 
 ### Fixed
+
 - `CrontabTemplate` — heartbeat logic no longer adds duplicate commands when heartbeat setting is disabled
 - `CrontabTemplate` — command-level `user` now correctly overrides config-level user
 - `MemoryService::returnBytes()` — handles plain integer strings and `-1` (unlimited) correctly
@@ -53,43 +57,51 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 ## [v2.3.7] - 2026-03-21
 
 ### Fixed
+
 - Trailing space removed from bytes unit in `MemoryService::convertBytesToHumanReadable()`
 
 ## [v2.3.6] - 2026-03-20
 
 ### Fixed
+
 - Corrected README clone URL
 
 ## [v2.3.5] - 2026-03-19
 
 ### Fixed
+
 - `MemoryService::convertBytesToHumanReadable()` clamps unit index to prevent overflow
 
 ## [v2.3.4] - 2026-03-19
 
 ### Changed
+
 - `ConfGenerateService::save()` rewritten with atomic file generation (temp dir, backup, restore)
 - Replaced `empty()` with explicit comparisons throughout codebase
 
 ## [v2.3.3] - 2026-03-19
 
 ### Changed
+
 - Moved dev scripts to `.dev/` directory
 - Updated dev dependencies
 
 ## [v2.3.2] - 2026-03-19
 
 ### Fixed
+
 - Type correctness and code style alignment across codebase
 
 ## [v2.3.1] - 2026-03-13
 
 ### Changed
+
 - Normalized source code style
 
 ## [v2.3.0] - 2025-11-03
 
 ### Added
+
 - `MemoryLimitTrait` for memory limit enforcement in long-running commands
 - `TimeLimitTrait` for time limit enforcement in long-running commands
 - `MemoryAndTimeLimitsTrait` combining both limits
@@ -97,50 +109,60 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 ## [v2.2.1] - 2025-10-25
 
 ### Fixed
+
 - Null deprecation warnings
 
 ## [v2.2.0] - 2025-01-06
 
 ### Added
+
 - `SupervisorSettingsTrait::getLogFile()` for custom log file paths in Supervisor config
 
 ## [v2.1.0] - 2024-12-13
 
 ### Added
+
 - `CrontabTemplate::getHeartbeatCommand()` — allows overriding the default heartbeat command
 
 ## [v2.0.1] - 2024-12-13
 
 ### Fixed
+
 - Heartbeat command now added to all generated crontab files (not just the first)
 
 ## [v2.0.0] - 2024-12-11
 
 ### Added
+
 - Multiple cronjob file generation (one command can target a specific `destination_file`)
 
 ### Changed
+
 - **Breaking:** Modified visibility of several template methods from `private` to `protected`
 
 ## [v1.2.1] - 2024-12-09
 
 ### Fixed
+
 - `InstancesTrait` validation for max instances and instance index
 
 ## [v1.2.0] - 2024-11-05
 
 ### Added
+
 - `InstancesTrait::formatMessageWithInstances()` for prefixing output with `[index/max]`
 
 ## [v1.1.0] - 2024-10-04
 
 ### Added
+
 - `user` and `log_file_name` options for cronjob commands
 - `AttributeService` for extracting Symfony command names from `#[AsCommand]` attributes
 
 ## [v1.0.0] - 2024-09-19
 
 ### Added
+
 - Initial release
 - `CronjobCreateCommand` and `WorkerCreateCommand` Symfony console commands
 - `CrontabTemplate` for generating standard crontab files
@@ -155,20 +177,37 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
 
 [v3.0.0]: https://github.com/precision-soft/symfony-console/compare/v2.3.7...v3.0.0
+
 [v2.3.7]: https://github.com/precision-soft/symfony-console/compare/v2.3.6...v2.3.7
+
 [v2.3.6]: https://github.com/precision-soft/symfony-console/compare/v2.3.5...v2.3.6
+
 [v2.3.5]: https://github.com/precision-soft/symfony-console/compare/v2.3.4...v2.3.5
+
 [v2.3.4]: https://github.com/precision-soft/symfony-console/compare/v2.3.3...v2.3.4
+
 [v2.3.3]: https://github.com/precision-soft/symfony-console/compare/v2.3.2...v2.3.3
+
 [v2.3.2]: https://github.com/precision-soft/symfony-console/compare/v2.3.1...v2.3.2
+
 [v2.3.1]: https://github.com/precision-soft/symfony-console/compare/v2.3.0...v2.3.1
+
 [v2.3.0]: https://github.com/precision-soft/symfony-console/compare/v2.2.1...v2.3.0
+
 [v2.2.1]: https://github.com/precision-soft/symfony-console/compare/v2.2.0...v2.2.1
+
 [v2.2.0]: https://github.com/precision-soft/symfony-console/compare/v2.1.0...v2.2.0
+
 [v2.1.0]: https://github.com/precision-soft/symfony-console/compare/v2.0.1...v2.1.0
+
 [v2.0.1]: https://github.com/precision-soft/symfony-console/compare/v2.0.0...v2.0.1
+
 [v2.0.0]: https://github.com/precision-soft/symfony-console/compare/v1.2.1...v2.0.0
+
 [v1.2.1]: https://github.com/precision-soft/symfony-console/compare/v1.2.0...v1.2.1
+
 [v1.2.0]: https://github.com/precision-soft/symfony-console/compare/v1.1.0...v1.2.0
+
 [v1.1.0]: https://github.com/precision-soft/symfony-console/compare/v1.0.0...v1.1.0
+
 [v1.0.0]: https://github.com/precision-soft/symfony-console/releases/tag/v1.0.0

@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
+use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 use ReflectionMethod;
 
 /**

@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\DependencyInjection;
 
-use PrecisionSoft\Symfony\Phpunit\MockDto;
-use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use Symfony\Component\Config\Definition\Processor;
 
 /**

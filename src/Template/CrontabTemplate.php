@@ -110,16 +110,16 @@ class CrontabTemplate implements TemplateInterface
         return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', $configDto->getLogsDir(), $logFileName)));
     }
 
-    protected function buildSchedule(ScheduleDto $schedule): string
+    protected function buildSchedule(ScheduleDto $scheduleDto): string
     {
         return \implode(
             ' ',
             [
-                $schedule->getMinute(),
-                $schedule->getHour(),
-                $schedule->getDayOfMonth(),
-                $schedule->getMonth(),
-                $schedule->getDayOfWeek(),
+                $scheduleDto->getMinute(),
+                $scheduleDto->getHour(),
+                $scheduleDto->getDayOfMonth(),
+                $scheduleDto->getMonth(),
+                $scheduleDto->getDayOfWeek(),
             ],
         );
     }

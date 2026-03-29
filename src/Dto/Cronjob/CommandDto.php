@@ -19,7 +19,7 @@ class CommandDto implements SettingsInterface
     private readonly ?string $destinationFile;
     /** @var array<int, string> */
     private readonly array $command;
-    private readonly ScheduleDto $schedule;
+    private readonly ScheduleDto $scheduleDto;
     private readonly CommandSettingsDto $settings;
 
     /**
@@ -38,7 +38,7 @@ class CommandDto implements SettingsInterface
             throw new InvalidConfigurationException(\sprintf('the `%s` key is required for command `%s`', Configuration::SCHEDULE, $name));
         }
 
-        $this->schedule = new ScheduleDto($parameters[Configuration::SCHEDULE]);
+        $this->scheduleDto = new ScheduleDto($parameters[Configuration::SCHEDULE]);
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);
     }
 
@@ -70,7 +70,7 @@ class CommandDto implements SettingsInterface
 
     public function getSchedule(): ScheduleDto
     {
-        return $this->schedule;
+        return $this->scheduleDto;
     }
 
     public function getSettings(): CommandSettingsDto
