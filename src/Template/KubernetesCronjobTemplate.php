@@ -14,6 +14,7 @@ use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 
 class KubernetesCronjobTemplate implements TemplateInterface
@@ -45,7 +46,13 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         $content .= \PHP_EOL;
 
-        $crontabPath = $configInterface->getConfFilesDir() . '/' . $configInterface->getSettings()->getDestinationFile();
+        $destinationFile = $configInterface->getSettings()->getDestinationFile();
+
+        if ('' === $destinationFile) {
+            throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes cronjob template');
+        }
+
+        $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 

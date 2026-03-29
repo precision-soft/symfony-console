@@ -291,6 +291,79 @@ final class CrontabTemplateTest extends AbstractTestCase
         static::assertCount(0, $confFilesDto->getFiles());
     }
 
+    public function testHeartbeatOnlyConfigGeneratesFile(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'crontab',
+                    Configuration::HEARTBEAT => true,
+                ],
+            ],
+        );
+
+        $commands = [
+            Configuration::HEARTBEAT => new CommandDto(
+                Configuration::HEARTBEAT,
+                [
+                    Configuration::COMMAND => ['/bin/touch', '/tmp/heartbeat.test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(1, $files);
+
+        $content = \reset($files);
+        static::assertStringContainsString('/bin/touch', $content);
+        static::assertStringContainsString('/tmp/heartbeat.test', $content);
+    }
+
+    public function testHeartbeatOnlyWithDefaultHeartbeatGeneratesFile(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'crontab',
+                    Configuration::HEARTBEAT => true,
+                ],
+            ],
+        );
+
+        $confFilesDto = $crontabTemplate->generate($configDto, []);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(1, $files);
+
+        $content = \reset($files);
+        static::assertStringContainsString('/bin/touch', $content);
+        static::assertStringContainsString('heartbeat', $content);
+    }
+
     public function testCustomLogFileName(): void
     {
         /** @var CrontabTemplate|MockInterface $crontabTemplate */

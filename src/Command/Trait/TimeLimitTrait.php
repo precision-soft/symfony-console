@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Command\Trait;
 
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use Symfony\Component\Console\Input\InputOption;
 
 trait TimeLimitTrait
@@ -26,6 +27,10 @@ trait TimeLimitTrait
             $timeLimit = $this->input->getOption(self::TIME_LIMIT);
 
             if (null !== $timeLimit && '' !== $timeLimit) {
+                if (false === \is_numeric($timeLimit) || 0 >= (int)$timeLimit) {
+                    throw new InvalidValueException(\sprintf('the `--time-limit` option must be a positive integer, `%s` given', $timeLimit));
+                }
+
                 $this->timeLimit = (int)$timeLimit;
             }
         }

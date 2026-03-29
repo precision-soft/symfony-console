@@ -12,6 +12,7 @@ use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\KubernetesCronjobTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
@@ -65,6 +66,12 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         static::assertCount(1, $confFilesDto->getFiles());
+
+        $files = $confFilesDto->getFiles();
+        $content = \reset($files);
+        static::assertStringContainsString('test-job', $content);
+        static::assertStringContainsString('*/5 * * * *', $content);
+        static::assertStringContainsString("'bin/console' 'app:test'", $content);
     }
 
     public function testGenerateWithEmptyCommands(): void
@@ -235,6 +242,48 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
         static::assertStringContainsString("'bin/console' 'app:test'", $content);
+    }
+
+    public function testEmptyDestinationFileThrowsException(): void
+    {
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => '',
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'test-job',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('the `destination file` is mandatory for kubernetes cronjob template');
+
+        $kubernetesCronjobTemplate->generate($configDto, $commands);
     }
 
     public function testGenerateSanitizesName(): void

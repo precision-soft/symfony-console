@@ -59,6 +59,12 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         static::assertCount(1, $confFilesDto->getFiles());
+
+        $files = $confFilesDto->getFiles();
+        $content = \reset($files);
+        static::assertStringContainsString('test-worker', $content);
+        static::assertStringContainsString("'bin/console' 'app:worker'", $content);
+        static::assertStringContainsString('parallelism: 3', $content);
     }
 
     public function testGenerateWithEmptyCommands(): void

@@ -219,6 +219,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
+        $renameCallCount = 0;
         $filesystemMock = Mockery::mock(Filesystem::class);
         $filesystemMock->shouldReceive('mkdir')->andReturnUsing(function (string $dir, int $mode): void {
             (new Filesystem())->mkdir($dir, $mode);
@@ -229,10 +230,15 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $filesystemMock->shouldReceive('exists')->andReturnUsing(function (string $path): bool {
             return (new Filesystem())->exists($path);
         });
-        $filesystemMock->shouldReceive('rename')->once()->andReturnUsing(function (string $origin, string $target): void {
+        $filesystemMock->shouldReceive('rename')->andReturnUsing(function (string $origin, string $target) use (&$renameCallCount): void {
+            $renameCallCount++;
+
+            if (2 === $renameCallCount) {
+                throw new IOException('rename failed');
+            }
+
             (new Filesystem())->rename($origin, $target);
         });
-        $filesystemMock->shouldReceive('rename')->andThrow(new IOException('rename failed'));
         $filesystemMock->shouldReceive('remove')->andReturnUsing(function ($paths): void {
             (new Filesystem())->remove($paths);
         });
@@ -245,14 +251,20 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $configInterfaceMock->shouldReceive('getLogsDir')->andReturn($logsDirectory);
         $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($destinationDirectory);
 
-        $this->expectException(ConfGenerateException::class);
-        $this->expectExceptionMessage('rename failed');
+        $confGenerateException = null;
 
         try {
             $confGenerateService->generate($configInterfaceMock, []);
+        } catch (ConfGenerateException $confGenerateException) {
+            static::assertSame('rename failed', $confGenerateException->getMessage());
+            static::assertDirectoryExists($destinationDirectory);
+            static::assertFileExists($destinationDirectory . '/original.conf');
+            static::assertSame('original content', \file_get_contents($destinationDirectory . '/original.conf'));
         } finally {
             $this->filesystem->remove([$destinationDirectory, $logsDirectory]);
         }
+
+        static::assertInstanceOf(ConfGenerateException::class, $confGenerateException);
     }
 
     public function testGenerateWithMultipleFilesCreatesAllFiles(): void

@@ -20,7 +20,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 /**
  * @internal
  */
-final class WorkerCreateCommandTest extends AbstractTestCase
+final class WorkerCreateCommandZeroFilesTest extends AbstractTestCase
 {
     public static function getMockDto(): MockDto
     {
@@ -31,7 +31,7 @@ final class WorkerCreateCommandTest extends AbstractTestCase
         );
     }
 
-    public function testExecuteGeneratesConfFiles(): void
+    public function testExecuteWithZeroGeneratedFilesOutputsWarning(): void
     {
         $config = [
             Configuration::CONFIG => [
@@ -61,7 +61,7 @@ final class WorkerCreateCommandTest extends AbstractTestCase
         $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
         $confGenerateServiceMock->shouldReceive('generate')
             ->once()
-            ->andReturn(['test']);
+            ->andReturn([]);
 
         $workerCreateCommand = new WorkerCreateCommand($confGenerateServiceMock, $config);
         $commandTester = new CommandTester($workerCreateCommand);
@@ -71,6 +71,6 @@ final class WorkerCreateCommandTest extends AbstractTestCase
         static::assertSame(WorkerCreateCommand::SUCCESS, $commandTester->getStatusCode());
 
         $display = $commandTester->getDisplay();
-        static::assertStringContainsString('test', $display);
+        static::assertStringContainsString('no conf files were generated', $display);
     }
 }

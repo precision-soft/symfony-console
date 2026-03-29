@@ -50,7 +50,7 @@ trait KubernetesJobTrait
 
     private function escapeYamlValue(string $value): string
     {
-        if (1 === \preg_match('/[:#{}\\[\\],&*?|\\-<>=!%@\\\\\'"\\n\\r\\t]/', $value)) {
+        if (1 === \preg_match('/[:#{}\\[\\],&*?|<>=!%@\\\\\'"\\n\\r\\t-]/', $value)) {
             return \sprintf('"%s"', \str_replace(
                 ['\\', '"', "\n", "\r", "\t"],
                 ['\\\\', '\\"', '\\n', '\\r', '\\t'],

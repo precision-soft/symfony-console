@@ -44,6 +44,10 @@ class CrontabTemplate implements TemplateInterface
             $cronjobs[$destinationFile][] = $this->buildCommand($commandDto, $configInterface);
         }
 
+        if (0 === \count($cronjobs) && true === $configInterface->getSettings()->getHeartbeat()) {
+            $cronjobs[$defaultDestinationFile] = [];
+        }
+
         $confFilesDto = new ConfFilesDto();
 
         foreach ($cronjobs as $destinationFile => $cronjobCommands) {

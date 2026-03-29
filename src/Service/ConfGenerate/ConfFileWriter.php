@@ -80,11 +80,17 @@ class ConfFileWriter
             return $configurationFiles;
         } catch (Throwable $throwable) {
             if (true === $this->filesystem->exists($tempDir)) {
-                $this->filesystem->remove($tempDir);
+                try {
+                    $this->filesystem->remove($tempDir);
+                } catch (Throwable) {
+                }
             }
 
             if (false === $backupRestored && null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
-                $this->filesystem->remove($backupDir);
+                try {
+                    $this->filesystem->remove($backupDir);
+                } catch (Throwable) {
+                }
             }
 
             throw $throwable instanceof ConfGenerateException

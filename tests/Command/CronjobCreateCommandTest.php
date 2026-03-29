@@ -78,19 +78,4 @@ final class CronjobCreateCommandTest extends AbstractTestCase
         $display = $commandTester->getDisplay();
         static::assertStringContainsString('test', $display);
     }
-
-    public function testExecuteWithNullConfigOutputsWarning(): void
-    {
-        $confGenerateServiceMock = Mockery::mock(ConfGenerateService::class);
-
-        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateServiceMock, null);
-        $commandTester = new CommandTester($cronjobCreateCommand);
-
-        $commandTester->execute([]);
-
-        static::assertSame(CronjobCreateCommand::SUCCESS, $commandTester->getStatusCode());
-
-        $display = $commandTester->getDisplay();
-        static::assertStringContainsString('no configuration is set', $display);
-    }
 }

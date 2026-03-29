@@ -26,7 +26,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `SettingsInterface` contract with `getSettings(): SettingInterface`
 - PHPStan level 8 static analysis with baseline (`phpstan.neon`, `phpstan-baseline.neon`)
 - Comprehensive test suite (206 tests, 447 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
-- `ConfGenerateService::save()` — atomic file replacement with temp dir, backup, and restore on failure; path traversal protection
+- `ConfFileWriter::save()` — atomic file replacement with temp dir, backup, and restore on failure; path traversal protection
 - `ConfFilesDto` — validates path uniqueness on `addFile()`
 - `SettingsTrait::getSetting()` — validates property existence via `\property_exists()` before access
 - `Cronjob\CommandDto` — validates that the `schedule` key is present
@@ -76,7 +76,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 
 ### Changed
 
-- `ConfGenerateService::save()` rewritten with atomic file generation (temp dir, backup, restore)
+- `ConfFileWriter::save()` rewritten with atomic file generation (temp dir, backup, restore)
 - Replaced `empty()` with explicit comparisons throughout codebase
 
 ## [v2.3.3] - 2026-03-19

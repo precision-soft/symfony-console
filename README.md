@@ -53,6 +53,9 @@ precision_soft_symfony_console:
         commands:
             list:
                 command: '%kernel.project_dir%/bin/console list'
+                user: 'www-data'
+                log_file_name: 'list.log'
+                destination_file: 'custom-crontab'
                 schedule:
                     minute: '*'
                     hour: '*'
@@ -65,7 +68,7 @@ precision_soft_symfony_console:
 
 If **precision_soft_symfony_console.cronjob.config.settings.heartbeat** is set to `true`, a heartbeat command will automatically be added to each generated crontab file. You may override the heartbeat by defining a command named `heartbeat` in the commands list.
 
-The **user** setting at config level prepends the user to each crontab command line. It can be overridden per command via the command-level `user` option.
+The **user** setting at config level prepends the user to each crontab command line. It can be overridden per command via the command-level `user` option. Each command also supports `log_file_name` (custom log file name, defaults to `<command-name>.log`) and `destination_file` (override the config-level destination file to generate separate crontab files per command).
 
 ### Worker configuration (Supervisor)
 
