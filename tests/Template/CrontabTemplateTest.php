@@ -72,4 +72,266 @@ final class CrontabTemplateTest extends AbstractTestCase
         static::assertStringContainsString(">> 'test/test.log' 2>&1", $content);
         static::assertStringContainsString('/bin/touch', $content);
     }
+
+    public function testHeartbeatDisabled(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'test',
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'test',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '0',
+                        Configuration::HOUR => '6',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(1, $files);
+
+        $content = \reset($files);
+        static::assertStringContainsString('0 6 * * * bin/console app:test', $content);
+        static::assertStringNotContainsString('/bin/touch', $content);
+        static::assertStringNotContainsString('heartbeat', $content);
+    }
+
+    public function testLogDisabledOmitsLogRedirect(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'test',
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'test',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        $content = \reset($files);
+        static::assertStringNotContainsString('>>', $content);
+        static::assertStringNotContainsString('2>&1', $content);
+    }
+
+    public function testUserFromConfigSettings(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'test',
+                    Configuration::HEARTBEAT => false,
+                    Configuration::USER => 'www-data',
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'test',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*/5',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        $content = \reset($files);
+        static::assertStringContainsString('www-data bin/console app:test', $content);
+    }
+
+    public function testMultipleCommandsAcrossFiles(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'default.cron',
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'first',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:first'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '0',
+                        Configuration::HOUR => '0',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                    Configuration::DESTINATION_FILE => 'custom.cron',
+                ],
+            ),
+            new CommandDto(
+                'second',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:second'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '30',
+                        Configuration::HOUR => '12',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(2, $files);
+        static::assertArrayHasKey('test/custom.cron', $files);
+        static::assertArrayHasKey('test/default.cron', $files);
+    }
+
+    public function testEmptyCommandsGeneratesNoFiles(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'test',
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $confFilesDto = $crontabTemplate->generate($configDto, []);
+
+        static::assertCount(0, $confFilesDto->getFiles());
+    }
+
+    public function testCustomLogFileName(): void
+    {
+        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => '/var/log',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'test',
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'test',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => true,
+                    ],
+                    Configuration::LOG_FILE_NAME => 'custom.log',
+                ],
+            ),
+        ];
+
+        $confFilesDto = $crontabTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        $content = \reset($files);
+        static::assertStringContainsString(">> '/var/log/custom.log' 2>&1", $content);
+    }
 }

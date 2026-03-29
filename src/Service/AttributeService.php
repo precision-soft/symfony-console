@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Service;
 
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -28,7 +28,7 @@ class AttributeService
             $asCommand = $reflectionAttribute->newInstance();
 
             if (null === $asCommand->name) {
-                throw new Exception(
+                throw new InvalidConfigurationException(
                     \sprintf('the `AsCommand` attribute on `%s` has a null name', $commandClass),
                 );
             }
@@ -36,7 +36,7 @@ class AttributeService
             return $asCommand->name;
         }
 
-        throw new Exception(
+        throw new InvalidConfigurationException(
             \sprintf('could not compute the name for `%s`', $commandClass),
         );
     }

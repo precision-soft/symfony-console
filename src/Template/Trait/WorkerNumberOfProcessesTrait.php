@@ -10,7 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Template\Trait;
 
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 
 trait WorkerNumberOfProcessesTrait
 {
@@ -21,7 +21,7 @@ trait WorkerNumberOfProcessesTrait
         $numberOfProcesses = $commandDto->getSettings()->getNumberOfProcesses() ?? $configDto->getSettings()->getNumberOfProcesses();
 
         if (null === $numberOfProcesses || 1 > $numberOfProcesses) {
-            throw new Exception('invalid `number of processes`');
+            throw new InvalidConfigurationException('invalid `number of processes`');
         }
 
         return $numberOfProcesses;

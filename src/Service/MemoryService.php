@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Service;
 
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class MemoryService
 {
@@ -54,7 +54,7 @@ class MemoryService
         }
 
         if (1 !== \preg_match('#([0-9]+)[\s]*([a-z]+)#i', $value, $matches)) {
-            throw new Exception(\sprintf('unrecognized memory value `%s`', $value));
+            throw new InvalidValueException(\sprintf('unrecognized memory value `%s`', $value));
         }
 
         $numericValue = (int)$matches[1];
@@ -66,7 +66,7 @@ class MemoryService
             'g', 'gb' => 1024 * 1024 * 1024,
             'm', 'mb' => 1024 * 1024,
             'k', 'kb' => 1024,
-            default => throw new Exception(\sprintf('unrecognized unit of measurement `%s`', $unitOfMeasurement)),
+            default => throw new InvalidValueException(\sprintf('unrecognized unit of measurement `%s`', $unitOfMeasurement)),
         };
 
         return $numericValue * $multiplier;

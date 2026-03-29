@@ -10,7 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Service;
 
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Service\MemoryService;
 
 /**
@@ -130,7 +130,7 @@ final class MemoryServiceTest extends AbstractTestCase
 
     public function testReturnBytesThrowsExceptionForUnrecognizedUnit(): void
     {
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidValueException::class);
         $this->expectExceptionMessage('unrecognized unit of measurement');
 
         MemoryService::returnBytes('1XB');

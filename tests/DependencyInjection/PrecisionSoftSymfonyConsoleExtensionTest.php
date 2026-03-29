@@ -14,7 +14,8 @@ use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\DependencyInjection\PrecisionSoftSymfonyConsoleExtension;
-use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfFileWriter;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\KubernetesCronjobTemplate;
 use PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate;
@@ -40,6 +41,7 @@ final class PrecisionSoftSymfonyConsoleExtensionTest extends AbstractTestCase
 
         static::assertTrue($containerBuilder->hasDefinition(CronjobCreateCommand::class));
         static::assertTrue($containerBuilder->hasDefinition(WorkerCreateCommand::class));
+        static::assertTrue($containerBuilder->hasDefinition(ConfFileWriter::class));
         static::assertTrue($containerBuilder->hasDefinition(ConfGenerateService::class));
         static::assertTrue($containerBuilder->hasDefinition(CrontabTemplate::class));
         static::assertTrue($containerBuilder->hasDefinition(SupervisorTemplate::class));

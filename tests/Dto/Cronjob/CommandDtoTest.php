@@ -14,6 +14,7 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandSettingsDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 
 /**
  * @internal
@@ -76,5 +77,19 @@ final class CommandDtoTest extends AbstractTestCase
         static::assertNull($commandDto->getLogFileName());
         static::assertNull($commandDto->getUser());
         static::assertNull($commandDto->getDestinationFile());
+    }
+
+    public function testMissingScheduleKeyThrowsException(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('the `schedule` key is required for command `test`');
+
+        new CommandDto(
+            'test',
+            [
+                Configuration::COMMAND => ['test'],
+                Configuration::SETTINGS => [],
+            ],
+        );
     }
 }

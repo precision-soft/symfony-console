@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Dto\Worker\WorkerDto;
-use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 
 class WorkerCreateCommand extends AbstractCreateConfigCommand
 {

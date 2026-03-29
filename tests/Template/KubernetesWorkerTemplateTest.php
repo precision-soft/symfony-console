@@ -12,6 +12,7 @@ use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
@@ -270,5 +271,39 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
         static::assertStringContainsString('parallelism: 4', $content);
+    }
+
+    public function testMissingDestinationFileThrowsException(): void
+    {
+        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:worker'],
+                    Configuration::SETTINGS => [
+                        Configuration::NUMBER_OF_PROCESSES => 1,
+                    ],
+                ],
+            ),
+        ];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('the `destination file` is mandatory for kubernetes worker template');
+
+        $kubernetesWorkerTemplate->generate($configDto, $commands);
     }
 }

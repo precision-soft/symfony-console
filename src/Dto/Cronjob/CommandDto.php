@@ -10,7 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Dto\Cronjob;
 
 use PrecisionSoft\Symfony\Console\Contract\SettingsInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 
 class CommandDto implements SettingsInterface
 {
@@ -35,7 +35,7 @@ class CommandDto implements SettingsInterface
         $this->command = $parameters[Configuration::COMMAND];
 
         if (false === isset($parameters[Configuration::SCHEDULE])) {
-            throw new Exception(\sprintf('the `%s` key is required for command `%s`', Configuration::SCHEDULE, $name));
+            throw new InvalidConfigurationException(\sprintf('the `%s` key is required for command `%s`', Configuration::SCHEDULE, $name));
         }
 
         $this->schedule = new ScheduleDto($parameters[Configuration::SCHEDULE]);

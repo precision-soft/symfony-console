@@ -13,7 +13,7 @@ use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 use ReflectionMethod;
 
@@ -100,7 +100,7 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
             ],
         );
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
         $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
@@ -129,7 +129,7 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
             ],
         );
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
         $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
@@ -158,7 +158,7 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
             ],
         );
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
         $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);

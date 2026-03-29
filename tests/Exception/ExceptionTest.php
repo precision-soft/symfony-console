@@ -13,6 +13,8 @@ use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use Exception as BaseException;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Exception\LimitExceededException;
 use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
 
@@ -71,5 +73,21 @@ final class ExceptionTest extends AbstractTestCase
 
         static::assertInstanceOf(Exception::class, $limitExceededException);
         static::assertSame('limit reached', $limitExceededException->getMessage());
+    }
+
+    public function testInvalidConfigurationExceptionExtendsException(): void
+    {
+        $invalidConfigurationException = new InvalidConfigurationException('missing setting');
+
+        static::assertInstanceOf(Exception::class, $invalidConfigurationException);
+        static::assertSame('missing setting', $invalidConfigurationException->getMessage());
+    }
+
+    public function testInvalidValueExceptionExtendsException(): void
+    {
+        $invalidValueException = new InvalidValueException('bad value');
+
+        static::assertInstanceOf(Exception::class, $invalidValueException);
+        static::assertSame('bad value', $invalidValueException->getMessage());
     }
 }

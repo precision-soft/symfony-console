@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Dto;
 
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class ConfFilesDto
 {
@@ -29,7 +29,7 @@ class ConfFilesDto
     public function addFile(string $path, string $content): self
     {
         if (true === \array_key_exists($path, $this->files)) {
-            throw new Exception(
+            throw new InvalidValueException(
                 \sprintf('the file path is in use `%s`', $path),
             );
         }

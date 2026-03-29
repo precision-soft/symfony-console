@@ -13,7 +13,7 @@ use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
 class SupervisorTemplate implements TemplateInterface
@@ -54,7 +54,7 @@ class SupervisorTemplate implements TemplateInterface
     ): string {
         $configurationParams = [
             '%programGroupName%' => \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
-            '%command%' => \implode(' ', $commandDto->getCommand()),
+            '%command%' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
             '%user%' => $this->getUser($configDto, $commandDto),
             '%numberOfProcesses%' => (string)$this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
@@ -76,7 +76,7 @@ class SupervisorTemplate implements TemplateInterface
         $autoStart = $commandDto->getSettings()->getAutoStart() ?? $configDto->getSettings()->getAutoStart();
 
         if (null === $autoStart) {
-            throw new Exception('the `auto start` is mandatory');
+            throw new InvalidConfigurationException('the `auto start` is mandatory');
         }
 
         return $autoStart;
@@ -89,7 +89,7 @@ class SupervisorTemplate implements TemplateInterface
         $autoRestart = $commandDto->getSettings()->getAutoRestart() ?? $configDto->getSettings()->getAutoRestart();
 
         if (null === $autoRestart) {
-            throw new Exception('the `auto restart` is mandatory');
+            throw new InvalidConfigurationException('the `auto restart` is mandatory');
         }
 
         return $autoRestart;
@@ -102,7 +102,7 @@ class SupervisorTemplate implements TemplateInterface
         $prefix = $commandDto->getSettings()->getPrefix() ?? $configDto->getSettings()->getPrefix();
 
         if (null === $prefix || '' === $prefix) {
-            throw new Exception('the `prefix` is mandatory');
+            throw new InvalidConfigurationException('the `prefix` is mandatory');
         }
 
         return $prefix;
@@ -115,7 +115,7 @@ class SupervisorTemplate implements TemplateInterface
         $user = $commandDto->getSettings()->getUser() ?? $configDto->getSettings()->getUser();
 
         if (null === $user || '' === $user) {
-            throw new Exception('the `user` is mandatory');
+            throw new InvalidConfigurationException('the `user` is mandatory');
         }
 
         return $user;

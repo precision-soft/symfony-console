@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Command\Trait;
 
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Input\InputOption;
 
 trait InstancesTrait
@@ -23,14 +23,14 @@ trait InstancesTrait
         $instanceIndexOption = $this->input->getOption(self::INSTANCE_INDEX);
 
         if (null === $maxInstancesOption || null === $instanceIndexOption) {
-            throw new Exception('max-instances and instance-index options are required');
+            throw new InvalidConfigurationException('max-instances and instance-index options are required');
         }
 
         $maxInstances = (int)$maxInstancesOption;
         $instanceIndex = (int)$instanceIndexOption;
 
         if (1 > $maxInstances || 1 > $instanceIndex || $maxInstances < $instanceIndex) {
-            throw new Exception('invalid instances and instance index provided');
+            throw new InvalidConfigurationException('invalid instances and instance index provided');
         }
 
         return [$maxInstances, $instanceIndex];

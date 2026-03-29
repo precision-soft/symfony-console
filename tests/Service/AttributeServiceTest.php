@@ -10,7 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Service;
 
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Service\AttributeService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -37,7 +37,7 @@ final class AttributeServiceTest extends AbstractTestCase
 
     public function testGetCommandNameThrowsExceptionForClassWithoutAttribute(): void
     {
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('could not compute the name for');
 
         AttributeService::getCommandName(self::class);

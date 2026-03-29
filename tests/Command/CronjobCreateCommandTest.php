@@ -11,7 +11,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Command;
 use Mockery;
 use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
-use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;

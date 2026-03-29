@@ -11,7 +11,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Command\Trait;
 use Mockery;
 use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\Trait\InstancesTrait;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use ReflectionMethod;
@@ -65,7 +65,7 @@ final class InstancesTraitTest extends AbstractTestCase
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
         $reflectionProperty->setValue($traitObject, $inputInterface);
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid instances and instance index provided');
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
@@ -84,7 +84,7 @@ final class InstancesTraitTest extends AbstractTestCase
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
         $reflectionProperty->setValue($traitObject, $inputInterface);
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid instances and instance index provided');
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
@@ -103,7 +103,7 @@ final class InstancesTraitTest extends AbstractTestCase
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
         $reflectionProperty->setValue($traitObject, $inputInterface);
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid instances and instance index provided');
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
@@ -122,7 +122,7 @@ final class InstancesTraitTest extends AbstractTestCase
         $reflectionProperty = new ReflectionProperty($traitObject, 'input');
         $reflectionProperty->setValue($traitObject, $inputInterface);
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidConfigurationException::class);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'computeInstances');
         $reflectionMethod->invoke($traitObject);

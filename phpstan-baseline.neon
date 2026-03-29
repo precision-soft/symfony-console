@@ -70,7 +70,7 @@ parameters:
 			message: '#^Parameter \#1 \$configInterface of method PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\|PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto, PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface given\.$#'
 			identifier: argument.type
 			count: 1
-			path: src/Service/ConfGenerateService.php
+			path: src/Service/ConfGenerate/ConfGenerateService.php
 
 		-
 			message: '#^Strict comparison using === between null and string will always evaluate to false\.$#'

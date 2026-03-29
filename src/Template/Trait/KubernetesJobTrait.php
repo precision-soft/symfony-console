@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Template\Trait;
 
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 trait KubernetesJobTrait
 {
@@ -42,7 +42,7 @@ trait KubernetesJobTrait
         $sanitizedInput = \preg_replace('/[^a-z0-9\\-]+/i', '-', $input);
 
         if (null === $sanitizedInput) {
-            throw new Exception(\sprintf('failed to sanitize input `%s`', $input));
+            throw new InvalidValueException(\sprintf('failed to sanitize input `%s`', $input));
         }
 
         return $sanitizedInput;

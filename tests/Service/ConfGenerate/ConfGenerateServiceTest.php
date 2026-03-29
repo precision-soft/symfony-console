@@ -6,14 +6,15 @@ declare(strict_types=1);
  * Copyright (c) Precision Soft
  */
 
-namespace PrecisionSoft\Symfony\Console\Test\Service;
+namespace PrecisionSoft\Symfony\Console\Test\Service\ConfGenerate;
 
 use Mockery;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
-use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfFileWriter;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use ReflectionClass;
@@ -28,7 +29,7 @@ final class ConfGenerateServiceTest extends AbstractTestCase
     {
         return new MockDto(
             ConfGenerateService::class,
-            [[], new Filesystem()],
+            [[], new ConfFileWriter(new Filesystem())],
             true,
         );
     }
@@ -38,7 +39,7 @@ final class ConfGenerateServiceTest extends AbstractTestCase
         $crontabTemplateMock = Mockery::namedMock('CrontabTemplateMock', TemplateInterface::class);
         $supervisorTemplateMock = Mockery::namedMock('SupervisorTemplateMock', TemplateInterface::class);
 
-        $confGenerateService = new ConfGenerateService([$crontabTemplateMock, $supervisorTemplateMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$crontabTemplateMock, $supervisorTemplateMock], new ConfFileWriter(new Filesystem()));
 
         $reflectionClass = new ReflectionClass($confGenerateService);
         $reflectionProperty = $reflectionClass->getProperty('templates');
@@ -53,7 +54,7 @@ final class ConfGenerateServiceTest extends AbstractTestCase
 
     public function testGetTemplateThrowsExceptionWhenTemplateNotFound(): void
     {
-        $confGenerateService = new ConfGenerateService([], new Filesystem());
+        $confGenerateService = new ConfGenerateService([], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn('NonExistentTemplate');
@@ -77,7 +78,7 @@ final class ConfGenerateServiceTest extends AbstractTestCase
             ->once()
             ->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -104,7 +105,7 @@ final class ConfGenerateServiceTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);

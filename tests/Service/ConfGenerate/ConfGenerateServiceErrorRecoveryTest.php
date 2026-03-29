@@ -6,14 +6,15 @@ declare(strict_types=1);
  * Copyright (c) Precision Soft
  */
 
-namespace PrecisionSoft\Symfony\Console\Test\Service;
+namespace PrecisionSoft\Symfony\Console\Test\Service\ConfGenerate;
 
 use Mockery;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
-use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfFileWriter;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -30,7 +31,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
     {
         return new MockDto(
             ConfGenerateService::class,
-            [[], new Filesystem()],
+            [[], new ConfFileWriter(new Filesystem())],
             true,
         );
     }
@@ -47,7 +48,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $logsDirectory = \sys_get_temp_dir() . '/error_recovery_logs_' . \uniqid('', true);
 
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn('NonExistentTemplateClass');
@@ -79,7 +80,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -107,7 +108,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -134,7 +135,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -159,7 +160,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -187,7 +188,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -236,7 +237,8 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
             (new Filesystem())->remove($paths);
         });
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], $filesystemMock);
+        $confFileWriter = new ConfFileWriter($filesystemMock);
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], $confFileWriter);
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
@@ -266,7 +268,7 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
         $templateInterfaceMock->shouldReceive('generate')->once()->andReturn($confFilesDto);
 
-        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new Filesystem());
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
 
         $configInterfaceMock = Mockery::mock(ConfigInterface::class);
         $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);

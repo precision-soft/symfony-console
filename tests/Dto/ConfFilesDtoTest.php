@@ -11,7 +11,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Dto;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
-use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 /**
  * @internal
@@ -56,7 +56,7 @@ final class ConfFilesDtoTest extends AbstractTestCase
         $confFilesDto = new ConfFilesDto();
         $confFilesDto->addFile('/path/to/file.conf', 'content 1');
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidValueException::class);
         $this->expectExceptionMessage('the file path is in use `/path/to/file.conf`');
 
         $confFilesDto->addFile('/path/to/file.conf', 'content 2');

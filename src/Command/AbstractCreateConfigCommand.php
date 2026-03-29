@@ -10,7 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
-use PrecisionSoft\Symfony\Console\Service\ConfGenerateService;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 

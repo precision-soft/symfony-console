@@ -6,50 +6,21 @@ declare(strict_types=1);
  * Copyright (c) Precision Soft
  */
 
-namespace PrecisionSoft\Symfony\Console\Service;
+namespace PrecisionSoft\Symfony\Console\Service\ConfGenerate;
 
-use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
-use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use Symfony\Component\Filesystem\Filesystem;
 use Throwable;
 
-class ConfGenerateService
+class ConfFileWriter
 {
-    /** @var TemplateInterface[] */
-    private array $templates;
-
-    /** @param iterable<TemplateInterface> $templates */
     public function __construct(
-        iterable $templates,
         private readonly Filesystem $filesystem,
-    ) {
-        $this->templates = [];
-        foreach ($templates as $templateInterface) {
-            $this->templates[$templateInterface::class] = $templateInterface;
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $commands
-     * @return array<int, string>
-     */
-    public function generate(
-        ConfigInterface $configInterface,
-        array $commands,
-    ): array {
-        $this->initLogsDir($configInterface);
-
-        $templateInterface = $this->getTemplate($configInterface);
-
-        $confFilesDto = $templateInterface->generate($configInterface, $commands);
-
-        return $this->save($confFilesDto, $configInterface->getConfFilesDir());
-    }
+    ) {}
 
     /** @return array<int, string> */
-    private function save(ConfFilesDto $confFilesDto, string $destinationDir): array
+    public function save(ConfFilesDto $confFilesDto, string $destinationDir): array
     {
         $tempDir = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
 
@@ -113,19 +84,8 @@ class ConfGenerateService
         return $configurationFiles;
     }
 
-    private function getTemplate(ConfigInterface $configInterface): TemplateInterface
+    public function initLogsDir(string $logsDir): void
     {
-        $templateClass = $configInterface->getTemplateClass();
-
-        if (false === \array_key_exists($templateClass, $this->templates)) {
-            throw new ConfGenerateException(\sprintf('the template `%s` does not exist', $templateClass));
-        }
-
-        return $this->templates[$templateClass];
-    }
-
-    private function initLogsDir(ConfigInterface $configInterface): void
-    {
-        $this->filesystem->mkdir($configInterface->getLogsDir(), 0755);
+        $this->filesystem->mkdir($logsDir, 0755);
     }
 }
