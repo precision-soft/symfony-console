@@ -234,7 +234,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        static::assertStringContainsString('bin/console app:test', $content);
+        static::assertStringContainsString("'bin/console' 'app:test'", $content);
     }
 
     public function testGenerateSanitizesName(): void

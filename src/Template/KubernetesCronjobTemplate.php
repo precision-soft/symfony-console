@@ -67,7 +67,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         return [
             'name' => $name,
-            'command' => \implode(' ', $commandDto->getCommand()),
+            'command' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
             'schedule' => '"' . $this->buildSchedule($commandDto->getSchedule()) . '"',
         ];
     }

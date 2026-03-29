@@ -25,9 +25,9 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - PHPStan level 8 static analysis with baseline (`phpstan.neon`, `phpstan-baseline.neon`)
 - Comprehensive test suite (206 tests, 447 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
 - `ConfGenerateService::save()` — atomic file replacement with temp dir, backup, and restore on failure; path traversal protection
-- `ConfFilesDto` — validates path uniqueness and non-empty content on `addFile()`
+- `ConfFilesDto` — validates path uniqueness on `addFile()`
 - `SettingsTrait::getSetting()` — validates property existence via `\property_exists()` before access
-- `Cronjob\CommandDto` — validates `name` and `command_name` are non-empty strings
+- `Cronjob\CommandDto` — validates that the `schedule` key is present
 - Pre-commit hook now runs php-cs-fixer, PHP lint, PHPStan, and PHPUnit (all exit on failure)
 
 ### Changed
@@ -152,6 +152,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `ConfGenerateService` for orchestrating template generation and file output
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
+- `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
 
 [v3.0.0]: https://github.com/precision-soft/symfony-console/compare/v2.3.7...v3.0.0
 [v2.3.7]: https://github.com/precision-soft/symfony-console/compare/v2.3.6...v2.3.7

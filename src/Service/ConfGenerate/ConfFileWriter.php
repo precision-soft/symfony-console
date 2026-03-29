@@ -28,6 +28,8 @@ class ConfFileWriter
 
         $backupDir = null;
 
+        $backupRestored = false;
+
         try {
             $configurationFiles = [];
 
@@ -58,7 +60,11 @@ class ConfFileWriter
                 $this->filesystem->rename($tempDir, $destinationDir);
             } catch (Throwable $throwable) {
                 if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
-                    $this->filesystem->rename($backupDir, $destinationDir);
+                    try {
+                        $this->filesystem->rename($backupDir, $destinationDir);
+                        $backupRestored = true;
+                    } catch (Throwable) {
+                    }
                 }
 
                 throw new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
@@ -77,7 +83,7 @@ class ConfFileWriter
                 $this->filesystem->remove($tempDir);
             }
 
-            if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
+            if (false === $backupRestored && null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
                 $this->filesystem->remove($backupDir);
             }
 

@@ -53,7 +53,7 @@ class MemoryService
             return (int)$value;
         }
 
-        if (1 !== \preg_match('#([0-9]+)[\s]*([a-z]+)#i', $value, $matches)) {
+        if (1 !== \preg_match('#^([0-9]{1,18})[\s]*([a-z]{1,2})$#i', $value, $matches)) {
             throw new InvalidValueException(\sprintf('unrecognized memory value `%s`', $value));
         }
 

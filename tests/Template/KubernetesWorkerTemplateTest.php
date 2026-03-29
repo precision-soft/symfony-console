@@ -152,7 +152,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        static::assertStringContainsString('bin/console messenger:consume', $content);
+        static::assertStringContainsString("'bin/console' 'messenger:consume'", $content);
     }
 
     public function testGenerateContentContainsParallelism(): void

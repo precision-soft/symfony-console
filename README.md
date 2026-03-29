@@ -43,7 +43,7 @@ composer require precision-soft/symfony-console
 precision_soft_symfony_console:
     cronjob:
         config:
-            template_class: \PrecisionSoft\Symfony\Console\Template\CrontabTemplate
+            template_class: PrecisionSoft\Symfony\Console\Template\CrontabTemplate
             conf_files_dir: '%kernel.project_dir%/generated_conf/cron'
             logs_dir: '%kernel.logs_dir%/cron'
             settings:
@@ -65,13 +65,15 @@ precision_soft_symfony_console:
 
 If **precision_soft_symfony_console.cronjob.config.settings.heartbeat** is set to `true`, a heartbeat command will automatically be added to each generated crontab file. You may override the heartbeat by defining a command named `heartbeat` in the commands list.
 
+The **user** setting at config level prepends the user to each crontab command line. It can be overridden per command via the command-level `user` option.
+
 ### Worker configuration (Supervisor)
 
 ```yaml
 precision_soft_symfony_console:
     worker:
         config:
-            template_class: \PrecisionSoft\Symfony\Console\Template\SupervisorTemplate
+            template_class: PrecisionSoft\Symfony\Console\Template\SupervisorTemplate
             conf_files_dir: '%kernel.project_dir%/generated_conf/worker'
             logs_dir: '%kernel.logs_dir%/worker'
             settings:
@@ -95,7 +97,7 @@ Each command generates a separate `.conf` file for Supervisor. The `prefix`, `us
 precision_soft_symfony_console:
     cronjob:
         config:
-            template_class: \PrecisionSoft\Symfony\Console\Template\KubernetesCronjobTemplate
+            template_class: PrecisionSoft\Symfony\Console\Template\KubernetesCronjobTemplate
             conf_files_dir: '%kernel.project_dir%/generated_conf/k8s-cron'
             logs_dir: '%kernel.logs_dir%/cron'
             settings:
@@ -117,7 +119,7 @@ precision_soft_symfony_console:
 precision_soft_symfony_console:
     worker:
         config:
-            template_class: \PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate
+            template_class: PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate
             conf_files_dir: '%kernel.project_dir%/generated_conf/k8s-worker'
             logs_dir: '%kernel.logs_dir%/worker'
             settings:
