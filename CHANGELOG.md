@@ -2,29 +2,49 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
-## [v3.0.0] - 2026-03-28
+## [v3.0.0] - 2026-03-29
+
+### Breaking Changes
+- **`ConfigInterface` now extends `SettingsInterface`** — all implementations must add a `getSettings(): SettingInterface` method
+- **`MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException`** instead of calling `exit(Command::INVALID)` — callers must catch this exception
+- **`MemoryAndTimeLimitsTrait::didScriptReachedLimits()` renamed to `hasScriptReachedLimits()`** — grammar fix, update all call sites
+- **`CronjobCreateCommand` and `WorkerCreateCommand` now extend `AbstractCreateConfigCommand`** instead of `AbstractCommand` — constructor signatures changed; `execute()` logic moved to parent
+- **`CronjobCreateCommand` catches `ConfGenerateException` only** instead of generic `Throwable` — unexpected exceptions now propagate
+- **`WorkerCreateCommand` catches `ConfGenerateException` only** instead of generic `Throwable` — unexpected exceptions now propagate
+- **Removed `version` field from `composer.json`** — version is now derived from git tags only
+- **Replaced `squizlabs/php_codesniffer` with `phpstan/phpstan`** in dev dependencies
+- **Upgraded `precision-soft/symfony-phpunit` from `1.*` to `^2.0`**
+- **Symfony dependency constraints changed from `7.*` to `^7.0`** (stricter semver)
+- **Renamed `phpunit.xml` to `phpunit.xml.dist`** — local overrides via `phpunit.xml` are now gitignored
 
 ### Added
-- PHPStan level 8 static analysis with baseline
-- Comprehensive test suite
-- Tests for all DTOs, services, templates, traits, and exceptions
-- `ConfigInterface` now extends `SettingsInterface`
+- `AbstractCreateConfigCommand` base class — extracts shared `execute()` logic from `CronjobCreateCommand` and `WorkerCreateCommand`
+- `ConfGenerateException` — dedicated exception for config generation failures
+- `LimitExceededException` — dedicated exception for memory/time limit violations
+- `SettingsInterface` contract with `getSettings(): SettingInterface`
+- PHPStan level 8 static analysis with baseline (`phpstan.neon`, `phpstan-baseline.neon`)
+- Comprehensive test suite (179 tests, 388 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
+- `ConfGenerateService::save()` — atomic file replacement with temp dir, backup, and restore on failure; path traversal protection
+- `ConfFilesDto` — validates path uniqueness and non-empty content on `addFile()`
+- `SettingsTrait::getSetting()` — validates property existence via `\property_exists()` before access
+- `Cronjob\CommandDto` — validates `name` and `command_name` are non-empty strings
+- Pre-commit hook now runs php-cs-fixer, PHP lint, PHPStan, and PHPUnit (all exit on failure)
 
 ### Changed
-- Upgraded to Symfony 7 and PHP >=8.2
-- `MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException` instead of calling `exit()`
-- `ConfGenerateService::save()` uses atomic file replacement with backup/restore on failure
-- `TimeLimitTrait::$startTime` is no longer `readonly`
-- Pre-commit hook now runs php-cs-fixer, lint, phpstan, and phpunit (all exit on failure)
-- Code style reformatted to PER-CS2.0
+- Code style reformatted to PER-CS2.0 (replaced `phpcs.xml` with `.php-cs-fixer` configuration)
+- `TimeLimitTrait::$startTime` is no longer `readonly` (allows re-initialization)
+- `Configuration` DI tree builder — hardened with explicit type checks and non-nullable defaults
+- `PrecisionSoftSymfonyConsoleExtension` — uses explicit comparison for empty config checks
+- Dev infrastructure reorganized: Docker setup uses `entrypoint.sh` instead of `setup.sh`
+- Composer hook script properly quotes `$COMPOSER_DEV_MODE` variable
 
 ### Fixed
-- Heartbeat logic no longer adds duplicate commands when heartbeat setting is disabled
-- `MemoryService::returnBytes()` handles plain integer strings and `-1` (unlimited) correctly
-- `MemoryService::convertBytesToHumanReadable()` clamps unit index to prevent out-of-bounds
-- `KubernetesWorkerTemplate` validates `destinationFile` is not null before generating
-- `CrontabTemplate` user priority: command-level user now correctly overrides config-level
-- Trailing space removed from bytes unit in `MemoryService`
+- `CrontabTemplate` — heartbeat logic no longer adds duplicate commands when heartbeat setting is disabled
+- `CrontabTemplate` — command-level `user` now correctly overrides config-level user
+- `MemoryService::returnBytes()` — handles plain integer strings and `-1` (unlimited) correctly
+- `MemoryService::convertBytesToHumanReadable()` — clamps unit index to prevent out-of-bounds array access
+- `KubernetesWorkerTemplate` — validates `destinationFile` is not null before generating
+- Trailing space removed from bytes unit in `MemoryService::convertBytesToHumanReadable()`
 
 ## [v2.3.7] - 2026-03-21
 
