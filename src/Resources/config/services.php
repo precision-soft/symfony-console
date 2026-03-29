@@ -35,11 +35,11 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services->set(CronjobCreateCommand::class)
         ->arg('$confGenerateService', new Reference(ConfGenerateService::class))
-        ->arg('$config', '%precision_soft_symfony_console.cronjob%')
+        ->arg('$cronjobConfiguration', '%precision_soft_symfony_console.cronjob%')
         ->tag('console.command');
 
     $services->set(WorkerCreateCommand::class)
         ->arg('$confGenerateService', new Reference(ConfGenerateService::class))
-        ->arg('$config', '%precision_soft_symfony_console.worker%')
+        ->arg('$workerConfiguration', '%precision_soft_symfony_console.worker%')
         ->tag('console.command');
 };

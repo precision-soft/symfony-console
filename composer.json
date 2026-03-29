@@ -1,12 +1,15 @@
 {
     "name": "precision-soft/symfony-console",
     "type": "symfony-bundle",
-    "description": "symfony console utilities",
+    "description": "Symfony bundle for generating cron, Supervisor, and Kubernetes configuration files",
     "keywords": [
         "symfony",
         "console",
         "cronjob",
-        "worker"
+        "worker",
+        "supervisor",
+        "kubernetes",
+        "crontab"
     ],
     "homepage": "https://github.com/precision-soft/symfony-console",
     "license": "MIT",

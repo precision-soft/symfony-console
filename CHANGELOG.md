@@ -23,7 +23,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `LimitExceededException` — dedicated exception for memory/time limit violations
 - `SettingsInterface` contract with `getSettings(): SettingInterface`
 - PHPStan level 8 static analysis with baseline (`phpstan.neon`, `phpstan-baseline.neon`)
-- Comprehensive test suite (179 tests, 388 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
+- Comprehensive test suite (206 tests, 447 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
 - `ConfGenerateService::save()` — atomic file replacement with temp dir, backup, and restore on failure; path traversal protection
 - `ConfFilesDto` — validates path uniqueness and non-empty content on `addFile()`
 - `SettingsTrait::getSetting()` — validates property existence via `\property_exists()` before access
@@ -37,6 +37,8 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `PrecisionSoftSymfonyConsoleExtension` — uses explicit comparison for empty config checks
 - Dev infrastructure reorganized: Docker setup uses `entrypoint.sh` instead of `setup.sh`
 - Composer hook script properly quotes `$COMPOSER_DEV_MODE` variable
+- `composer.json` description and keywords expanded for Packagist discoverability
+- README `MemoryAndTimeLimitsTrait` example now shows `LimitExceededException` try-catch pattern
 
 ### Fixed
 - `CrontabTemplate` — heartbeat logic no longer adds duplicate commands when heartbeat setting is disabled
@@ -45,6 +47,8 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `MemoryService::convertBytesToHumanReadable()` — clamps unit index to prevent out-of-bounds array access
 - `KubernetesWorkerTemplate` — validates `destinationFile` is not null before generating
 - Trailing space removed from bytes unit in `MemoryService::convertBytesToHumanReadable()`
+- **`services.php` DI argument name mismatch** — `$config` did not match constructor parameters `$cronjobConfiguration`/`$workerConfiguration`, commands never received configuration via the service container
+- **`ConfFileWriter` false failure on backup cleanup** — a failed backup removal after successful deploy no longer masks the success as a failure
 
 ## [v2.3.7] - 2026-03-21
 

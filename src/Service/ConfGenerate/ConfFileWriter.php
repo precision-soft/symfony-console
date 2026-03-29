@@ -65,8 +65,13 @@ class ConfFileWriter
             }
 
             if (null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
-                $this->filesystem->remove($backupDir);
+                try {
+                    $this->filesystem->remove($backupDir);
+                } catch (Throwable) {
+                }
             }
+
+            return $configurationFiles;
         } catch (Throwable $throwable) {
             if (true === $this->filesystem->exists($tempDir)) {
                 $this->filesystem->remove($tempDir);
@@ -80,8 +85,6 @@ class ConfFileWriter
                 ? $throwable
                 : new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
         }
-
-        return $configurationFiles;
     }
 
     public function initLogsDir(string $logsDir): void

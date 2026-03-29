@@ -227,11 +227,12 @@ class MyCommand extends AbstractCommand
 
 ### MemoryAndTimeLimitsTrait
 
-Combines both limits into one trait. Throws `LimitExceededException` when either limit is exceeded.
+Combines both limits into one trait. Calls `stopScriptIfLimitsReached()` which throws `LimitExceededException` when either limit is exceeded — catch it to perform cleanup before exiting.
 
 ```php
 use PrecisionSoft\Symfony\Console\Command\AbstractCommand;
 use PrecisionSoft\Symfony\Console\Command\Trait\MemoryAndTimeLimitsTrait;
+use PrecisionSoft\Symfony\Console\Exception\LimitExceededException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -252,9 +253,13 @@ class MyCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        foreach ($this->getItems() as $item) {
-            $this->stopScriptIfLimitsReached();
-            $this->processItem($item);
+        try {
+            foreach ($this->getItems() as $item) {
+                $this->stopScriptIfLimitsReached();
+                $this->processItem($item);
+            }
+        } catch (LimitExceededException $limitExceededException) {
+            $this->warning($limitExceededException->getMessage());
         }
 
         return self::SUCCESS;
