@@ -48,7 +48,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         $destinationFile = $configInterface->getSettings()->getDestinationFile();
 
-        if ('' === $destinationFile) {
+        if (null === $destinationFile || '' === $destinationFile) {
             throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes cronjob template');
         }
 

@@ -156,6 +156,26 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         static::assertFalse($getMemoryLimitReached);
     }
 
+    public function testGetMemoryLimitReachedReturnsFalseWhenUnlimited(): void
+    {
+        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        $traitObject = $this->get(MemoryLimitTraitTestObject::class);
+
+        $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
+        $memoryLimitProperty->setValue($traitObject, '-1');
+
+        $symfonyStyle = Mockery::mock(SymfonyStyle::class);
+        $symfonyStyle->shouldNotReceive('warning');
+
+        $styleProperty = new ReflectionProperty($traitObject, 'style');
+        $styleProperty->setValue($traitObject, $symfonyStyle);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getMemoryLimitReached');
+        $getMemoryLimitReached = $reflectionMethod->invoke($traitObject);
+
+        static::assertFalse($getMemoryLimitReached);
+    }
+
     public function testIsMemoryLimitReachedReturnsTrueWhenOverLimit(): void
     {
         /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */

@@ -50,6 +50,11 @@ trait MemoryLimitTrait
         }
 
         $memoryLimit = MemoryService::returnBytes($this->memoryLimit);
+
+        if (-1 === $memoryLimit) {
+            return false;
+        }
+
         $memoryUsage = \memory_get_usage(true);
 
         if ($memoryLimit < $memoryUsage) {

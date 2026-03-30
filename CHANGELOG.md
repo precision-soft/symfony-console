@@ -2,6 +2,14 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
+## [v3.0.1] - 2026-03-30
+
+### Fixed
+
+- `MemoryLimitTrait::getMemoryLimitReached()` — returns `false` when memory limit is `-1` (unlimited) instead of comparing usage against `-1` bytes
+- `KubernetesCronjobTemplate::generate()` — added null check on `destinationFile` consistent with `KubernetesWorkerTemplate`
+- `phpstan-baseline.neon` — added entry for defensive null check on `KubernetesCronjobTemplate` (`identical.alwaysFalse`)
+
 ## [v3.0.0] - 2026-03-30
 
 ### Breaking Changes
@@ -183,6 +191,8 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v3.0.1]: https://github.com/precision-soft/symfony-console/compare/v3.0.0...v3.0.1
 
 [v3.0.0]: https://github.com/precision-soft/symfony-console/compare/v2.3.7...v3.0.0
 
