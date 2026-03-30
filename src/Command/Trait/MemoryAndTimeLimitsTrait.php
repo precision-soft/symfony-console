@@ -32,13 +32,13 @@ trait MemoryAndTimeLimitsTrait
 
     protected function stopScriptIfLimitsReached(): void
     {
-        if (true === $this->hasScriptReachedLimits()) {
+        if (true === $this->getScriptReachedLimits()) {
             throw new LimitExceededException('memory or time limit exceeded');
         }
     }
 
-    protected function hasScriptReachedLimits(): bool
+    protected function getScriptReachedLimits(): bool
     {
-        return true === $this->isMemoryLimitReached() || true === $this->isTimeLimitReached();
+        return true === $this->getMemoryLimitReached() || true === $this->getTimeLimitReached();
     }
 }

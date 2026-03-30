@@ -8,11 +8,13 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Service\ConfGenerate;
 
+use Mockery;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfFileWriter;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -176,6 +178,70 @@ final class ConfFileWriterTest extends AbstractTestCase
         } finally {
             $this->filesystem->remove($logsDirectory);
         }
+    }
+
+    public function testSavePreservesBackupWhenRestoreFails(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_preserve_backup_' . \uniqid('', true);
+
+        $this->filesystem->mkdir($destinationDirectory, 0755);
+        $this->filesystem->dumpFile($destinationDirectory . '/original.conf', 'original content');
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . '/new.conf', 'new content');
+
+        $renameCallCount = 0;
+        $filesystemMock = Mockery::mock(Filesystem::class);
+        $filesystemMock->shouldReceive('mkdir')->andReturnUsing(function (string $dir, int $mode): void {
+            (new Filesystem())->mkdir($dir, $mode);
+        });
+        $filesystemMock->shouldReceive('dumpFile')->andReturnUsing(function (string $path, string $content): void {
+            (new Filesystem())->dumpFile($path, $content);
+        });
+        $filesystemMock->shouldReceive('exists')->andReturnUsing(function (string $path): bool {
+            return (new Filesystem())->exists($path);
+        });
+        $filesystemMock->shouldReceive('rename')->andReturnUsing(function (string $origin, string $target) use (&$renameCallCount): void {
+            $renameCallCount++;
+
+            /** @info first rename: destinationDir → backupDir (succeeds) */
+            if (1 === $renameCallCount) {
+                (new Filesystem())->rename($origin, $target);
+
+                return;
+            }
+
+            /** @info second rename: tempDir → destinationDir (fails) */
+            if (2 === $renameCallCount) {
+                throw new IOException('deploy rename failed');
+            }
+
+            /** @info third rename: backupDir → destinationDir (restore also fails) */
+            throw new IOException('restore rename failed');
+        });
+        $filesystemMock->shouldReceive('remove')->andReturnUsing(function ($paths): void {
+            (new Filesystem())->remove($paths);
+        });
+
+        $confFileWriter = new ConfFileWriter($filesystemMock);
+
+        $confGenerateException = null;
+
+        try {
+            $confFileWriter->save($confFilesDto, $destinationDirectory);
+        } catch (ConfGenerateException $confGenerateException) {
+            static::assertStringContainsString('backup preserved at', $confGenerateException->getMessage());
+        }
+
+        static::assertInstanceOf(ConfGenerateException::class, $confGenerateException);
+
+        /** @info verify backup was NOT deleted */
+        $backupDirectories = \glob($destinationDirectory . '.bak_*');
+        static::assertCount(1, $backupDirectories);
+        static::assertFileExists($backupDirectories[0] . '/original.conf');
+        static::assertSame('original content', \file_get_contents($backupDirectories[0] . '/original.conf'));
+
+        $this->filesystem->remove($backupDirectories[0]);
     }
 
     public function testSaveRemovesBackupAfterSuccessfulDeploy(): void

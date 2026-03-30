@@ -184,10 +184,10 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
         $timeLimitProperty->setValue($traitObject, null);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getTimeLimitReached');
+        $getTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($isTimeLimitReached);
+        static::assertFalse($getTimeLimitReached);
     }
 
     public function testIsTimeLimitReachedReturnsFalseWhenUnderLimit(): void
@@ -201,10 +201,10 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $startTimeProperty = new ReflectionProperty($traitObject, 'startTime');
         $startTimeProperty->setValue($traitObject, \time());
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getTimeLimitReached');
+        $getTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($isTimeLimitReached);
+        static::assertFalse($getTimeLimitReached);
     }
 
     public function testIsTimeLimitReachedReturnsTrueWhenOverLimit(): void
@@ -224,10 +224,10 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $styleProperty = new ReflectionProperty($traitObject, 'style');
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getTimeLimitReached');
+        $getTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($isTimeLimitReached);
+        static::assertTrue($getTimeLimitReached);
     }
 
     public function testIsTimeLimitReachedReturnsTrueWhenExactlyAtLimit(): void
@@ -247,9 +247,9 @@ final class TimeLimitTraitTest extends AbstractTestCase
         $styleProperty = new ReflectionProperty($traitObject, 'style');
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isTimeLimitReached');
-        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getTimeLimitReached');
+        $getTimeLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($isTimeLimitReached);
+        static::assertTrue($getTimeLimitReached);
     }
 }

@@ -2451,29 +2451,29 @@
         },
         {
             "name": "precision-soft/symfony-phpunit",
-            "version": "v2.0.3",
+            "version": "v2.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/precision-soft/symfony-phpunit.git",
-                "reference": "23276f32c2d9596fecb4358068fec8228ea3809a"
+                "reference": "cbb81350eaddb1ffab86c313f89f0613dd07e603"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/23276f32c2d9596fecb4358068fec8228ea3809a",
-                "reference": "23276f32c2d9596fecb4358068fec8228ea3809a",
+                "url": "https://api.github.com/repos/precision-soft/symfony-phpunit/zipball/cbb81350eaddb1ffab86c313f89f0613dd07e603",
+                "reference": "cbb81350eaddb1ffab86c313f89f0613dd07e603",
                 "shasum": ""
             },
             "require": {
-                "mockery/mockery": "1.*",
+                "mockery/mockery": "^1.0",
                 "php": ">=8.2",
-                "symfony/phpunit-bridge": "7.*"
+                "symfony/phpunit-bridge": "^7.0"
             },
             "require-dev": {
-                "doctrine/doctrine-bundle": "2.*",
-                "doctrine/orm": "3.*",
-                "friendsofphp/php-cs-fixer": "3.*",
-                "phpstan/phpstan": "1.*",
-                "symfony/framework-bundle": "7.*"
+                "doctrine/doctrine-bundle": "^2.0",
+                "doctrine/orm": "^3.0",
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/phpstan": "^1.0",
+                "symfony/framework-bundle": "^7.0"
             },
             "suggest": {
                 "doctrine/doctrine-bundle": "Required to use ManagerRegistryMock",
@@ -2505,9 +2505,9 @@
             ],
             "support": {
                 "issues": "https://github.com/precision-soft/symfony-phpunit/issues",
-                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.0.3"
+                "source": "https://github.com/precision-soft/symfony-phpunit/tree/v2.1.1"
             },
-            "time": "2026-03-29T19:16:52+00:00"
+            "time": "2026-03-30T08:53:00+00:00"
         },
         {
             "name": "react/cache",

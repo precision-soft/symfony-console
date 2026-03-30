@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Command;
 
 use Mockery;
 use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
+use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
@@ -52,31 +53,31 @@ final class CronjobCreateCommandErrorPathTest extends AbstractTestCase
             ->andThrow(new ConfGenerateException('test error message'));
 
         $config = [
-            'config' => [
-                'template_class' => 'SomeTemplate',
-                'conf_files_dir' => 'generated_conf/cron',
-                'logs_dir' => 'generated_conf/logs/cron',
-                'settings' => [
-                    'destination_file' => 'crontab',
-                    'heartbeat' => true,
-                    'log' => true,
-                    'user' => null,
+            Configuration::CONFIG => [
+                Configuration::TEMPLATE_CLASS => 'SomeTemplate',
+                Configuration::CONF_FILES_DIR => 'generated_conf/cron',
+                Configuration::LOGS_DIR => 'generated_conf/logs/cron',
+                Configuration::SETTINGS => [
+                    Configuration::DESTINATION_FILE => 'crontab',
+                    Configuration::HEARTBEAT => true,
+                    Configuration::LOG => true,
+                    Configuration::USER => null,
                 ],
             ],
-            'commands' => [
+            Configuration::COMMANDS => [
                 'test' => [
-                    'command' => ['test'],
-                    'user' => null,
-                    'log_file_name' => 'test.log',
-                    'schedule' => [
-                        'minute' => '*',
-                        'hour' => '*',
-                        'day_of_month' => '*',
-                        'month' => '*',
-                        'day_of_week' => '*',
+                    Configuration::COMMAND => ['test'],
+                    Configuration::USER => null,
+                    Configuration::LOG_FILE_NAME => 'test.log',
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
                     ],
-                    'settings' => [
-                        'log' => true,
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => true,
                     ],
                 ],
             ],

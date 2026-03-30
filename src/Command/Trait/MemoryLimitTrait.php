@@ -43,7 +43,7 @@ trait MemoryLimitTrait
         );
     }
 
-    protected function isMemoryLimitReached(): bool
+    protected function getMemoryLimitReached(): bool
     {
         if (null === $this->memoryLimit) {
             return false;

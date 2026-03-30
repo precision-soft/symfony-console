@@ -2,13 +2,15 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
-## [v3.0.0] - 2026-03-29
+## [v3.0.0] - 2026-03-30
 
 ### Breaking Changes
 
 - **`ConfigInterface` now extends `SettingsInterface`** — all implementations must add a `getSettings(): SettingInterface` method
 - **`MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException`** instead of calling `exit(Command::INVALID)` — callers must catch this exception
-- **`MemoryAndTimeLimitsTrait::didScriptReachedLimits()` renamed to `hasScriptReachedLimits()`** — grammar fix, update all call sites
+- **`MemoryAndTimeLimitsTrait::didScriptReachedLimits()` renamed to `getScriptReachedLimits()`** — naming convention compliance, update all call sites
+- **`MemoryLimitTrait::isMemoryLimitReached()` renamed to `getMemoryLimitReached()`** — naming convention compliance
+- **`TimeLimitTrait::isTimeLimitReached()` renamed to `getTimeLimitReached()`** — naming convention compliance
 - **`CronjobCreateCommand` and `WorkerCreateCommand` now extend `AbstractCreateConfigCommand`** instead of `AbstractCommand` — constructor signatures changed; `execute()` logic moved to parent
 - **`CronjobCreateCommand` catches `ConfGenerateException` only** instead of generic `Throwable` — unexpected exceptions now propagate
 - **`WorkerCreateCommand` catches `ConfGenerateException` only** instead of generic `Throwable` — unexpected exceptions now propagate
@@ -25,11 +27,13 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `LimitExceededException` — dedicated exception for memory/time limit violations
 - `SettingsInterface` contract with `getSettings(): SettingInterface`
 - PHPStan level 8 static analysis with baseline (`phpstan.neon`, `phpstan-baseline.neon`)
-- Comprehensive test suite (206 tests, 447 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
+- Comprehensive test suite (225 tests, 503 assertions) covering all DTOs, services, templates, traits, commands, and exceptions
 - `ConfFileWriter::save()` — atomic file replacement with temp dir, backup, and restore on failure; path traversal protection
 - `ConfFilesDto` — validates path uniqueness on `addFile()`
 - `SettingsTrait::getSetting()` — validates property existence via `\property_exists()` before access
 - `Cronjob\CommandDto` — validates that the `schedule` key is present
+- `MemoryService::returnBytes()` — rejects zero and negative values (except `-1` for unlimited)
+- `@throws` annotations on `AttributeService::getCommandName()`, `ConfFileWriter::save()`, `ConfGenerateService::generate()`, and `MemoryService::returnBytes()`
 - Pre-commit hook now runs php-cs-fixer, PHP lint, PHPStan, and PHPUnit (all exit on failure)
 
 ### Changed
@@ -42,6 +46,10 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - Composer hook script properly quotes `$COMPOSER_DEV_MODE` variable
 - `composer.json` description and keywords expanded for Packagist discoverability
 - README `MemoryAndTimeLimitsTrait` example now shows `LimitExceededException` try-catch pattern
+- README — documented heartbeat touch file path, `number_of_processes` and `log_file` defaults for Supervisor, and `destination_file` requirements for Kubernetes templates
+- Error path tests use `Configuration::*` constants instead of string literals
+- `KubernetesJobTraitTest` and `WorkerNumberOfProcessesTraitTest` switched from `AbstractTestCase` to `TestCase` + `MockeryPHPUnitIntegration` (no mock DTOs needed)
+- `ConfGenerateServiceTest` temp directory cleanup wrapped in `try/finally` for reliability
 
 ### Fixed
 

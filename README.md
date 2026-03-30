@@ -66,7 +66,7 @@ precision_soft_symfony_console:
                     log: false
 ```
 
-If **precision_soft_symfony_console.cronjob.config.settings.heartbeat** is set to `true`, a heartbeat command will automatically be added to each generated crontab file. You may override the heartbeat by defining a command named `heartbeat` in the commands list.
+If **precision_soft_symfony_console.cronjob.config.settings.heartbeat** is set to `true`, a heartbeat command will automatically be added to each generated crontab file. The auto-generated heartbeat command runs `/bin/touch <logs_dir>/heartbeat.<destination_file>` every minute. You may override the heartbeat by defining a command named `heartbeat` in the commands list.
 
 The **user** setting at config level prepends the user to each crontab command line. It can be overridden per command via the command-level `user` option. Each command also supports `log_file_name` (custom log file name, defaults to `<command-name>.log`) and `destination_file` (override the config-level destination file to generate separate crontab files per command).
 
@@ -92,7 +92,7 @@ precision_soft_symfony_console:
                     number_of_processes: 2
 ```
 
-Each command generates a separate `.conf` file for Supervisor. The `prefix`, `user`, `auto_start`, `auto_restart`, and `log_file` are available settings with defaults (can be set at the config level and overridden per command).
+Each command generates a separate `.conf` file for Supervisor. The `prefix`, `user`, `auto_start`, `auto_restart`, `log_file`, and `number_of_processes` are available settings with defaults (can be set at the config level and overridden per command). If `log_file` is not specified, it defaults to `<logs_dir>/<command-name>.log`.
 
 ### Kubernetes CronJob template
 
@@ -135,7 +135,7 @@ precision_soft_symfony_console:
                     number_of_processes: 3
 ```
 
-The `destination_file` setting is mandatory for the Kubernetes Worker template.
+The `destination_file` setting is mandatory for the Kubernetes Worker template (it has no default). The Kubernetes CronJob template also requires it, but inherits the default `crontab` from the cronjob config.
 
 ## Available templates
 
@@ -180,7 +180,7 @@ class MyCommand extends AbstractCommand
         foreach ($this->getItems() as $item) {
             $this->processItem($item);
 
-            if (true === $this->isMemoryLimitReached()) {
+            if (true === $this->getMemoryLimitReached()) {
                 break;
             }
         }
@@ -220,7 +220,7 @@ class MyCommand extends AbstractCommand
         foreach ($this->getItems() as $item) {
             $this->processItem($item);
 
-            if (true === $this->isTimeLimitReached()) {
+            if (true === $this->getTimeLimitReached()) {
                 break;
             }
         }

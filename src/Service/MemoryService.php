@@ -45,12 +45,21 @@ class MemoryService
         return \round($bytes / 1024 ** $unitIndex, 2) . ' ' . $units[$unitIndex];
     }
 
+    /**
+     * @throws InvalidValueException
+     */
     public static function returnBytes(string $value): int
     {
         $value = \trim($value);
 
         if (1 === \preg_match('/^-?\d+$/', $value)) {
-            return (int)$value;
+            $integerValue = (int)$value;
+
+            if (0 >= $integerValue && '-1' !== $value) {
+                throw new InvalidValueException(\sprintf('the memory value must be a positive integer or -1 (unlimited), `%s` given', $value));
+            }
+
+            return $integerValue;
         }
 
         if (1 !== \preg_match('#^([0-9]{1,18})[\s]*([a-z]{1,2})$#i', $value, $matches)) {
@@ -68,6 +77,10 @@ class MemoryService
             'k', 'kb' => 1024,
             default => throw new InvalidValueException(\sprintf('unrecognized unit of measurement `%s`', $unitOfMeasurement)),
         };
+
+        if ($numericValue > (int)(\PHP_INT_MAX / $multiplier)) {
+            throw new InvalidValueException(\sprintf('the memory value `%s` causes integer overflow', $value));
+        }
 
         return $numericValue * $multiplier;
     }

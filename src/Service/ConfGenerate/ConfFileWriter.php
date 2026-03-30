@@ -19,7 +19,10 @@ class ConfFileWriter
         private readonly Filesystem $filesystem,
     ) {}
 
-    /** @return array<int, string> */
+    /**
+     * @return array<int, string>
+     * @throws ConfGenerateException
+     */
     public function save(ConfFilesDto $confFilesDto, string $destinationDir): array
     {
         $tempDir = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
@@ -87,13 +90,14 @@ class ConfFileWriter
             }
 
             if (false === $backupRestored && null !== $backupDir && true === $this->filesystem->exists($backupDir)) {
-                try {
-                    $this->filesystem->remove($backupDir);
-                } catch (Throwable) {
-                }
+                throw new ConfGenerateException(
+                    \sprintf('%s — backup preserved at `%s`', $throwable->getMessage(), $backupDir),
+                    (int)$throwable->getCode(),
+                    true === $throwable instanceof ConfGenerateException ? $throwable->getPrevious() : $throwable,
+                );
             }
 
-            throw $throwable instanceof ConfGenerateException
+            throw true === $throwable instanceof ConfGenerateException
                 ? $throwable
                 : new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
         }

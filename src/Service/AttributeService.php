@@ -18,6 +18,7 @@ class AttributeService
     /**
      * @param class-string $commandClass
      * @throws ReflectionException
+     * @throws InvalidConfigurationException
      */
     public static function getCommandName(string $commandClass): string
     {

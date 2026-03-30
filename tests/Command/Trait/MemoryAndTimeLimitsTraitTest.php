@@ -79,10 +79,10 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
         $timeLimitProperty->setValue($traitObject, null);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'hasScriptReachedLimits');
-        $hasScriptReachedLimits = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getScriptReachedLimits');
+        $getScriptReachedLimits = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($hasScriptReachedLimits);
+        static::assertFalse($getScriptReachedLimits);
     }
 
     public function testDidScriptReachedLimitsReturnsTrueWhenTimeLimitReached(): void
@@ -105,10 +105,10 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $styleProperty = new ReflectionProperty($traitObject, 'style');
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'hasScriptReachedLimits');
-        $isTimeLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getScriptReachedLimits');
+        $scriptReachedLimits = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($isTimeLimitReached);
+        static::assertTrue($scriptReachedLimits);
     }
 
     public function testDidScriptReachedLimitsReturnsTrueWhenMemoryLimitReached(): void
@@ -128,10 +128,10 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $styleProperty = new ReflectionProperty($traitObject, 'style');
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'hasScriptReachedLimits');
-        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getScriptReachedLimits');
+        $scriptReachedLimits = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($isMemoryLimitReached);
+        static::assertTrue($scriptReachedLimits);
     }
 
     public function testStopScriptIfLimitsReachedDoesNothingWhenNoLimits(): void

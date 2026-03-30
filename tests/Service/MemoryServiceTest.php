@@ -28,14 +28,25 @@ final class MemoryServiceTest extends AbstractTestCase
         static::assertSame(1024, MemoryService::returnBytes('1024'));
     }
 
-    public function testReturnBytesWithNegativeNumber(): void
+    public function testReturnBytesWithUnlimitedMemory(): void
     {
         static::assertSame(-1, MemoryService::returnBytes('-1'));
     }
 
-    public function testReturnBytesWithZero(): void
+    public function testReturnBytesWithZeroThrowsException(): void
     {
-        static::assertSame(0, MemoryService::returnBytes('0'));
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('the memory value must be a positive integer or -1 (unlimited)');
+
+        MemoryService::returnBytes('0');
+    }
+
+    public function testReturnBytesWithNegativeNumberThrowsException(): void
+    {
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('the memory value must be a positive integer or -1 (unlimited)');
+
+        MemoryService::returnBytes('-100');
     }
 
     public function testReturnBytesWithKilobytes(): void
@@ -126,6 +137,14 @@ final class MemoryServiceTest extends AbstractTestCase
     public function testReturnBytesWithPB(): void
     {
         static::assertSame(1024 * 1024 * 1024 * 1024 * 1024, MemoryService::returnBytes('1PB'));
+    }
+
+    public function testReturnBytesThrowsExceptionOnIntegerOverflow(): void
+    {
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('integer overflow');
+
+        MemoryService::returnBytes('999999999999999999PB');
     }
 
     public function testReturnBytesThrowsExceptionForUnrecognizedUnit(): void

@@ -16,6 +16,9 @@ use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use ReflectionMethod;
 use ReflectionProperty;
+use Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class SymfonyStyleTraitTestObject
@@ -98,7 +101,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
             ->once()
             ->with(Mockery::on(function (string $argument) use ($exception): bool {
                 return 1 === \preg_match('/error message.*Exception/', $argument)
-                    && false !== \strpos($argument, $exception->getTraceAsString());
+                    && true === \str_contains($argument, $exception->getTraceAsString());
             }));
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'style');
@@ -157,6 +160,28 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'success');
         $reflectionMethod->invoke($traitObject, 'success message');
+    }
+
+    public function testInitializeSymfonyStyle(): void
+    {
+        $traitObject = new SymfonyStyleTraitTestObject();
+
+        $inputInterfaceMock = Mockery::mock(InputInterface::class);
+        $outputInterfaceMock = Mockery::mock(OutputInterface::class);
+
+        $outputFormatterInterfaceMock = Mockery::mock(OutputFormatterInterface::class);
+        $outputFormatterInterfaceMock->shouldIgnoreMissing();
+        $outputFormatterInterfaceMock->shouldReceive('isDecorated')->andReturn(false);
+
+        $outputInterfaceMock->shouldReceive('getFormatter')->andReturn($outputFormatterInterfaceMock);
+        $outputInterfaceMock->shouldReceive('getVerbosity')->andReturn(OutputInterface::VERBOSITY_NORMAL);
+        $outputInterfaceMock->shouldReceive('isDecorated')->andReturn(false);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'initializeSymfonyStyle');
+        $reflectionMethod->invoke($traitObject, $inputInterfaceMock, $outputInterfaceMock);
+
+        $reflectionProperty = new ReflectionProperty($traitObject, 'style');
+        static::assertInstanceOf(SymfonyStyle::class, $reflectionProperty->getValue($traitObject));
     }
 
     public function testFormatIncludesTimestampAndMemory(): void

@@ -130,10 +130,10 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
         $memoryLimitProperty->setValue($traitObject, null);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isMemoryLimitReached');
-        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getMemoryLimitReached');
+        $getMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($isMemoryLimitReached);
+        static::assertFalse($getMemoryLimitReached);
     }
 
     public function testIsMemoryLimitReachedReturnsFalseWhenUnderLimit(): void
@@ -150,10 +150,10 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $styleProperty = new ReflectionProperty($traitObject, 'style');
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isMemoryLimitReached');
-        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getMemoryLimitReached');
+        $getMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertFalse($isMemoryLimitReached);
+        static::assertFalse($getMemoryLimitReached);
     }
 
     public function testIsMemoryLimitReachedReturnsTrueWhenOverLimit(): void
@@ -170,9 +170,9 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $styleProperty = new ReflectionProperty($traitObject, 'style');
         $styleProperty->setValue($traitObject, $symfonyStyle);
 
-        $reflectionMethod = new ReflectionMethod($traitObject, 'isMemoryLimitReached');
-        $isMemoryLimitReached = $reflectionMethod->invoke($traitObject);
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getMemoryLimitReached');
+        $getMemoryLimitReached = $reflectionMethod->invoke($traitObject);
 
-        static::assertTrue($isMemoryLimitReached);
+        static::assertTrue($getMemoryLimitReached);
     }
 }

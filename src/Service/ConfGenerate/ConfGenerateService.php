@@ -31,6 +31,7 @@ class ConfGenerateService
     /**
      * @param array<string, mixed> $commands
      * @return array<int, string>
+     * @throws ConfGenerateException
      */
     public function generate(
         ConfigInterface $configInterface,

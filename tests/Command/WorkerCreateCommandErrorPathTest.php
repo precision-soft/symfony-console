@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Command;
 
 use Mockery;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
+use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
@@ -52,25 +53,25 @@ final class WorkerCreateCommandErrorPathTest extends AbstractTestCase
             ->andThrow(new ConfGenerateException('test error message'));
 
         $config = [
-            'config' => [
-                'template_class' => 'SomeTemplate',
-                'conf_files_dir' => 'generated_conf/worker',
-                'logs_dir' => 'generated_conf/logs/worker',
-                'settings' => [
-                    'number_of_processes' => 1,
-                    'auto_start' => true,
-                    'auto_restart' => true,
-                    'prefix' => 'prefix',
-                    'user' => 'user',
+            Configuration::CONFIG => [
+                Configuration::TEMPLATE_CLASS => 'SomeTemplate',
+                Configuration::CONF_FILES_DIR => 'generated_conf/worker',
+                Configuration::LOGS_DIR => 'generated_conf/logs/worker',
+                Configuration::SETTINGS => [
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'prefix',
+                    Configuration::USER => 'user',
                 ],
             ],
-            'commands' => [
+            Configuration::COMMANDS => [
                 'test' => [
-                    'command' => ['test'],
-                    'settings' => [
-                        'number_of_processes' => 1,
-                        'auto_start' => true,
-                        'auto_restart' => true,
+                    Configuration::COMMAND => ['test'],
+                    Configuration::SETTINGS => [
+                        Configuration::NUMBER_OF_PROCESSES => 1,
+                        Configuration::AUTO_START => true,
+                        Configuration::AUTO_RESTART => true,
                     ],
                 ],
             ],

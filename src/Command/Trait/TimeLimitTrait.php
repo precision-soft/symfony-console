@@ -47,7 +47,7 @@ trait TimeLimitTrait
         );
     }
 
-    protected function isTimeLimitReached(): bool
+    protected function getTimeLimitReached(): bool
     {
         if (null === $this->timeLimit) {
             return false;
