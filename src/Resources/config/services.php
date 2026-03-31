@@ -25,21 +25,29 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->autoconfigure();
 
     $services->set(ConfGenerateService::class)
-        ->arg('$templates', new TaggedIteratorArgument(PrecisionSoftSymfonyConsoleExtension::CONSOLE_TEMPLATE));
+        ->arg('$templates', new TaggedIteratorArgument(PrecisionSoftSymfonyConsoleExtension::CONSOLE_TEMPLATE))
+        ->autowire()
+        ->autoconfigure();
 
     $services->load(
         'PrecisionSoft\\Symfony\\Console\\Template\\',
         __DIR__ . '/../../Template/*',
     )
-        ->tag(PrecisionSoftSymfonyConsoleExtension::CONSOLE_TEMPLATE);
+        ->tag(PrecisionSoftSymfonyConsoleExtension::CONSOLE_TEMPLATE)
+        ->autowire()
+        ->autoconfigure();
 
     $services->set(CronjobCreateCommand::class)
         ->arg('$confGenerateService', new Reference(ConfGenerateService::class))
         ->arg('$cronjobConfiguration', '%precision_soft_symfony_console.cronjob%')
-        ->tag('console.command');
+        ->tag('console.command')
+        ->autowire()
+        ->autoconfigure();
 
     $services->set(WorkerCreateCommand::class)
         ->arg('$confGenerateService', new Reference(ConfGenerateService::class))
         ->arg('$workerConfiguration', '%precision_soft_symfony_console.worker%')
-        ->tag('console.command');
+        ->tag('console.command')
+        ->autowire()
+        ->autoconfigure();
 };

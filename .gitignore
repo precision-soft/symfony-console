@@ -13,3 +13,4 @@
 /.phpcs-cache
 /*.tar.gz
 /.temp/
+/diff*.txt
