@@ -15,6 +15,7 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 
 class KubernetesCronjobTemplate implements TemplateInterface
@@ -24,6 +25,9 @@ class KubernetesCronjobTemplate implements TemplateInterface
     /**
      * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
+     *
+     * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     public function generate(
         ConfigInterface $configInterface,

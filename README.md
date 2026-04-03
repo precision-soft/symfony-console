@@ -135,7 +135,7 @@ precision_soft_symfony_console:
                     number_of_processes: 3
 ```
 
-The `destination_file` setting is mandatory for the Kubernetes Worker template (it has no default). The Kubernetes CronJob template also requires it, but inherits the default `crontab` from the cronjob config.
+The `destination_file` setting is mandatory for both Kubernetes templates. The Kubernetes Worker template has no default. The Kubernetes CronJob template defaults to `crontab` from the cronjob config settings if not overridden per command.
 
 ## Available templates
 
@@ -301,6 +301,57 @@ class MyCommand extends AbstractCommand
 }
 ```
 
+## Contracts
+
+The bundle defines the following interfaces in the `PrecisionSoft\Symfony\Console\Contract` namespace:
+
+| Interface           | Purpose                                                                         |
+|---------------------|---------------------------------------------------------------------------------|
+| `TemplateInterface` | Implemented by all templates — `generate(ConfigInterface, array): ConfFilesDto` |
+| `ConfigInterface`   | Provides template class, logs dir, conf files dir, and settings                 |
+| `SettingsInterface` | Provides access to the settings object via `getSettings(): SettingInterface`    |
+| `SettingInterface`  | Retrieves a single setting value via `getSetting(string): ?string`              |
+
+## Services
+
+### MemoryService
+
+Static utility for memory operations (`PrecisionSoft\Symfony\Console\Service\MemoryService`):
+
+| Method                                              | Description                                                                |
+|-----------------------------------------------------|----------------------------------------------------------------------------|
+| `setMemoryLimitIfNotHigher(string $newLimit): void` | Raises `memory_limit` only if the new limit is higher than the current one |
+| `getMemoryUsage(): string`                          | Returns current memory usage in human-readable format                      |
+| `convertBytesToHumanReadable(int $bytes): string`   | Converts bytes to human-readable string (e.g. `128 MB`)                    |
+| `returnBytes(string $value): int`                   | Parses a memory string (`512M`, `1G`) into bytes                           |
+
+### AttributeService
+
+Static utility for command metadata (`PrecisionSoft\Symfony\Console\Service\AttributeService`):
+
+| Method                                         | Description                                                                 |
+|------------------------------------------------|-----------------------------------------------------------------------------|
+| `getCommandName(string $commandClass): string` | Extracts the command name from the `AsCommand` attribute of a command class |
+
+## Exceptions
+
+All exceptions extend `PrecisionSoft\Symfony\Console\Exception\Exception`:
+
+| Exception                       | Thrown when                                                   |
+|---------------------------------|---------------------------------------------------------------|
+| `ConfGenerateException`         | Configuration file generation or write fails                  |
+| `InvalidConfigurationException` | Required configuration is missing or invalid                  |
+| `InvalidValueException`         | A value (e.g. memory limit) cannot be parsed                  |
+| `LimitExceededException`        | Memory or time limit is exceeded (`MemoryAndTimeLimitsTrait`) |
+| `SettingNotFound`               | A requested setting does not exist on the DTO                 |
+
+## AbstractCommand
+
+`PrecisionSoft\Symfony\Console\Command\AbstractCommand` extends Symfony's `Command` and provides:
+
+- Automatic `$this->input`, `$this->output`, and `$this->style` (`SymfonyStyle`) initialization in `initialize()`
+- Output helper methods via `SymfonyStyleTrait`: `writeln()`, `error()`, `info()`, `warning()`, `success()`
+
 ## For custom templates
 
 Create a template service implementing `TemplateInterface` (`PrecisionSoft\Symfony\Console\Contract\TemplateInterface`) and add to your **services.yaml**:
@@ -311,6 +362,42 @@ services:
         PrecisionSoft\Symfony\Console\Contract\TemplateInterface:
             tags: [ 'precision-soft.symfony.console.template' ]
 ```
+
+## Troubleshooting
+
+### Memory limit trait reports incorrect usage
+
+`MemoryLimitTrait` reads `memory_limit` from `php.ini` via `\ini_get()`. If your environment sets `-1` (unlimited), the trait returns `false` for `getMemoryLimitReached()` — this is intentional. To enforce a limit, always pass an explicit value to `configureMemoryLimit()`.
+
+### Generated config files have wrong permissions
+
+`ConfFileWriter` creates files with the permissions of the running PHP process. If the generated crontab or Supervisor config needs specific ownership (e.g. `root`), adjust permissions after generation or run the command as the target user.
+
+### Kubernetes template throws InvalidConfigurationException
+
+Both `KubernetesCronjobTemplate` and `KubernetesWorkerTemplate` require the `destination_file` setting. Unlike `CrontabTemplate` (which defaults to `crontab`), Kubernetes templates have no default — set it explicitly in your config.
+
+### Command traits conflict with existing setUp/tearDown
+
+The command traits (`MemoryLimitTrait`, `TimeLimitTrait`) use `initialize()` hooks, not `setUp()`/`tearDown()`. They are safe to combine with any test base class. Call `initializeMemoryLimit()` or `initializeTimeLimit()` in your command's `initialize()` method.
+
+## Security Considerations
+
+### Heartbeat files
+
+When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>/heartbeat.<destination_file>` command that runs every minute. Ensure:
+
+- **`logs_dir` is not web-accessible** — heartbeat files should not be reachable via HTTP
+- **Directory permissions are restricted** — only the cron user and monitoring tools should have read/write access
+- **Monitor heartbeat staleness** — the purpose of heartbeat files is to detect when cron stops running; alert if the file modification time exceeds your threshold (e.g. 5 minutes)
+
+### Path traversal protection
+
+`ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Do not bypass this by symlinking the destination to a sensitive location.
+
+### Configuration values in generated files
+
+Command strings and settings are written as-is into generated config files (crontab, Supervisor `.conf`, Kubernetes YAML). Shell-sensitive characters in crontab are escaped via `\escapeshellarg()`, and YAML special characters are escaped in Kubernetes templates. Avoid passing untrusted user input as command strings or settings.
 
 ## Dev
 

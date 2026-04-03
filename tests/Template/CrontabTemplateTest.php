@@ -26,7 +26,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         return new MockDto(CrontabTemplate::class, [], true);
     }
 
-    public function test(): void
+    public function testGenerate(): void
     {
         /** @var CrontabTemplate|MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);

@@ -30,6 +30,7 @@ trait MemoryAndTimeLimitsTrait
         $this->configureTimeLimit($defaultTimeLimit);
     }
 
+    /** @throws LimitExceededException */
     protected function stopScriptIfLimitsReached(): void
     {
         if (true === $this->getScriptReachedLimits()) {

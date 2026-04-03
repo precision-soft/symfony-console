@@ -24,6 +24,8 @@ class CommandDto implements SettingsInterface
 
     /**
      * @param array<string, mixed> $parameters
+     *
+     * @throws InvalidConfigurationException
      */
     public function __construct(
         private readonly string $name,

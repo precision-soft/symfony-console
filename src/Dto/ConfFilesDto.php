@@ -26,6 +26,7 @@ class ConfFilesDto
         return $this->files;
     }
 
+    /** @throws InvalidValueException */
     public function addFile(string $path, string $content): self
     {
         if (true === \array_key_exists($path, $this->files)) {

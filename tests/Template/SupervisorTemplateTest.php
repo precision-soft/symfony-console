@@ -27,7 +27,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
         return new MockDto(SupervisorTemplate::class, [], true);
     }
 
-    public function test(): void
+    public function testGenerate(): void
     {
         /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);

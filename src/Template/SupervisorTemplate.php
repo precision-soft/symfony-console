@@ -23,6 +23,8 @@ class SupervisorTemplate implements TemplateInterface
     /**
      * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
+     *
+     * @throws InvalidConfigurationException
      */
     public function generate(
         ConfigInterface $configInterface,

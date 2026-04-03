@@ -136,8 +136,6 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
     public function testStopScriptIfLimitsReachedDoesNothingWhenNoLimits(): void
     {
-        $this->expectNotToPerformAssertions();
-
         /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
         $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
@@ -149,6 +147,11 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'stopScriptIfLimitsReached');
         $reflectionMethod->invoke($traitObject);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'getScriptReachedLimits');
+        $getScriptReachedLimits = $reflectionMethod->invoke($traitObject);
+
+        static::assertFalse($getScriptReachedLimits);
     }
 
     public function testStopScriptIfLimitsReachedThrowsRuntimeException(): void

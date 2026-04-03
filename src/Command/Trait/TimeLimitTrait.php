@@ -18,6 +18,7 @@ trait TimeLimitTrait
     protected int $startTime;
     protected ?int $timeLimit = null;
 
+    /** @throws InvalidValueException */
     protected function initializeTimeLimit(): void
     {
         $this->startTime = \time();

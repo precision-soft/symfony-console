@@ -2,6 +2,31 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
+## [v3.0.3] - 2026-04-03
+
+### Added
+
+- Add `@throws` annotations to `InstancesTrait::computeInstances()`, `InstancesTrait::formatMessageWithInstances()`, `MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()`, `TimeLimitTrait::initializeTimeLimit()`, `ConfFilesDto::addFile()`, `Cronjob\CommandDto::__construct()`, `SettingsTrait::getSetting()`, `WorkerNumberOfProcessesTrait::getNumberOfProcesses()`
+- Add `@throws` annotations to `KubernetesCronjobTemplate::generate()`, `KubernetesWorkerTemplate::generate()`, `SupervisorTemplate::generate()`
+- Add `InvalidValueException` import to `KubernetesCronjobTemplate` and `KubernetesWorkerTemplate`
+- Add `Contracts`, `Services`, `Exceptions`, and `AbstractCommand` sections to README
+- Add `Troubleshooting` section to README — covers memory limit, file permissions, Kubernetes config, and trait conflicts
+- Add `Security Considerations` section to README — documents heartbeat file safety, path traversal protection, and configuration value escaping
+
+### Changed
+
+- Fix Yoda comparison in `MemoryService::returnBytes()` — `$numericValue > X` to `X < $numericValue`
+- Fix CHANGELOG v3.0.0 — correct `didScriptReachedLimits` to `hasScriptReachedLimits` in breaking changes
+- Clarify Kubernetes `destination_file` documentation in README
+- Rename `test()` to `testGenerate()` in `CrontabTemplateTest` and `SupervisorTemplateTest`
+- Replace `expectNotToPerformAssertions()` with explicit `assertFalse(getScriptReachedLimits())` in `MemoryAndTimeLimitsTraitTest`
+
+## [v3.0.2] - 2026-04-02
+
+### Fixed
+
+- Add `autowire()` and `autoconfigure()` to all service definitions in `services.php` — ensures services and console commands are properly wired via the Symfony container
+
 ## [v3.0.1] - 2026-03-30
 
 ### Fixed
@@ -16,7 +41,7 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 
 - **`ConfigInterface` now extends `SettingsInterface`** — all implementations must add a `getSettings(): SettingInterface` method
 - **`MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException`** instead of calling `exit(Command::INVALID)` — callers must catch this exception
-- **`MemoryAndTimeLimitsTrait::didScriptReachedLimits()` renamed to `getScriptReachedLimits()`** — naming convention compliance, update all call sites
+- **`MemoryAndTimeLimitsTrait::hasScriptReachedLimits()` renamed to `getScriptReachedLimits()`** — naming convention compliance, update all call sites
 - **`MemoryLimitTrait::isMemoryLimitReached()` renamed to `getMemoryLimitReached()`** — naming convention compliance
 - **`TimeLimitTrait::isTimeLimitReached()` renamed to `getTimeLimitReached()`** — naming convention compliance
 - **`CronjobCreateCommand` and `WorkerCreateCommand` now extend `AbstractCreateConfigCommand`** instead of `AbstractCommand` — constructor signatures changed; `execute()` logic moved to parent
@@ -191,6 +216,10 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v3.0.3]: https://github.com/precision-soft/symfony-console/compare/v3.0.2...v3.0.3
+
+[v3.0.2]: https://github.com/precision-soft/symfony-console/compare/v3.0.1...v3.0.2
 
 [v3.0.1]: https://github.com/precision-soft/symfony-console/compare/v3.0.0...v3.0.1
 

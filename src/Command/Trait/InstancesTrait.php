@@ -16,7 +16,11 @@ trait InstancesTrait
     protected const MAX_INSTANCES = 'max-instances';
     protected const INSTANCE_INDEX = 'instance-index';
 
-    /** @return array{int, int} */
+    /**
+     * @return array{int, int}
+     *
+     * @throws InvalidConfigurationException
+     */
     protected function computeInstances(): array
     {
         $maxInstancesOption = $this->input->getOption(self::MAX_INSTANCES);
@@ -42,6 +46,7 @@ trait InstancesTrait
             ->addOption(self::INSTANCE_INDEX, null, InputOption::VALUE_OPTIONAL, 'the index of the current command instance up to the max instances', 1);
     }
 
+    /** @throws InvalidConfigurationException */
     protected function formatMessageWithInstances(string $message): string
     {
         [$maxInstances, $instanceIndex] = $this->computeInstances();

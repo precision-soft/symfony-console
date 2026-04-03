@@ -14,6 +14,7 @@ use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
@@ -25,6 +26,9 @@ class KubernetesWorkerTemplate implements TemplateInterface
     /**
      * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
+     *
+     * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     public function generate(
         ConfigInterface $configInterface,

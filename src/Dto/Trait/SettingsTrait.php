@@ -15,6 +15,7 @@ trait SettingsTrait
 {
     private stdClass $settings;
 
+    /** @throws SettingNotFound */
     public function getSetting(string $setting): ?string
     {
         if (false === \property_exists($this->settings, $setting)) {

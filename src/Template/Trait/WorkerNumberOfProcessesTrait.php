@@ -14,6 +14,7 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 
 trait WorkerNumberOfProcessesTrait
 {
+    /** @throws InvalidConfigurationException */
     protected function getNumberOfProcesses(
         ConfigDto $configDto,
         CommandDto $commandDto,

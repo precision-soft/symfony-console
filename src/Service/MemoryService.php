@@ -78,7 +78,7 @@ class MemoryService
             default => throw new InvalidValueException(\sprintf('unrecognized unit of measurement `%s`', $unitOfMeasurement)),
         };
 
-        if ($numericValue > (int)(\PHP_INT_MAX / $multiplier)) {
+        if ((int)(\PHP_INT_MAX / $multiplier) < $numericValue) {
             throw new InvalidValueException(\sprintf('the memory value `%s` causes integer overflow', $value));
         }
 
