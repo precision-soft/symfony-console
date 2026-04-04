@@ -2,6 +2,21 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
+## [v4.0.0] - 2026-04-04
+
+### Breaking Changes
+
+- Upgrade from PHPUnit 9 to PHPUnit 11.5 via `precision-soft/symfony-phpunit: ^3.0` — consumers must update their `phpunit.xml.dist` to PHPUnit 11 format (`<source>` instead of `<coverage>`, `<extensions>` instead of `<listeners>`, `SYMFONY_PHPUNIT_VERSION` set to `11.5`)
+- Rename `SettingNotFound` to `SettingNotFoundException` — consistent with other exception class names (`InvalidConfigurationException`, `InvalidValueException`, etc.)
+
+### Changed
+
+- Replace `<coverage processUncoveredFiles="true">` with `<source>` element in `phpunit.xml.dist`
+- Replace `<listeners>` with `<extensions>` using `Symfony\Bridge\PhpUnit\SymfonyExtension`
+- Add `failOnRisky` and `failOnWarning` attributes to `phpunit.xml.dist`
+- Migrate `KubernetesJobTraitTest` and `WorkerNumberOfProcessesTraitTest` from `TestCase` + `MockeryPHPUnitIntegration` to `AbstractTestCase` with `getMockDto()` pattern
+- Rename `$exception` to `$settingNotFoundException` in `ExceptionTest` — variable naming convention compliance
+
 ## [v3.0.3] - 2026-04-03
 
 ### Added
@@ -216,6 +231,8 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v4.0.0]: https://github.com/precision-soft/symfony-console/compare/v3.0.3...v4.0.0
 
 [v3.0.3]: https://github.com/precision-soft/symfony-console/compare/v3.0.2...v3.0.3
 

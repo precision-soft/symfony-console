@@ -8,18 +8,18 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Dto\Trait;
 
-use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
+use PrecisionSoft\Symfony\Console\Exception\SettingNotFoundException;
 use stdClass;
 
 trait SettingsTrait
 {
     private stdClass $settings;
 
-    /** @throws SettingNotFound */
+    /** @throws SettingNotFoundException */
     public function getSetting(string $setting): ?string
     {
         if (false === \property_exists($this->settings, $setting)) {
-            throw new SettingNotFound($setting, static::class);
+            throw new SettingNotFoundException($setting, static::class);
         }
 
         $value = $this->settings->{$setting};

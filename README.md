@@ -343,7 +343,7 @@ All exceptions extend `PrecisionSoft\Symfony\Console\Exception\Exception`:
 | `InvalidConfigurationException` | Required configuration is missing or invalid                  |
 | `InvalidValueException`         | A value (e.g. memory limit) cannot be parsed                  |
 | `LimitExceededException`        | Memory or time limit is exceeded (`MemoryAndTimeLimitsTrait`) |
-| `SettingNotFound`               | A requested setting does not exist on the DTO                 |
+| `SettingNotFoundException`      | A requested setting does not exist on the DTO                 |
 
 ## AbstractCommand
 

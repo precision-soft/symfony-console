@@ -28,7 +28,7 @@
         "symfony/http-kernel": "^7.0"
     },
     "require-dev": {
-        "precision-soft/symfony-phpunit": "^2.0",
+        "precision-soft/symfony-phpunit": "^3.0",
         "friendsofphp/php-cs-fixer": "^3.0",
         "phpstan/phpstan": "^2.0"
     },

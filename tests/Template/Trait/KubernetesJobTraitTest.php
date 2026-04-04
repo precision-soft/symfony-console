@@ -8,17 +8,21 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use ReflectionMethod;
+use stdClass;
 
 /**
  * @internal
  */
-final class KubernetesJobTraitTest extends TestCase
+final class KubernetesJobTraitTest extends AbstractTestCase
 {
-    use MockeryPHPUnitIntegration;
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(stdClass::class);
+    }
 
     public function testConvertArrayToStringFlat(): void
     {

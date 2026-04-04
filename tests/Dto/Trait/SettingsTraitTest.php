@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Trait;
 
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandSettingsDto;
-use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
+use PrecisionSoft\Symfony\Console\Exception\SettingNotFoundException;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
@@ -45,7 +45,7 @@ final class SettingsTraitTest extends AbstractTestCase
     {
         $commandSettingsDto = new CommandSettingsDto([]);
 
-        $this->expectException(SettingNotFound::class);
+        $this->expectException(SettingNotFoundException::class);
         $this->expectExceptionMessage('the setting `nonExistent` is not set for');
 
         $commandSettingsDto->getSetting('nonExistent');

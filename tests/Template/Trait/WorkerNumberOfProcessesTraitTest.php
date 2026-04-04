@@ -8,21 +8,25 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
+use PrecisionSoft\Symfony\Phpunit\MockDto;
+use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use ReflectionMethod;
+use stdClass;
 
 /**
  * @internal
  */
-final class WorkerNumberOfProcessesTraitTest extends TestCase
+final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
 {
-    use MockeryPHPUnitIntegration;
+    public static function getMockDto(): MockDto
+    {
+        return new MockDto(stdClass::class);
+    }
 
     public function testGetNumberOfProcessesFromCommand(): void
     {

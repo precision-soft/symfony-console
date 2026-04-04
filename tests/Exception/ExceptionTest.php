@@ -14,7 +14,7 @@ use PrecisionSoft\Symfony\Console\Exception\Exception;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Exception\LimitExceededException;
-use PrecisionSoft\Symfony\Console\Exception\SettingNotFound;
+use PrecisionSoft\Symfony\Console\Exception\SettingNotFoundException;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
@@ -36,19 +36,19 @@ final class ExceptionTest extends AbstractTestCase
         static::assertSame('test message', $exception->getMessage());
     }
 
-    public function testSettingNotFoundExtendsException(): void
+    public function testSettingNotFoundExceptionExtendsException(): void
     {
-        $exception = new SettingNotFound('mySetting', 'MyClass');
+        $settingNotFoundException = new SettingNotFoundException('mySetting', 'MyClass');
 
-        static::assertInstanceOf(Exception::class, $exception);
-        static::assertSame('the setting `mySetting` is not set for `MyClass`', $exception->getMessage());
+        static::assertInstanceOf(Exception::class, $settingNotFoundException);
+        static::assertSame('the setting `mySetting` is not set for `MyClass`', $settingNotFoundException->getMessage());
     }
 
-    public function testSettingNotFoundWithDifferentValues(): void
+    public function testSettingNotFoundExceptionWithDifferentValues(): void
     {
-        $exception = new SettingNotFound('timeout', 'App\\Config\\Settings');
+        $settingNotFoundException = new SettingNotFoundException('timeout', 'App\\Config\\Settings');
 
-        static::assertSame('the setting `timeout` is not set for `App\\Config\\Settings`', $exception->getMessage());
+        static::assertSame('the setting `timeout` is not set for `App\\Config\\Settings`', $settingNotFoundException->getMessage());
     }
 
     public function testConfGenerateExceptionExtendsException(): void

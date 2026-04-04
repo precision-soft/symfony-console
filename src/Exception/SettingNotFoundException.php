@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Exception;
 
-class SettingNotFound extends Exception
+class SettingNotFoundException extends Exception
 {
     public function __construct(string $setting, string $class)
     {
