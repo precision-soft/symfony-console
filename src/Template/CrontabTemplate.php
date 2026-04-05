@@ -105,7 +105,9 @@ class CrontabTemplate implements TemplateInterface
         CommandDto $commandDto,
         ConfigDto $configDto,
     ): ?string {
-        if (true !== ($commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog())) {
+        $logEnabled = $commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog();
+
+        if (true !== $logEnabled) {
             return null;
         }
 

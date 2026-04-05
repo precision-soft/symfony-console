@@ -43,7 +43,7 @@ class Configuration implements ConfigurationInterface
     public const CRONJOB = 'cronjob';
     public const WORKER = 'worker';
     public const SETTINGS = 'settings';
-    public const DESTINATION_DIR = '%kernel.project_dir%/generated_conf/';
+    private const DESTINATION_DIR = '%kernel.project_dir%/generated_conf/';
 
     private const NAME = 'name';
 
