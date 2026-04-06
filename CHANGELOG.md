@@ -2,6 +2,32 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
+## [v4.0.1] - 2026-04-05
+
+### Fixed
+
+- `Configuration::appendSupervisorConfig()` — command-level supervisor defaults (`number_of_processes`, `auto_start`, `auto_restart`) are now `null`, making the config-level fallback reachable via `??`
+- `ConfFileWriter::save()` — early return when `$confFilesDto` has zero files, avoiding unnecessary temp directory creation
+- `KubernetesCronjobTemplate::generate()` — validate `destinationFile` before processing commands (fail-fast)
+- `KubernetesWorkerTemplate::generate()` — validate `destinationFile` before processing commands (fail-fast)
+
+### Changed
+
+- `SettingsTrait::toCamelCase()` — support hyphenated keys in addition to underscored
+- `InstancesTrait::computeInstances()` — add empty string guard, numeric validation, and Yoda comparison for `$maxInstances < $instanceIndex`
+- `MemoryLimitTrait` — Yoda comparison `$memoryLimit < $memoryUsage`
+- `TimeLimitTrait` — Yoda comparison `$this->timeLimit <= $timeUsed`
+- Remove unused `ReflectionException` import from `AttributeService`
+- `ConfigSettingsDto` — add default values to `$log`, `$destinationFile`, `$heartbeat` properties
+- `SupervisorTemplate` — rename `$configurationParams` to `$configurationParameters`
+- `KubernetesJobTrait::escapeYamlValue()` — quote YAML reserved words, numeric values, and empty strings
+- `KubernetesJobTrait::sanitizeKubernetesName()` — trim trailing dashes from sanitized output
+- `KubernetesJobTrait::convertArrayToString()` — type-aware value output (string values escaped, others cast)
+- `.dev/docker/entrypoint.sh` — skip `composer install` when `composer.lock` hash matches cached vendor
+- Remove 4 unused `use` imports from `TemplateInterface` (`CronjobCommandDto`, `CronjobConfigDto`, `WorkerCommandDto`, `WorkerConfigDto`)
+- Add `@param array<string, mixed> $commands` PHPDoc to `TemplateInterface::generate()`
+- Update `phpstan-baseline.neon`
+
 ## [v4.0.0] - 2026-04-04
 
 ### Breaking Changes

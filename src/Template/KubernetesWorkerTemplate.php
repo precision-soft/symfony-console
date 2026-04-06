@@ -34,6 +34,12 @@ class KubernetesWorkerTemplate implements TemplateInterface
         ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
+        $destinationFile = $configInterface->getSettings()->getDestinationFile();
+
+        if (null === $destinationFile || '' === $destinationFile) {
+            throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes worker template');
+        }
+
         $workers = [];
         $index = 0;
 
@@ -50,12 +56,6 @@ class KubernetesWorkerTemplate implements TemplateInterface
         );
 
         $content .= \PHP_EOL;
-
-        $destinationFile = $configInterface->getSettings()->getDestinationFile();
-
-        if (null === $destinationFile || '' === $destinationFile) {
-            throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes worker template');
-        }
 
         $workerConfigPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
 

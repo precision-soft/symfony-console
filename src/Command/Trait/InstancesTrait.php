@@ -26,8 +26,12 @@ trait InstancesTrait
         $maxInstancesOption = $this->input->getOption(self::MAX_INSTANCES);
         $instanceIndexOption = $this->input->getOption(self::INSTANCE_INDEX);
 
-        if (null === $maxInstancesOption || null === $instanceIndexOption) {
+        if (null === $maxInstancesOption || null === $instanceIndexOption || '' === $maxInstancesOption || '' === $instanceIndexOption) {
             throw new InvalidConfigurationException('max-instances and instance-index options are required');
+        }
+
+        if (false === \is_numeric($maxInstancesOption) || false === \is_numeric($instanceIndexOption)) {
+            throw new InvalidConfigurationException('max-instances and instance-index options must be numeric');
         }
 
         $maxInstances = (int)$maxInstancesOption;

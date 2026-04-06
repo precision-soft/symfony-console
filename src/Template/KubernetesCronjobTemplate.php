@@ -33,6 +33,12 @@ class KubernetesCronjobTemplate implements TemplateInterface
         ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
+        $destinationFile = $configInterface->getSettings()->getDestinationFile();
+
+        if (null === $destinationFile || '' === $destinationFile) {
+            throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes cronjob template');
+        }
+
         $cronjobs = [];
         $index = 0;
 
@@ -49,12 +55,6 @@ class KubernetesCronjobTemplate implements TemplateInterface
         );
 
         $content .= \PHP_EOL;
-
-        $destinationFile = $configInterface->getSettings()->getDestinationFile();
-
-        if (null === $destinationFile || '' === $destinationFile) {
-            throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes cronjob template');
-        }
 
         $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
 

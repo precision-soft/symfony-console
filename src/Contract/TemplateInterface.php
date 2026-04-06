@@ -9,16 +9,9 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Contract;
 
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
-use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto as CronjobCommandDto;
-use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto as CronjobConfigDto;
-use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto as WorkerCommandDto;
-use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto as WorkerConfigDto;
 
 interface TemplateInterface
 {
-    /**
-     * @param WorkerConfigDto|CronjobConfigDto $configInterface
-     * @param WorkerCommandDto[]|CronjobCommandDto[] $commands
-     */
+    /** @param array<string, mixed> $commands */
     public function generate(ConfigInterface $configInterface, array $commands): ConfFilesDto;
 }

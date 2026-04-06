@@ -54,7 +54,7 @@ class SupervisorTemplate implements TemplateInterface
         CommandDto $commandDto,
         ConfigDto $configDto,
     ): string {
-        $configurationParams = [
+        $configurationParameters = [
             '%programGroupName%' => \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
             '%command%' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
             '%user%' => $this->getUser($configDto, $commandDto),
@@ -65,8 +65,8 @@ class SupervisorTemplate implements TemplateInterface
         ];
 
         return \str_replace(
-            \array_keys($configurationParams),
-            \array_values($configurationParams),
+            \array_keys($configurationParameters),
+            \array_values($configurationParameters),
             $this->getTemplate(),
         );
     }

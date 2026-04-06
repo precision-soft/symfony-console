@@ -10,14 +10,12 @@ namespace PrecisionSoft\Symfony\Console\Service;
 
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use ReflectionClass;
-use ReflectionException;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 class AttributeService
 {
     /**
      * @param class-string $commandClass
-     * @throws ReflectionException
      * @throws InvalidConfigurationException
      */
     public static function getCommandName(string $commandClass): string

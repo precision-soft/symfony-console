@@ -31,7 +31,7 @@ trait KubernetesJobTrait
                 continue;
             }
 
-            $command[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, $this->escapeYamlValue((string)$entryValue));
+            $command[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, true === \is_string($entryValue) ? $this->escapeYamlValue($entryValue) : (string)$entryValue);
         }
 
         return \implode(\PHP_EOL, $command);
@@ -45,12 +45,19 @@ trait KubernetesJobTrait
             throw new InvalidValueException(\sprintf('failed to sanitize input `%s`', $input));
         }
 
-        return $sanitizedInput;
+        return \trim($sanitizedInput, '-');
     }
 
     private function escapeYamlValue(string $value): string
     {
-        if (1 === \preg_match('/[:#{}\\[\\],&*?|<>=!%@\\\\\'"\\n\\r\\t-]/', $value)) {
+        $yamlReservedWords = ['true', 'false', 'yes', 'no', 'on', 'off', 'null', '~'];
+
+        if (
+            1 === \preg_match('/[:#{}\\[\\],&*?|<>=!%@\\\\\'"\\n\\r\\t-]/', $value)
+            || true === \in_array(\strtolower($value), $yamlReservedWords, true)
+            || true === \is_numeric($value)
+            || '' === $value
+        ) {
             return \sprintf('"%s"', \str_replace(
                 ['\\', '"', "\n", "\r", "\t"],
                 ['\\\\', '\\"', '\\n', '\\r', '\\t'],

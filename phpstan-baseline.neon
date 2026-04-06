@@ -67,27 +67,21 @@ parameters:
 			path: src/DependencyInjection/Configuration.php
 
 		-
-			message: '#^Parameter \#1 \$configInterface of method PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Dto\\Cronjob\\ConfigDto\|PrecisionSoft\\Symfony\\Console\\Dto\\Worker\\ConfigDto, PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Service/ConfGenerate/ConfGenerateService.php
-
-		-
-			message: '#^Strict comparison using === between null and string will always evaluate to false\.$#'
+			message: '#^Strict comparison using \=\=\= between null and string will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: src/Service/AttributeService.php
 
 		-
-			message: '#^Strict comparison using === between null and string will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: src/Template/KubernetesCronjobTemplate.php
-
-		-
-			message: '#^Strict comparison using === between false and string will always evaluate to false\.$#'
+			message: '#^Strict comparison using \=\=\= between false and string will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: src/Service/MemoryService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between null and string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Template/KubernetesCronjobTemplate.php
 
 

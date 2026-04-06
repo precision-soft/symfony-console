@@ -151,17 +151,26 @@ class Configuration implements ConfigurationInterface
         $settingsTree = $commandsTree->children()->arrayNode(self::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet();
-        $this->appendSupervisorConfig($settingsTree->children());
+        $this->appendSupervisorConfig($settingsTree->children(), false);
 
         return $workerTree;
     }
 
-    private function appendSupervisorConfig(NodeBuilder $nodeBuilder): void
+    private function appendSupervisorConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void
     {
-        $nodeBuilder->integerNode(self::NUMBER_OF_PROCESSES)->defaultValue(1)->end()
-            ->booleanNode(self::AUTO_START)->defaultTrue()->end()
-            ->booleanNode(self::AUTO_RESTART)->defaultTrue()->end()
-            ->scalarNode(self::PREFIX)->defaultNull()->end()
+        $numberOfProcessesNode = $nodeBuilder->integerNode(self::NUMBER_OF_PROCESSES);
+        $numberOfProcessesNode = true === $withDefaults ? $numberOfProcessesNode->defaultValue(1) : $numberOfProcessesNode->defaultNull();
+        $numberOfProcessesNode->end();
+
+        $autoStartNode = $nodeBuilder->booleanNode(self::AUTO_START);
+        $autoStartNode = true === $withDefaults ? $autoStartNode->defaultTrue() : $autoStartNode->defaultNull();
+        $autoStartNode->end();
+
+        $autoRestartNode = $nodeBuilder->booleanNode(self::AUTO_RESTART);
+        $autoRestartNode = true === $withDefaults ? $autoRestartNode->defaultTrue() : $autoRestartNode->defaultNull();
+        $autoRestartNode->end();
+
+        $nodeBuilder->scalarNode(self::PREFIX)->defaultNull()->end()
             ->scalarNode(self::USER)->defaultNull()->end()
             ->scalarNode(self::LOG_FILE)->defaultNull()->end();
     }
