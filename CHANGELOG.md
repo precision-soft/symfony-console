@@ -2,6 +2,23 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
+## [v4.1.0] - 2026-04-07
+
+### Added
+
+- `ScheduleDto::validateField()` — validates each cron field against `CRON_FIELD_PATTERN` regex and enforces numeric range limits (minute 0–59, hour 0–23, day 1–31, month 1–12, weekday 0–7)
+- `ScheduleDto::toCronExpression()` — assembles and returns the full cron expression string
+- `SettingsTrait::getSetting()` — catches `TypeError` from invalid property assignments and converts to `InvalidValueException`; rejects non-scalar setting values at read time
+- `InstancesTrait` — validates that `--max-instances` and `--instance-index` options are integer-parseable strings before use
+
+### Fixed
+
+- `KubernetesCronjobTemplate::generate()` — guard `null` `destinationFile` before processing commands (fail-fast, consistent with `KubernetesWorkerTemplate`)
+
+### Changed
+
+- `ConfigInterface` — removed `getSettings(): SettingInterface` method (responsibility moved to `SettingsTrait`)
+
 ## [v4.0.1] - 2026-04-05
 
 ### Fixed
@@ -257,6 +274,10 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v4.1.0]: https://github.com/precision-soft/symfony-console/compare/v4.0.1...v4.1.0
+
+[v4.0.1]: https://github.com/precision-soft/symfony-console/compare/v4.0.0...v4.0.1
 
 [v4.0.0]: https://github.com/precision-soft/symfony-console/compare/v3.0.3...v4.0.0
 
