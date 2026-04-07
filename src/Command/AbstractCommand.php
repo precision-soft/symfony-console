@@ -28,6 +28,6 @@ abstract class AbstractCommand extends Command
 
         $this->initializeSymfonyStyle($input, $output);
 
-        $this->style->title(\sprintf('<bg=blue>[%s]</> %s', (new DateTimeImmutable())->format('Y-m-d'), $this->getName()));
+        $this->style->title(\sprintf('<bg=blue>[%s]</> %s', (new DateTimeImmutable())->format('Y-m-d'), $this->getName() ?? 'unknown'));
     }
 }

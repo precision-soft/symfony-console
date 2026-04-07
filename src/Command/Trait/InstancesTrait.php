@@ -34,6 +34,10 @@ trait InstancesTrait
             throw new InvalidConfigurationException('max-instances and instance-index options must be numeric');
         }
 
+        if ((string)(int)$maxInstancesOption !== (string)$maxInstancesOption || (string)(int)$instanceIndexOption !== (string)$instanceIndexOption) {
+            throw new InvalidConfigurationException('max-instances and instance-index options must be integer values');
+        }
+
         $maxInstances = (int)$maxInstancesOption;
         $instanceIndex = (int)$instanceIndexOption;
 

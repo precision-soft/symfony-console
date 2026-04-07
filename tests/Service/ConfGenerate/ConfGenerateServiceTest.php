@@ -43,7 +43,6 @@ final class ConfGenerateServiceTest extends AbstractTestCase
 
         $reflectionClass = new ReflectionClass($confGenerateService);
         $reflectionProperty = $reflectionClass->getProperty('templates');
-        $reflectionProperty->setAccessible(true);
 
         $templates = $reflectionProperty->getValue($confGenerateService);
 

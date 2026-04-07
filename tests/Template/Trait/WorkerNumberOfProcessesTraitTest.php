@@ -175,7 +175,6 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
     private function callMethod(object $workerNumberOfProcessesTraitObject, string $method, array $args = []): mixed
     {
         $reflection = new ReflectionMethod($workerNumberOfProcessesTraitObject, $method);
-        $reflection->setAccessible(true);
 
         return $reflection->invokeArgs($workerNumberOfProcessesTraitObject, $args);
     }

@@ -24,7 +24,6 @@ class KubernetesWorkerTemplate implements TemplateInterface
     use WorkerNumberOfProcessesTrait;
 
     /**
-     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      *
      * @throws InvalidConfigurationException
@@ -34,6 +33,12 @@ class KubernetesWorkerTemplate implements TemplateInterface
         ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
+        if (false === ($configInterface instanceof ConfigDto)) {
+            throw new InvalidConfigurationException(
+                \sprintf('expected %s, got %s', ConfigDto::class, $configInterface::class),
+            );
+        }
+
         $destinationFile = $configInterface->getSettings()->getDestinationFile();
 
         if (null === $destinationFile || '' === $destinationFile) {
@@ -41,10 +46,9 @@ class KubernetesWorkerTemplate implements TemplateInterface
         }
 
         $workers = [];
-        $index = 0;
 
         foreach ($commands as $commandDto) {
-            $workers['"' . ($index++) . '"'] = $this->buildCommand($commandDto, $configInterface);
+            $workers[] = $this->buildCommand($commandDto, $configInterface);
         }
 
         $content = $this->convertArrayToString(

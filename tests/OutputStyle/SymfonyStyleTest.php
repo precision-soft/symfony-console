@@ -42,7 +42,6 @@ final class SymfonyStyleTest extends AbstractTestCase
         $symfonyStyle = $this->get(SymfonyStyle::class);
 
         $reflectionProperty = new ReflectionProperty($symfonyStyle, 'style');
-        $reflectionProperty->setAccessible(true);
 
         static::assertInstanceOf(BaseSymfonyStyle::class, $reflectionProperty->getValue($symfonyStyle));
     }

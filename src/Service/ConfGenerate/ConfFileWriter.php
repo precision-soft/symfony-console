@@ -29,7 +29,7 @@ class ConfFileWriter
             return [];
         }
 
-        $temporaryDirectory = \sys_get_temp_dir() . '/' . \uniqid('conf_', true);
+        $temporaryDirectory = \sys_get_temp_dir() . '/conf_' . \bin2hex(\random_bytes(8));
 
         $this->filesystem->mkdir($temporaryDirectory, 0755);
 
@@ -47,7 +47,7 @@ class ConfFileWriter
 
                 $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
 
-                if (false !== \strpos($relativePath, '..')) {
+                if (true === \str_contains($relativePath, '..')) {
                     throw new ConfGenerateException(\sprintf('path traversal detected in `%s`', $path));
                 }
 
@@ -59,7 +59,7 @@ class ConfFileWriter
             }
 
             if (true === $this->filesystem->exists($destinationDir)) {
-                $backupDirectory = $destinationDir . '.bak_' . \uniqid('', true);
+                $backupDirectory = $destinationDir . '.bak_' . \bin2hex(\random_bytes(8));
                 $this->filesystem->rename($destinationDir, $backupDirectory);
             }
 

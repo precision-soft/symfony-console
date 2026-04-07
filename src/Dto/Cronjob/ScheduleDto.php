@@ -9,9 +9,12 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Dto\Cronjob;
 
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class ScheduleDto
 {
+    private const CRON_FIELD_PATTERN = '/^(\*(\/[1-9]\d*)?|\d+(-\d+)?(\/[1-9]\d*)?)(,(\*(\/[1-9]\d*)?|\d+(-\d+)?(\/[1-9]\d*)?))*$/';
+
     private readonly string $minute;
     private readonly string $hour;
     private readonly string $dayOfMonth;
@@ -26,6 +29,12 @@ class ScheduleDto
         $this->dayOfMonth = $schedule[Configuration::DAY_OF_MONTH];
         $this->month = $schedule[Configuration::MONTH];
         $this->dayOfWeek = $schedule[Configuration::DAY_OF_WEEK];
+
+        $this->validateField('minute', $this->minute, 0, 59);
+        $this->validateField('hour', $this->hour, 0, 23);
+        $this->validateField('day of month', $this->dayOfMonth, 1, 31);
+        $this->validateField('month', $this->month, 1, 12);
+        $this->validateField('day of week', $this->dayOfWeek, 0, 7);
     }
 
     public function getMinute(): string
@@ -51,5 +60,52 @@ class ScheduleDto
     public function getDayOfWeek(): string
     {
         return $this->dayOfWeek;
+    }
+
+    public function toCronExpression(): string
+    {
+        return \implode(
+            ' ',
+            [
+                $this->minute,
+                $this->hour,
+                $this->dayOfMonth,
+                $this->month,
+                $this->dayOfWeek,
+            ],
+        );
+    }
+
+    private function validateField(string $fieldName, string $value, int $min, int $max): void
+    {
+        if ('*' === $value) {
+            return;
+        }
+
+        if (1 !== \preg_match(self::CRON_FIELD_PATTERN, $value)) {
+            throw new InvalidValueException(\sprintf('invalid cron %s value: `%s`', $fieldName, $value));
+        }
+
+        $parts = \explode(',', $value);
+
+        foreach ($parts as $part) {
+            $rangeOnly = \explode('/', $part)[0];
+
+            if ('*' === $rangeOnly) {
+                continue;
+            }
+
+            \preg_match_all('/\d+/', $rangeOnly, $matches);
+
+            foreach ($matches[0] as $numericValue) {
+                $integerValue = (int)$numericValue;
+
+                if ($min > $integerValue || $max < $integerValue) {
+                    throw new InvalidValueException(
+                        \sprintf('cron %s value `%s` is out of range (%d-%d)', $fieldName, $numericValue, $min, $max),
+                    );
+                }
+            }
+        }
     }
 }

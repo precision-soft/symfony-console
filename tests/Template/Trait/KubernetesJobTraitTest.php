@@ -116,7 +116,6 @@ final class KubernetesJobTraitTest extends AbstractTestCase
     private function callMethod(object $kubernetesJobTraitObject, string $method, array $args = []): mixed
     {
         $reflection = new ReflectionMethod($kubernetesJobTraitObject, $method);
-        $reflection->setAccessible(true);
 
         return $reflection->invokeArgs($kubernetesJobTraitObject, $args);
     }

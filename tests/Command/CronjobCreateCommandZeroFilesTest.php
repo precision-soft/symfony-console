@@ -52,8 +52,8 @@ final class CronjobCreateCommandZeroFilesTest extends AbstractTestCase
                     Configuration::SCHEDULE => [
                         Configuration::MINUTE => '0',
                         Configuration::HOUR => '0',
-                        Configuration::DAY_OF_MONTH => '0',
-                        Configuration::MONTH => '0',
+                        Configuration::DAY_OF_MONTH => '1',
+                        Configuration::MONTH => '1',
                         Configuration::DAY_OF_WEEK => '0',
                     ],
                     Configuration::SETTINGS => [

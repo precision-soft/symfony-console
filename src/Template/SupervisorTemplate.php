@@ -21,7 +21,6 @@ class SupervisorTemplate implements TemplateInterface
     use WorkerNumberOfProcessesTrait;
 
     /**
-     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      *
      * @throws InvalidConfigurationException
@@ -30,6 +29,12 @@ class SupervisorTemplate implements TemplateInterface
         ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
+        if (false === ($configInterface instanceof ConfigDto)) {
+            throw new InvalidConfigurationException(
+                \sprintf('expected %s, got %s', ConfigDto::class, $configInterface::class),
+            );
+        }
+
         $confFilesDto = new ConfFilesDto();
 
         foreach ($commands as $commandDto) {

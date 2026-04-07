@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Dto\Trait;
 
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Exception\SettingNotFoundException;
 use stdClass;
+use TypeError;
 
 trait SettingsTrait
 {
@@ -40,8 +42,21 @@ trait SettingsTrait
             }
 
             if (true === \property_exists($this, $propertyName)) {
-                $this->{$propertyName} = $dataValue;
+                try {
+                    $this->{$propertyName} = $dataValue;
+                } catch (TypeError $typeError) {
+                    throw new InvalidValueException(
+                        \sprintf('invalid type for property `%s` in `%s`: %s', $propertyName, static::class, $typeError->getMessage()),
+                    );
+                }
+
                 continue;
+            }
+
+            if (false === \is_scalar($dataValue) && null !== $dataValue) {
+                throw new InvalidValueException(
+                    \sprintf('setting `%s` in `%s` must be a scalar value or null', $propertyName, static::class),
+                );
             }
 
             $this->settings->{$propertyName} = $dataValue;

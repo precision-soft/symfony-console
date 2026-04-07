@@ -13,7 +13,6 @@ use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
-use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
@@ -23,7 +22,6 @@ class KubernetesCronjobTemplate implements TemplateInterface
     use KubernetesJobTrait;
 
     /**
-     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
      *
      * @throws InvalidConfigurationException
@@ -33,17 +31,22 @@ class KubernetesCronjobTemplate implements TemplateInterface
         ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
+        if (false === ($configInterface instanceof ConfigDto)) {
+            throw new InvalidConfigurationException(
+                \sprintf('expected %s, got %s', ConfigDto::class, $configInterface::class),
+            );
+        }
+
         $destinationFile = $configInterface->getSettings()->getDestinationFile();
 
-        if (null === $destinationFile || '' === $destinationFile) {
+        if ('' === $destinationFile) {
             throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes cronjob template');
         }
 
         $cronjobs = [];
-        $index = 0;
 
         foreach ($commands as $commandDto) {
-            $cronjobs['"' . ($index++) . '"'] = $this->buildCommand($commandDto, $configInterface);
+            $cronjobs[] = $this->buildCommand($commandDto, $configInterface);
         }
 
         $content = $this->convertArrayToString(
@@ -79,21 +82,8 @@ class KubernetesCronjobTemplate implements TemplateInterface
         return [
             'name' => $name,
             'command' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
-            'schedule' => '"' . $this->buildSchedule($commandDto->getSchedule()) . '"',
+            'schedule' => '"' . $commandDto->getSchedule()->toCronExpression() . '"',
         ];
     }
 
-    protected function buildSchedule(ScheduleDto $scheduleDto): string
-    {
-        return \implode(
-            ' ',
-            [
-                $scheduleDto->getMinute(),
-                $scheduleDto->getHour(),
-                $scheduleDto->getDayOfMonth(),
-                $scheduleDto->getMonth(),
-                $scheduleDto->getDayOfWeek(),
-            ],
-        );
-    }
 }

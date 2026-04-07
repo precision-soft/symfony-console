@@ -15,6 +15,4 @@ interface ConfigInterface extends SettingsInterface
     public function getLogsDir(): string;
 
     public function getConfFilesDir(): string;
-
-    public function getSettings(): SettingInterface;
 }

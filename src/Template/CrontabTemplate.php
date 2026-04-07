@@ -14,18 +14,25 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
-use PrecisionSoft\Symfony\Console\Dto\Cronjob\ScheduleDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 
 class CrontabTemplate implements TemplateInterface
 {
     /**
-     * @param ConfigDto $configInterface
      * @param CommandDto[] $commands
+     *
+     * @throws InvalidConfigurationException
      */
     public function generate(
         ConfigInterface $configInterface,
         array $commands,
     ): ConfFilesDto {
+        if (false === ($configInterface instanceof ConfigDto)) {
+            throw new InvalidConfigurationException(
+                \sprintf('expected %s, got %s', ConfigDto::class, $configInterface::class),
+            );
+        }
+
         $cronjobs = [];
 
         $defaultDestinationFile = $configInterface->getSettings()->getDestinationFile();
@@ -83,7 +90,7 @@ class CrontabTemplate implements TemplateInterface
         ConfigDto $configDto,
     ): string {
         $commandParts = [
-            $this->buildSchedule($commandDto->getSchedule()),
+            $commandDto->getSchedule()->toCronExpression(),
         ];
 
         $user = $commandDto->getUser() ?? $configDto->getSettings()->getUser();
@@ -114,20 +121,6 @@ class CrontabTemplate implements TemplateInterface
         $logFileName = $commandDto->getLogFileName() ?? \sprintf('%s.log', $commandDto->getName());
 
         return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', $configDto->getLogsDir(), $logFileName)));
-    }
-
-    protected function buildSchedule(ScheduleDto $scheduleDto): string
-    {
-        return \implode(
-            ' ',
-            [
-                $scheduleDto->getMinute(),
-                $scheduleDto->getHour(),
-                $scheduleDto->getDayOfMonth(),
-                $scheduleDto->getMonth(),
-                $scheduleDto->getDayOfWeek(),
-            ],
-        );
     }
 
     protected function getHeartbeatCommand(

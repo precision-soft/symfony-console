@@ -10,7 +10,6 @@ namespace PrecisionSoft\Symfony\Console\DependencyInjection;
 
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -81,7 +80,7 @@ class Configuration implements ConfigurationInterface
             ->booleanNode(self::HEARTBEAT)->defaultTrue()->end()
             ->scalarNode(self::USER)->defaultNull()->end();
 
-        /** @var NodeBuilder|ArrayNodeDefinition $commandsTree */
+        /** @var NodeBuilder $commandsTree */
         $commandsTree = $cronjobTree->children()->arrayNode(self::COMMANDS)
             ->isRequired()
             ->useAttributeAsKey(self::NAME)
@@ -134,7 +133,7 @@ class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet();
         $this->appendSupervisorConfig($settingsTree->children());
 
-        /** @var NodeBuilder|ArrayNodeDefinition $commandsTree */
+        /** @var NodeBuilder $commandsTree */
         $commandsTree = $workerTree->children()->arrayNode(self::COMMANDS)
             ->isRequired()
             ->useAttributeAsKey(self::NAME)
