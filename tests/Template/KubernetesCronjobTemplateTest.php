@@ -244,6 +244,47 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         static::assertStringContainsString("'bin/console' 'app:test'", $content);
     }
 
+    public function testNullDestinationFileThrowsException(): void
+    {
+        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => 'test',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::HEARTBEAT => false,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'test-job',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:test'],
+                    Configuration::SCHEDULE => [
+                        Configuration::MINUTE => '*',
+                        Configuration::HOUR => '*',
+                        Configuration::DAY_OF_MONTH => '*',
+                        Configuration::MONTH => '*',
+                        Configuration::DAY_OF_WEEK => '*',
+                    ],
+                    Configuration::SETTINGS => [
+                        Configuration::LOG => false,
+                    ],
+                ],
+            ),
+        ];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('the `destination file` is mandatory for kubernetes cronjob template');
+
+        $kubernetesCronjobTemplate->generate($configDto, $commands);
+    }
+
     public function testEmptyDestinationFileThrowsException(): void
     {
         /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */

@@ -66,4 +66,10 @@ parameters:
 			count: 1
 			path: src/Service/MemoryService.php
 
+		-
+			message: '#^Strict comparison using \=\=\= between null and string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Template/KubernetesCronjobTemplate.php
+
 
