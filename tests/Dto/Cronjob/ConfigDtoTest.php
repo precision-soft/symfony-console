@@ -24,6 +24,18 @@ final class ConfigDtoTest extends AbstractTestCase
         return new MockDto(ConfigDto::class);
     }
 
+    public function testMissingTemplateClassKeyThrowsTypeError(): void
+    {
+        $this->expectException(\TypeError::class);
+
+        new ConfigDto([
+            Configuration::TEMPLATE_CLASS => null,
+            Configuration::CONF_FILES_DIR => '/conf/dir',
+            Configuration::LOGS_DIR => '/logs/dir',
+            Configuration::SETTINGS => [],
+        ]);
+    }
+
     public function testConstructorAndGetters(): void
     {
         $configDto = new ConfigDto([

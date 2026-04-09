@@ -38,63 +38,22 @@ class ConfFileWriter
         $backupRestored = false;
 
         try {
-            $configurationFiles = [];
-
-            foreach ($confFilesDto->getFiles() as $path => $content) {
-                if (false === \str_starts_with($path, $destinationDir)) {
-                    throw new ConfGenerateException(\sprintf('path `%s` is outside destination directory `%s`', $path, $destinationDir));
-                }
-
-                $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
-
-                if (true === \str_contains($relativePath, '..')) {
-                    throw new ConfGenerateException(\sprintf('path traversal detected in `%s`', $path));
-                }
-
-                $tempPath = $temporaryDirectory . '/' . $relativePath;
-
-                $this->filesystem->dumpFile($tempPath, $content);
-
-                $configurationFiles[] = $path;
-            }
+            $configurationFiles = $this->writeTemporaryFiles($confFilesDto, $destinationDir, $temporaryDirectory);
 
             if (true === $this->filesystem->exists($destinationDir)) {
                 $backupDirectory = $destinationDir . '.bak_' . \bin2hex(\random_bytes(8));
                 $this->filesystem->rename($destinationDir, $backupDirectory);
             }
 
-            try {
-                $this->filesystem->rename($temporaryDirectory, $destinationDir);
-            } catch (Throwable $throwable) {
-                if (null !== $backupDirectory && true === $this->filesystem->exists($backupDirectory)) {
-                    try {
-                        $this->filesystem->rename($backupDirectory, $destinationDir);
-                        $backupRestored = true;
-                    } catch (Throwable) {
-                        /** @info backup restore failed, original error is rethrown below */
-                    }
-                }
+            $this->activateDirectory($temporaryDirectory, $destinationDir, $backupDirectory, $backupRestored);
 
-                throw new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
-            }
-
-            if (null !== $backupDirectory && true === $this->filesystem->exists($backupDirectory)) {
-                try {
-                    $this->filesystem->remove($backupDirectory);
-                } catch (Throwable) {
-                    /** @info backup cleanup is non-critical */
-                }
+            if (null !== $backupDirectory) {
+                $this->silentRemove($backupDirectory);
             }
 
             return $configurationFiles;
         } catch (Throwable $throwable) {
-            if (true === $this->filesystem->exists($temporaryDirectory)) {
-                try {
-                    $this->filesystem->remove($temporaryDirectory);
-                } catch (Throwable) {
-                    /** @info temp cleanup is non-critical */
-                }
-            }
+            $this->silentRemove($temporaryDirectory);
 
             if (false === $backupRestored && null !== $backupDirectory && true === $this->filesystem->exists($backupDirectory)) {
                 throw new ConfGenerateException(
@@ -113,5 +72,67 @@ class ConfFileWriter
     public function initLogsDir(string $logsDir): void
     {
         $this->filesystem->mkdir($logsDir, 0755);
+    }
+
+    /** @return array<int, string> */
+    private function writeTemporaryFiles(ConfFilesDto $confFilesDto, string $destinationDir, string $temporaryDirectory): array
+    {
+        $configurationFiles = [];
+
+        foreach ($confFilesDto->getFiles() as $path => $content) {
+            if (false === \str_starts_with($path, $destinationDir)) {
+                throw new ConfGenerateException(\sprintf('path `%s` is outside destination directory `%s`', $path, $destinationDir));
+            }
+
+            $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
+
+            if (true === \str_contains($relativePath, '..')) {
+                throw new ConfGenerateException(\sprintf('path traversal detected in `%s`', $path));
+            }
+
+            $tempPath = $temporaryDirectory . '/' . $relativePath;
+
+            $this->filesystem->dumpFile($tempPath, $content);
+
+            $configurationFiles[] = $path;
+        }
+
+        return $configurationFiles;
+    }
+
+    private function activateDirectory(string $temporaryDirectory, string $destinationDir, ?string $backupDirectory, bool &$backupRestored): void
+    {
+        try {
+            $this->filesystem->rename($temporaryDirectory, $destinationDir);
+        } catch (Throwable $throwable) {
+            if (null !== $backupDirectory && true === $this->filesystem->exists($backupDirectory)) {
+                $backupRestored = $this->tryRestoreBackup($backupDirectory, $destinationDir);
+            }
+
+            throw new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
+        }
+    }
+
+    private function tryRestoreBackup(string $backupDirectory, string $destinationDir): bool
+    {
+        try {
+            $this->filesystem->rename($backupDirectory, $destinationDir);
+
+            return true;
+        } catch (Throwable) {
+            /** @info backup restore failed, original error is rethrown by caller */
+            return false;
+        }
+    }
+
+    private function silentRemove(string $path): void
+    {
+        if (true === $this->filesystem->exists($path)) {
+            try {
+                $this->filesystem->remove($path);
+            } catch (Throwable) {
+                /** @info cleanup is non-critical */
+            }
+        }
     }
 }

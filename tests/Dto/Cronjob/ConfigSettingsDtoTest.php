@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Test\Dto\Cronjob;
 
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigSettingsDto;
+use PrecisionSoft\Symfony\Console\Exception\SettingNotFoundException;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
@@ -47,5 +48,21 @@ final class ConfigSettingsDtoTest extends AbstractTestCase
         ]);
 
         static::assertNull($configSettingsDto->getUser());
+    }
+
+    public function testGetSettingForUnknownKeyThrowsException(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto([]);
+
+        $this->expectException(SettingNotFoundException::class);
+
+        $configSettingsDto->getSetting('non_existent_key');
+    }
+
+    public function testGetSettingReturnsValueForExtraKey(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto(['extra_option' => 'my-value']);
+
+        static::assertSame('my-value', $configSettingsDto->getSetting('extraOption'));
     }
 }
