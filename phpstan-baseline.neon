@@ -25,30 +25,6 @@ parameters:
 			path: src/Command/AbstractCommand.php
 
 		-
-			message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\InstancesTrait is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Command/Trait/InstancesTrait.php
-
-		-
-			message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\MemoryAndTimeLimitsTrait is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Command/Trait/MemoryAndTimeLimitsTrait.php
-
-		-
-			message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\MemoryLimitTrait is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Command/Trait/MemoryLimitTrait.php
-
-		-
-			message: '#^Trait PrecisionSoft\\Symfony\\Console\\Command\\Trait\\TimeLimitTrait is used zero times and is not analysed\.$#'
-			identifier: trait.unused
-			count: 1
-			path: src/Command/Trait/TimeLimitTrait.php
-
-		-
 			message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder\:\:children\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -71,5 +47,413 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 1
 			path: src/Template/KubernetesCronjobTemplate.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/CronjobCreateCommandErrorPathTest.php
+
+		-
+			message: '#^Parameter \#1 \$confGenerateService of class PrecisionSoft\\Symfony\\Console\\Command\\CronjobCreateCommand constructor expects PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Command/CronjobCreateCommandErrorPathTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/CronjobCreateCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$confGenerateService of class PrecisionSoft\\Symfony\\Console\\Command\\CronjobCreateCommand constructor expects PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Command/CronjobCreateCommandTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/CronjobCreateCommandZeroFilesTest.php
+
+		-
+			message: '#^Parameter \#1 \$confGenerateService of class PrecisionSoft\\Symfony\\Console\\Command\\CronjobCreateCommand constructor expects PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Command/CronjobCreateCommandZeroFilesTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Command/Trait/InstancesTraitNullOptionTest.php
+
+		-
+			message: '#^Access to an undefined property PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\InstancesTraitConfigureTestCommand\:\:\$input\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Command/Trait/InstancesTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
+			identifier: method.notFound
+			count: 16
+			path: tests/Command/Trait/InstancesTraitTest.php
+
+		-
+			message: '#^Call to an undefined method PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\InstancesTraitTestObject\:\:addOption\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/Trait/InstancesTraitTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\InstancesTraitTestObject is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 8
+			path: tests/Command/Trait/InstancesTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Command/Trait/MemoryAndTimeLimitsTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: tests/Command/Trait/MemoryAndTimeLimitsTraitTest.php
+
+		-
+			message: '#^Call to an undefined method PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\MemoryAndTimeLimitsTraitTestObject\:\:addOption\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Command/Trait/MemoryAndTimeLimitsTraitTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\MemoryAndTimeLimitsTraitTestObject is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 6
+			path: tests/Command/Trait/MemoryAndTimeLimitsTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/Trait/MemoryLimitTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
+			identifier: method.notFound
+			count: 7
+			path: tests/Command/Trait/MemoryLimitTraitTest.php
+
+		-
+			message: '#^Call to an undefined method PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\MemoryLimitTraitTestObject\:\:addOption\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/Trait/MemoryLimitTraitTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\MemoryLimitTraitTestObject is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 8
+			path: tests/Command/Trait/MemoryLimitTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Command/Trait/TimeLimitTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
+			identifier: method.notFound
+			count: 13
+			path: tests/Command/Trait/TimeLimitTraitTest.php
+
+		-
+			message: '#^Call to an undefined method PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\TimeLimitTraitTestObject\:\:addOption\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/Trait/TimeLimitTraitTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\TimeLimitTraitTestObject is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 11
+			path: tests/Command/Trait/TimeLimitTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/WorkerCreateCommandErrorPathTest.php
+
+		-
+			message: '#^Parameter \#1 \$confGenerateService of class PrecisionSoft\\Symfony\\Console\\Command\\WorkerCreateCommand constructor expects PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Command/WorkerCreateCommandErrorPathTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/WorkerCreateCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$confGenerateService of class PrecisionSoft\\Symfony\\Console\\Command\\WorkerCreateCommand constructor expects PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Command/WorkerCreateCommandTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Command/WorkerCreateCommandZeroFilesTest.php
+
+		-
+			message: '#^Parameter \#1 \$confGenerateService of class PrecisionSoft\\Symfony\\Console\\Command\\WorkerCreateCommand constructor expects PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Command/WorkerCreateCommandZeroFilesTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: tests/OutputStyle/Trait/SymfonyStyleTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 7
+			path: tests/OutputStyle/Trait/SymfonyStyleTraitTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Test\\OutputStyle\\Trait\\SymfonyStyleTraitTestObject is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 10
+			path: tests/OutputStyle/Trait/SymfonyStyleTraitTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturnUsing\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
+
+		-
+			message: '#^Cannot access offset 0 on list\<string\>\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
+
+		-
+			message: '#^Parameter \#1 \$filesystem of class PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfFileWriter constructor expects Symfony\\Component\\Filesystem\\Filesystem, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
+
+		-
+			message: '#^Parameter \#2 \$construct of class PrecisionSoft\\Symfony\\Phpunit\\MockDto constructor expects list\<bool\|float\|int\|PrecisionSoft\\Symfony\\Phpunit\\Contract\\MockDtoInterface\|PrecisionSoft\\Symfony\\Phpunit\\MockDto\|string\>\|null, array\{Symfony\\Component\\Filesystem\\Filesystem\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, list\<string\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
+			identifier: method.notFound
+			count: 23
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturnUsing\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 7
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Parameter \#1 \$configInterface of method PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 8
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Parameter \#1 \$filesystem of class PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfFileWriter constructor expects Symfony\\Component\\Filesystem\\Filesystem, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Parameter \#1 \$templates of class PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService constructor expects iterable\<PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\>, array\<int, Mockery\\MockInterface\> given\.$#'
+			identifier: argument.type
+			count: 8
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Parameter \#2 \$construct of class PrecisionSoft\\Symfony\\Phpunit\\MockDto constructor expects list\<bool\|float\|int\|PrecisionSoft\\Symfony\\Phpunit\\Contract\\MockDtoInterface\|PrecisionSoft\\Symfony\\Phpunit\\MockDto\|string\>\|null, array\{array\{\}, PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfFileWriter\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfGenerateServiceErrorRecoveryTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:andReturn\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$configInterface of method PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService\:\:generate\(\) expects PrecisionSoft\\Symfony\\Console\\Contract\\ConfigInterface, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$templates of class PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService constructor expects iterable\<PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\>, array\<int, \(CrontabTemplateMock&Mockery\\MockInterface\)\|\(Mockery\\MockInterface&PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\)\|\(Mockery\\MockInterface&SupervisorTemplateMock\)\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$templates of class PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfGenerateService constructor expects iterable\<PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\>, array\<int, Mockery\\MockInterface\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$args of static method Mockery\:\:namedMock\(\) expects array\<mixed\>\|class\-string\<CrontabTemplateMock\|PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\>\|CrontabTemplateMock\|PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$args of static method Mockery\:\:namedMock\(\) expects array\<mixed\>\|class\-string\<PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\|SupervisorTemplateMock\>\|PrecisionSoft\\Symfony\\Console\\Contract\\TemplateInterface\|SupervisorTemplateMock, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Parameter \#2 \$construct of class PrecisionSoft\\Symfony\\Phpunit\\MockDto constructor expects list\<bool\|float\|int\|PrecisionSoft\\Symfony\\Phpunit\\Contract\\MockDtoInterface\|PrecisionSoft\\Symfony\\Phpunit\\MockDto\|string\>\|null, array\{array\{\}, PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfFileWriter\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Service/ConfGenerate/ConfGenerateServiceTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/Service/MemoryServiceTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\CrontabTemplate\:\:generate\(\)\.$#'
+			identifier: method.notFound
+			count: 9
+			path: tests/Template/CrontabTemplateTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\CrontabTemplate is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 9
+			path: tests/Template/CrontabTemplateTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 11
+			path: tests/Template/CrontabTemplateTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Template/CrontabTemplateTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\KubernetesCronjobTemplate\:\:generate\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: tests/Template/KubernetesCronjobTemplateTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\KubernetesCronjobTemplate is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 8
+			path: tests/Template/KubernetesCronjobTemplateTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 8
+			path: tests/Template/KubernetesCronjobTemplateTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\KubernetesWorkerTemplate\:\:generate\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: tests/Template/KubernetesWorkerTemplateTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\KubernetesWorkerTemplate is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 8
+			path: tests/Template/KubernetesWorkerTemplateTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 9
+			path: tests/Template/KubernetesWorkerTemplateTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\SupervisorTemplate\:\:generate\(\)\.$#'
+			identifier: method.notFound
+			count: 9
+			path: tests/Template/SupervisorTemplateTest.php
+
+		-
+			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Template\\SupervisorTemplate is not subtype of native type Mockery\\MockInterface\.$#'
+			identifier: varTag.nativeType
+			count: 9
+			path: tests/Template/SupervisorTemplateTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 13
+			path: tests/Template/SupervisorTemplateTest.php
+
+		-
+			message: '#^Method PrecisionSoft\\Symfony\\Console\\Test\\Template\\Trait\\KubernetesJobTraitTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Template/Trait/KubernetesJobTraitTest.php
+
+		-
+			message: '#^Method PrecisionSoft\\Symfony\\Console\\Test\\Template\\Trait\\WorkerNumberOfProcessesTraitTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Template/Trait/WorkerNumberOfProcessesTraitTest.php
 
 
