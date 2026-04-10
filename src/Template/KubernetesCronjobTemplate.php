@@ -46,7 +46,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
         $cronjobs = [];
 
         foreach ($commands as $commandDto) {
-            $cronjobs[] = $this->buildCommand($commandDto, $configInterface);
+            $cronjobs[] = $this->buildCommand($commandDto);
         }
 
         $content = $this->convertArrayToString(
@@ -75,7 +75,6 @@ class KubernetesCronjobTemplate implements TemplateInterface
      */
     protected function buildCommand(
         CommandDto $commandDto,
-        ConfigDto $configDto,
     ): array {
         $name = $this->sanitize($commandDto->getName());
 
@@ -85,5 +84,4 @@ class KubernetesCronjobTemplate implements TemplateInterface
             'schedule' => '"' . $commandDto->getSchedule()->toCronExpression() . '"',
         ];
     }
-
 }

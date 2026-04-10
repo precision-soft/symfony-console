@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigSettingsDto;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use TypeError;
 
 /**
  * @internal
@@ -26,7 +27,7 @@ final class ConfigDtoTest extends AbstractTestCase
 
     public function testMissingTemplateClassKeyThrowsTypeError(): void
     {
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
 
         new ConfigDto([
             Configuration::TEMPLATE_CLASS => null,

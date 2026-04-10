@@ -95,6 +95,16 @@ class ScheduleDto
                 continue;
             }
 
+            if (true === \str_contains($rangeOnly, '-')) {
+                $rangeParts = \explode('-', $rangeOnly);
+
+                if ((int)$rangeParts[0] > (int)$rangeParts[1]) {
+                    throw new InvalidValueException(
+                        \sprintf('cron %s range `%s` is invalid: start must be less than or equal to end', $fieldName, $rangeOnly),
+                    );
+                }
+            }
+
             \preg_match_all('/\d+/', $rangeOnly, $matches);
 
             foreach ($matches[0] as $numericValue) {

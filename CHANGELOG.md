@@ -2,6 +2,28 @@
 
 All notable changes to `precision-soft/symfony-console` will be documented in this file.
 
+## [v4.1.2] - 2026-04-10
+
+### Fixed
+
+- `ScheduleDto::validateField()` — validate that cron range start is less than or equal to end (e.g. `5-3` now throws `InvalidValueException`)
+- `KubernetesCronjobTemplate::buildCommand()` — removed unused `$configDto` parameter
+
+### Changed
+
+- `TypeError` imported via `use` in `ConfigDtoTest` (cronjob & worker) — replaced inline `\TypeError::class`
+
+### Dependencies
+
+- Bumped `precision-soft/symfony-phpunit` `v3.1.0` → `v3.1.1`
+
+## [v4.1.1] - 2026-04-09
+
+### Changed
+
+- `ConfFileWriter::save()` — extracted `writeTemporaryFiles()`, `activateDirectory()`, and `silentRemove()` private helpers; reduced method length and duplication
+- Expanded DTO test coverage: `ConfigDtoTest` and `ConfigSettingsDtoTest` for both cronjob and worker
+
 ## [v4.1.0] - 2026-04-07
 
 ### Added
@@ -274,6 +296,10 @@ All notable changes to `precision-soft/symfony-console` will be documented in th
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v4.1.2]: https://github.com/precision-soft/symfony-console/compare/v4.1.1...v4.1.2
+
+[v4.1.1]: https://github.com/precision-soft/symfony-console/compare/v4.1.0...v4.1.1
 
 [v4.1.0]: https://github.com/precision-soft/symfony-console/compare/v4.0.1...v4.1.0
 
