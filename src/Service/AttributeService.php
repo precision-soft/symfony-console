@@ -14,6 +14,8 @@ use Symfony\Component\Console\Attribute\AsCommand;
 
 class AttributeService
 {
+    private function __construct() {}
+
     /**
      * @param class-string $commandClass
      * @throws InvalidConfigurationException

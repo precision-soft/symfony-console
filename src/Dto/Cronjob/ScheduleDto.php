@@ -98,6 +98,12 @@ class ScheduleDto
             if (true === \str_contains($rangeOnly, '-')) {
                 $rangeParts = \explode('-', $rangeOnly);
 
+                if (\count($rangeParts) < 2) {
+                    throw new InvalidValueException(
+                        \sprintf('cron %s range `%s` is invalid: expected start-end format', $fieldName, $rangeOnly),
+                    );
+                }
+
                 if ((int)$rangeParts[0] > (int)$rangeParts[1]) {
                     throw new InvalidValueException(
                         \sprintf('cron %s range `%s` is invalid: start must be less than or equal to end', $fieldName, $rangeOnly),
