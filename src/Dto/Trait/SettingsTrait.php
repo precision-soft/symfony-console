@@ -63,7 +63,7 @@ trait SettingsTrait
         }
     }
 
-    private function toCamelCase(string $input): string
+    protected function toCamelCase(string $input): string
     {
         $camelCaseString = \str_replace(' ', '', \ucwords(\str_replace(['_', '-'], ' ', $input)));
 

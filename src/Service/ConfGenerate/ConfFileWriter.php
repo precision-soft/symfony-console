@@ -75,7 +75,7 @@ class ConfFileWriter
     }
 
     /** @return array<int, string> */
-    private function writeTemporaryFiles(ConfFilesDto $confFilesDto, string $destinationDir, string $temporaryDirectory): array
+    protected function writeTemporaryFiles(ConfFilesDto $confFilesDto, string $destinationDir, string $temporaryDirectory): array
     {
         $configurationFiles = [];
 
@@ -100,7 +100,7 @@ class ConfFileWriter
         return $configurationFiles;
     }
 
-    private function activateDirectory(string $temporaryDirectory, string $destinationDir, ?string $backupDirectory, bool &$backupRestored): void
+    protected function activateDirectory(string $temporaryDirectory, string $destinationDir, ?string $backupDirectory, bool &$backupRestored): void
     {
         try {
             $this->filesystem->rename($temporaryDirectory, $destinationDir);
@@ -113,7 +113,7 @@ class ConfFileWriter
         }
     }
 
-    private function tryRestoreBackup(string $backupDirectory, string $destinationDir): bool
+    protected function tryRestoreBackup(string $backupDirectory, string $destinationDir): bool
     {
         try {
             $this->filesystem->rename($backupDirectory, $destinationDir);
@@ -125,7 +125,7 @@ class ConfFileWriter
         }
     }
 
-    private function silentRemove(string $path): void
+    protected function silentRemove(string $path): void
     {
         if (true === $this->filesystem->exists($path)) {
             try {

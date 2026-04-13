@@ -58,7 +58,7 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    private function buildCronjob(): NodeDefinition
+    protected function buildCronjob(): NodeDefinition
     {
         $cronjobTree = (new TreeBuilder(self::CRONJOB))->getRootNode()
             ->addDefaultsIfNotSet();
@@ -115,7 +115,7 @@ class Configuration implements ConfigurationInterface
         return $cronjobTree;
     }
 
-    private function buildWorker(): NodeDefinition
+    protected function buildWorker(): NodeDefinition
     {
         $workerTree = (new TreeBuilder(self::WORKER))->getRootNode()
             ->addDefaultsIfNotSet();
@@ -155,7 +155,7 @@ class Configuration implements ConfigurationInterface
         return $workerTree;
     }
 
-    private function appendSupervisorConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void
+    protected function appendSupervisorConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void
     {
         $numberOfProcessesNode = $nodeBuilder->integerNode(self::NUMBER_OF_PROCESSES);
         $numberOfProcessesNode = true === $withDefaults ? $numberOfProcessesNode->defaultValue(1) : $numberOfProcessesNode->defaultNull();

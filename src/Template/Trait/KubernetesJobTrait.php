@@ -15,7 +15,7 @@ trait KubernetesJobTrait
     /**
      * @param array<string, mixed> $array
      */
-    private function convertArrayToString(
+    protected function convertArrayToString(
         array $array,
         int $baseIndentLevel = 0,
         int $indentSize = 4,
@@ -37,7 +37,7 @@ trait KubernetesJobTrait
         return \implode(\PHP_EOL, $command);
     }
 
-    private function sanitize(string $input): string
+    protected function sanitize(string $input): string
     {
         $sanitizedInput = \preg_replace('/[^a-z0-9\\-]+/i', '-', $input);
 
@@ -48,7 +48,7 @@ trait KubernetesJobTrait
         return \trim($sanitizedInput, '-');
     }
 
-    private function escapeYamlValue(string $value): string
+    protected function escapeYamlValue(string $value): string
     {
         $yamlReservedWords = ['true', 'false', 'yes', 'no', 'on', 'off', 'null', '~'];
 
@@ -68,7 +68,7 @@ trait KubernetesJobTrait
         return $value;
     }
 
-    private function getIndent(int $level = 1, int $size = 4): string
+    protected function getIndent(int $level = 1, int $size = 4): string
     {
         return \str_repeat(' ', $level * $size);
     }

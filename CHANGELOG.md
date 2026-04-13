@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [v4.2.0] - 2026-04-12
+
+### Changed
+
+- `KubernetesJobTrait` — `convertArrayToString()`, `sanitize()`, `escapeYamlValue()`, `getIndent()` visibility widened from `private` to `protected`
+- `ConfFileWriter` — `writeTemporaryFiles()`, `activateDirectory()`, `tryRestoreBackup()`, `silentRemove()` visibility widened from `private` to `protected`
+- `ConfGenerateService` — `getTemplate()` visibility widened from `private` to `protected`
+- `SymfonyStyleTrait` — `initializeSymfonyStyle()` visibility widened from `private` to `protected`
+- `Configuration` — `buildCronjob()`, `buildWorker()`, `appendSupervisorConfig()` visibility widened from `private` to `protected`
+- `SettingsTrait` — `toCamelCase()` visibility widened from `private` to `protected`
+- `ConfigTrait` — `setConfigs()` visibility widened from `private` to `protected`
+- `ScheduleDto` — `validateField()` visibility widened from `private` to `protected`
+
 ## [v4.1.2] - 2026-04-10
 
 ### Fixed
@@ -299,6 +314,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v4.2.0]: https://github.com/precision-soft/symfony-console/compare/v4.1.2...v4.2.0
 
 [v4.1.2]: https://github.com/precision-soft/symfony-console/compare/v4.1.1...v4.1.2
 

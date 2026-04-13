@@ -32,7 +32,7 @@ trait ConfigTrait
     }
 
     /** @param array<string, mixed> $config */
-    private function setConfigs(array $config): void
+    protected function setConfigs(array $config): void
     {
         $this->templateClass = $config[Configuration::TEMPLATE_CLASS];
         $this->confFilesDir = $config[Configuration::CONF_FILES_DIR];

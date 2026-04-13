@@ -72,7 +72,7 @@ trait SymfonyStyleTrait
         );
     }
 
-    private function initializeSymfonyStyle(InputInterface $input, OutputInterface $output): void
+    protected function initializeSymfonyStyle(InputInterface $input, OutputInterface $output): void
     {
         $this->style = new SymfonyStyle($input, $output);
     }

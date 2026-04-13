@@ -76,7 +76,7 @@ class ScheduleDto
         );
     }
 
-    private function validateField(string $fieldName, string $value, int $min, int $max): void
+    protected function validateField(string $fieldName, string $value, int $min, int $max): void
     {
         if ('*' === $value) {
             return;
