@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.1] - 2026-04-13
+
+### Fixed
+
+- `ScheduleDto::validateField()` — guard ranges with fewer than two parts (e.g. `5-`) and throw `InvalidValueException` before attempting bound comparison
+- `AbstractCommand::initialize()` — handle nullable `getName()` return value when rendering the title
+
+### Changed
+
+- `AttributeService` — added `private` constructor to prevent instantiation (class exposes only static methods)
+- `MemoryService` — added `private` constructor to prevent instantiation (class exposes only static methods)
+
+### Dependencies
+
+- Bumped `phpstan/phpstan` `2.1.46` → `2.1.47`
+- Bumped `precision-soft/symfony-phpunit` `v3.2.0` → `v3.2.1`
+
 ## [v4.2.0] - 2026-04-12
 
 ### Changed
@@ -314,6 +331,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[v4.2.1]: https://github.com/precision-soft/symfony-console/compare/v4.2.0...v4.2.1
 
 [v4.2.0]: https://github.com/precision-soft/symfony-console/compare/v4.1.2...v4.2.0
 
