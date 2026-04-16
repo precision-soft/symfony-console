@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Command\Trait;
 
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Service\MemoryService;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -17,9 +18,14 @@ trait MemoryLimitTrait
 
     protected ?string $memoryLimit = null;
 
+    /** @info cached byte value parsed from `$memoryLimit`, populated lazily on first `getMemoryLimitReached()` call so the hot loop does not re-parse on each iteration */
+    protected ?int $memoryLimitBytes = null;
+
+    /** @throws InvalidValueException */
     protected function initializeMemoryLimit(): void
     {
         $this->memoryLimit = null;
+        $this->memoryLimitBytes = null;
 
         if (true === $this->input->hasOption(self::MEMORY_LIMIT)) {
             $memoryLimit = $this->input->getOption(self::MEMORY_LIMIT);
@@ -49,17 +55,17 @@ trait MemoryLimitTrait
             return false;
         }
 
-        $memoryLimit = MemoryService::returnBytes($this->memoryLimit);
+        $this->memoryLimitBytes ??= MemoryService::returnBytes($this->memoryLimit);
 
-        if (-1 === $memoryLimit) {
+        if (-1 === $this->memoryLimitBytes) {
             return false;
         }
 
         $memoryUsage = \memory_get_usage(true);
 
-        if ($memoryLimit < $memoryUsage) {
+        if ($this->memoryLimitBytes < $memoryUsage) {
             $humanReadableMemoryUsed = MemoryService::convertBytesToHumanReadable($memoryUsage);
-            $humanReadableMemoryLimit = MemoryService::convertBytesToHumanReadable($memoryLimit);
+            $humanReadableMemoryLimit = MemoryService::convertBytesToHumanReadable($this->memoryLimitBytes);
 
             $this->warning(\sprintf('max allowed memory usage reached `%s`/`%s`', $humanReadableMemoryUsed, $humanReadableMemoryLimit));
 

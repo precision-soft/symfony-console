@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Dto\Trait;
 
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandSettingsDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Exception\SettingNotFoundException;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
@@ -76,5 +77,43 @@ final class SettingsTraitTest extends AbstractTestCase
         ]);
 
         static::assertSame('stored', $commandSettingsDto->getSetting('unknownProperty'));
+    }
+
+    public function testGetSettingReturnsTrueStringForBooleanTrue(): void
+    {
+        $commandSettingsDto = new CommandSettingsDto([
+            'custom_toggle' => true,
+        ]);
+
+        static::assertSame('true', $commandSettingsDto->getSetting('customToggle'));
+    }
+
+    public function testGetSettingReturnsFalseStringForBooleanFalse(): void
+    {
+        $commandSettingsDto = new CommandSettingsDto([
+            'custom_toggle' => false,
+        ]);
+
+        static::assertSame('false', $commandSettingsDto->getSetting('customToggle'));
+    }
+
+    public function testLoadPropertiesThrowsOnNonScalarSetting(): void
+    {
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('must be a scalar value or null');
+
+        new CommandSettingsDto([
+            'unknown_property' => ['not', 'scalar'],
+        ]);
+    }
+
+    public function testLoadPropertiesThrowsOnInvalidTypeForKnownProperty(): void
+    {
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('invalid type for property `log`');
+
+        new CommandSettingsDto([
+            'log' => 'not-a-bool',
+        ]);
     }
 }

@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CronjobDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 
 class CronjobCreateCommand extends AbstractCreateConfigCommand
@@ -17,6 +19,8 @@ class CronjobCreateCommand extends AbstractCreateConfigCommand
 
     /**
      * @param array<string, mixed>|null $cronjobConfiguration
+     * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     public function __construct(
         ConfGenerateService $confGenerateService,

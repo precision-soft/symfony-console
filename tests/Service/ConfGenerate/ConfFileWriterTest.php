@@ -244,6 +244,45 @@ final class ConfFileWriterTest extends AbstractTestCase
         $this->filesystem->remove($backupDirectories[0]);
     }
 
+    public function testSaveThrowsWhenTemporaryDirectoryIsSymlink(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_toctou_' . \uniqid('', true);
+        $symlinkTarget = \sys_get_temp_dir() . '/cfw_toctou_target_' . \uniqid('', true);
+
+        $this->filesystem->mkdir($symlinkTarget, 0755);
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . '/test.conf', 'content');
+
+        $capturedTemporaryDirectory = null;
+
+        $filesystemMock = Mockery::mock(Filesystem::class);
+        $filesystemMock->shouldReceive('mkdir')
+            ->once()
+            ->andReturnUsing(function (string $path) use ($symlinkTarget, &$capturedTemporaryDirectory): void {
+                $capturedTemporaryDirectory = $path;
+                \symlink($symlinkTarget, $path);
+            });
+
+        $confFileWriter = new ConfFileWriter($filesystemMock);
+
+        $confGenerateException = null;
+
+        try {
+            $confFileWriter->save($confFilesDto, $destinationDirectory);
+        } catch (ConfGenerateException $confGenerateException) {
+            static::assertStringContainsString('is not a real directory', $confGenerateException->getMessage());
+        } finally {
+            if (null !== $capturedTemporaryDirectory && true === \is_link($capturedTemporaryDirectory)) {
+                \unlink($capturedTemporaryDirectory);
+            }
+
+            $this->filesystem->remove($symlinkTarget);
+        }
+
+        static::assertInstanceOf(ConfGenerateException::class, $confGenerateException);
+    }
+
     public function testSaveRemovesBackupAfterSuccessfulDeploy(): void
     {
         $destinationDirectory = \sys_get_temp_dir() . '/cfw_backup_cleanup_' . \uniqid('', true);

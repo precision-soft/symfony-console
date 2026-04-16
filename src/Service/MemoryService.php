@@ -14,10 +14,16 @@ class MemoryService
 {
     private function __construct() {}
 
+    /**
+     * Returns without action if the current memory limit is `-1` (unlimited).
+     *
+     * @throws InvalidValueException
+     */
     public static function setMemoryLimitIfNotHigher(string $newLimit): void
     {
         $currentLimit = \ini_get('memory_limit');
 
+        /** @info `ini_get` returns false on unusual PHP builds where the directive is not registered — bail out instead of letting `returnBytes(false)` throw a TypeError */
         if (false === $currentLimit || '-1' === $currentLimit) {
             return;
         }

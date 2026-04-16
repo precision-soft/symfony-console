@@ -11,6 +11,7 @@ namespace PrecisionSoft\Symfony\Console\Dto\Worker;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Trait\ConfigTrait;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class ConfigDto implements ConfigInterface
 {
@@ -18,7 +19,10 @@ class ConfigDto implements ConfigInterface
 
     private ConfigSettingsDto $settings;
 
-    /** @param array<string, mixed> $config */
+    /**
+     * @param array<string, mixed> $config
+     * @throws InvalidValueException
+     */
     public function __construct(array $config)
     {
         $this->setConfigs($config);

@@ -31,6 +31,8 @@ final class InstancesTraitNullOptionTest extends AbstractTestCase
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('max-instances')->andReturn(true);
+        $inputInterface->shouldReceive('hasOption')->with('instance-index')->andReturn(true);
         $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn(null);
         $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn('1');
 
@@ -49,6 +51,8 @@ final class InstancesTraitNullOptionTest extends AbstractTestCase
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('max-instances')->andReturn(true);
+        $inputInterface->shouldReceive('hasOption')->with('instance-index')->andReturn(true);
         $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn('3');
         $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn(null);
 
@@ -67,6 +71,8 @@ final class InstancesTraitNullOptionTest extends AbstractTestCase
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
+        $inputInterface->shouldReceive('hasOption')->with('max-instances')->andReturn(true);
+        $inputInterface->shouldReceive('hasOption')->with('instance-index')->andReturn(true);
         $inputInterface->shouldReceive('getOption')->with('max-instances')->andReturn(null);
         $inputInterface->shouldReceive('getOption')->with('instance-index')->andReturn(null);
 

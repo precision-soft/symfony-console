@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Dto\Worker;
 
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class WorkerDto
 {
@@ -16,7 +17,10 @@ class WorkerDto
     /** @var array<string, CommandDto> */
     private array $commands;
 
-    /** @param array<string, mixed> $worker */
+    /**
+     * @param array<string, mixed> $worker
+     * @throws InvalidValueException
+     */
     public function __construct(array $worker)
     {
         $this->config = new ConfigDto($worker[Configuration::CONFIG]);

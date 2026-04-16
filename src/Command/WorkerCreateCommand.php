@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Command;
 
 use PrecisionSoft\Symfony\Console\Dto\Worker\WorkerDto;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 
 class WorkerCreateCommand extends AbstractCreateConfigCommand
@@ -17,6 +18,7 @@ class WorkerCreateCommand extends AbstractCreateConfigCommand
 
     /**
      * @param array<string, mixed>|null $workerConfiguration
+     * @throws InvalidValueException
      */
     public function __construct(
         ConfGenerateService $confGenerateService,

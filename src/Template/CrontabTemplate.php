@@ -15,6 +15,7 @@ use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CrontabTemplate implements TemplateInterface
 {
@@ -22,6 +23,7 @@ class CrontabTemplate implements TemplateInterface
      * @param CommandDto[] $commands
      *
      * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     public function generate(
         ConfigInterface $configInterface,
@@ -77,7 +79,7 @@ class CrontabTemplate implements TemplateInterface
 
             $content .= \PHP_EOL;
 
-            $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
+            $crontabPath = \rtrim($configInterface->getConfFilesDir(), '/') . '/' . $destinationFile;
 
             $confFilesDto->addFile($crontabPath, $content);
         }
@@ -120,7 +122,7 @@ class CrontabTemplate implements TemplateInterface
 
         $logFileName = $commandDto->getLogFileName() ?? \sprintf('%s.log', $commandDto->getName());
 
-        return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', $configDto->getLogsDir(), $logFileName)));
+        return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', \rtrim($configDto->getLogsDir(), '/'), $logFileName)));
     }
 
     protected function getHeartbeatCommand(

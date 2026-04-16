@@ -1,54 +1,12 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Class PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand has an uninitialized readonly property \$input\. Assign it in the constructor\.$#'
-			identifier: property.uninitializedReadonly
-			count: 1
-			path: src/Command/AbstractCommand.php
-
-		-
-			message: '#^Class PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand has an uninitialized readonly property \$output\. Assign it in the constructor\.$#'
-			identifier: property.uninitializedReadonly
-			count: 1
-			path: src/Command/AbstractCommand.php
-
-		-
-			message: '#^Readonly property PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand\:\:\$input is assigned outside of the constructor\.$#'
-			identifier: property.readOnlyAssignNotInConstructor
-			count: 1
-			path: src/Command/AbstractCommand.php
-
-		-
-			message: '#^Readonly property PrecisionSoft\\Symfony\\Console\\Command\\AbstractCommand\:\:\$output is assigned outside of the constructor\.$#'
-			identifier: property.readOnlyAssignNotInConstructor
-			count: 1
-			path: src/Command/AbstractCommand.php
-
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeBuilder\:\:children\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/DependencyInjection/Configuration.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between null and string will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: src/Service/AttributeService.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between false and string will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1
 			path: src/Service/MemoryService.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between null and string will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: src/Template/KubernetesCronjobTemplate.php
-
-		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -87,19 +45,19 @@ parameters:
 		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
 			identifier: method.notFound
-			count: 6
+			count: 12
 			path: tests/Command/Trait/InstancesTraitNullOptionTest.php
 
 		-
 			message: '#^Access to an undefined property PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\InstancesTraitConfigureTestCommand\:\:\$input\.$#'
 			identifier: property.notFound
-			count: 2
+			count: 4
 			path: tests/Command/Trait/InstancesTraitTest.php
 
 		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:with\(\)\.$#'
 			identifier: method.notFound
-			count: 16
+			count: 38
 			path: tests/Command/Trait/InstancesTraitTest.php
 
 		-
@@ -111,7 +69,7 @@ parameters:
 		-
 			message: '#^PHPDoc tag @var with type Mockery\\MockInterface\|PrecisionSoft\\Symfony\\Console\\Test\\Command\\Trait\\InstancesTraitTestObject is not subtype of native type Mockery\\MockInterface\.$#'
 			identifier: varTag.nativeType
-			count: 8
+			count: 10
 			path: tests/Command/Trait/InstancesTraitTest.php
 
 		-
@@ -247,6 +205,12 @@ parameters:
 			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
 
 		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:once\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
+
+		-
 			message: '#^Cannot access offset 0 on list\<string\>\|false\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 3
@@ -255,7 +219,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$filesystem of class PrecisionSoft\\Symfony\\Console\\Service\\ConfGenerate\\ConfFileWriter constructor expects Symfony\\Component\\Filesystem\\Filesystem, Mockery\\MockInterface given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: tests/Service/ConfGenerate/ConfFileWriterTest.php
 
 		-

@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\DependencyInjection;
 
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -80,12 +81,15 @@ class Configuration implements ConfigurationInterface
             ->booleanNode(self::HEARTBEAT)->defaultTrue()->end()
             ->scalarNode(self::USER)->defaultNull()->end();
 
-        /** @var NodeBuilder $commandsTree */
-        $commandsTree = $cronjobTree->children()->arrayNode(self::COMMANDS)
+        $commandsTreeDefinition = $cronjobTree->children()->arrayNode(self::COMMANDS)
             ->isRequired()
             ->useAttributeAsKey(self::NAME)
-            ->prototype('array')
-            ->children();
+            ->prototype('array');
+
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        \assert($commandsTreeDefinition instanceof ArrayNodeDefinition);
+
+        $commandsTree = $commandsTreeDefinition->children();
 
         $commandsTree->scalarNode(self::NAME)->end()
             ->scalarNode(self::LOG_FILE_NAME)->defaultNull()->end()
@@ -133,11 +137,13 @@ class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet();
         $this->appendSupervisorConfig($settingsTree->children());
 
-        /** @var NodeBuilder $commandsTree */
         $commandsTree = $workerTree->children()->arrayNode(self::COMMANDS)
             ->isRequired()
             ->useAttributeAsKey(self::NAME)
             ->prototype('array');
+
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        \assert($commandsTree instanceof ArrayNodeDefinition);
 
         $commandsTree->children()
             ->scalarNode(self::NAME)->end()

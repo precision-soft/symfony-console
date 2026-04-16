@@ -33,6 +33,11 @@ class ConfFileWriter
 
         $this->filesystem->mkdir($temporaryDirectory, 0755);
 
+        /** @info guard a TOCTOU race where an attacker could pre-create a symlink at our chosen path; `Filesystem::mkdir` is a no-op when the path already exists (as a directory or a symlink pointing at one), so we explicitly verify the path we just created is a real directory */
+        if (true === \is_link($temporaryDirectory) || false === \is_dir($temporaryDirectory)) {
+            throw new ConfGenerateException(\sprintf('temporary directory `%s` is not a real directory', $temporaryDirectory));
+        }
+
         $backupDirectory = null;
 
         $backupRestored = false;
@@ -74,17 +79,29 @@ class ConfFileWriter
         $this->filesystem->mkdir($logsDir, 0755);
     }
 
-    /** @return array<int, string> */
+    /**
+     * @return array<int, string>
+     * @throws ConfGenerateException
+     */
     protected function writeTemporaryFiles(ConfFilesDto $confFilesDto, string $destinationDir, string $temporaryDirectory): array
     {
         $configurationFiles = [];
 
+        /** @info enforce a trailing separator so `/tmp/conf` does not match `/tmp/confAAAA/...` via prefix alone */
+        $destinationDirPrefix = \rtrim($destinationDir, '/') . '/';
+
+        $canonicalTemporaryDirectory = \realpath($temporaryDirectory);
+
+        if (false === $canonicalTemporaryDirectory) {
+            throw new ConfGenerateException(\sprintf('temporary directory `%s` could not be canonicalized', $temporaryDirectory));
+        }
+
         foreach ($confFilesDto->getFiles() as $path => $content) {
-            if (false === \str_starts_with($path, $destinationDir)) {
+            if (false === \str_starts_with($path, $destinationDirPrefix)) {
                 throw new ConfGenerateException(\sprintf('path `%s` is outside destination directory `%s`', $path, $destinationDir));
             }
 
-            $relativePath = \ltrim(\substr($path, \strlen($destinationDir)), '/');
+            $relativePath = \substr($path, \strlen($destinationDirPrefix));
 
             if (true === \str_contains($relativePath, '..')) {
                 throw new ConfGenerateException(\sprintf('path traversal detected in `%s`', $path));
@@ -94,12 +111,23 @@ class ConfFileWriter
 
             $this->filesystem->dumpFile($tempPath, $content);
 
+            /** @info after writing, canonicalize the resulting file path and verify it stays within the (already canonicalized) temporary directory — guards against symlink-based escapes that passed the textual checks above */
+            $canonicalTempPath = \realpath($tempPath);
+
+            if (
+                false === $canonicalTempPath
+                || false === \str_starts_with($canonicalTempPath, $canonicalTemporaryDirectory . '/')
+            ) {
+                throw new ConfGenerateException(\sprintf('path `%s` escaped the temporary directory after canonicalization', $path));
+            }
+
             $configurationFiles[] = $path;
         }
 
         return $configurationFiles;
     }
 
+    /** @throws ConfGenerateException */
     protected function activateDirectory(string $temporaryDirectory, string $destinationDir, ?string $backupDirectory, bool &$backupRestored): void
     {
         try {

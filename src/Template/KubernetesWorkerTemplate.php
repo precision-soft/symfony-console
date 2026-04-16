@@ -61,7 +61,7 @@ class KubernetesWorkerTemplate implements TemplateInterface
 
         $content .= \PHP_EOL;
 
-        $workerConfigPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
+        $workerConfigPath = \rtrim($configInterface->getConfFilesDir(), '/') . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 
@@ -74,6 +74,8 @@ class KubernetesWorkerTemplate implements TemplateInterface
 
     /**
      * @return array<string, string|int>
+     * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     protected function buildCommand(
         CommandDto $commandDto,
@@ -83,7 +85,8 @@ class KubernetesWorkerTemplate implements TemplateInterface
 
         return [
             'name' => $name,
-            'command' => '"' . \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())) . '"',
+            /** @info do not pre-wrap in quotes — `escapeshellarg` already produces single-quoted tokens and `escapeYamlValue()` handles YAML-level quoting, otherwise we would double-quote */
+            'command' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
             'parallelism' => $this->getNumberOfProcesses($configDto, $commandDto),
         ];
     }

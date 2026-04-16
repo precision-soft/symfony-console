@@ -11,6 +11,7 @@ namespace PrecisionSoft\Symfony\Console\Dto\Cronjob;
 use PrecisionSoft\Symfony\Console\Contract\SettingsInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CommandDto implements SettingsInterface
 {
@@ -26,6 +27,7 @@ class CommandDto implements SettingsInterface
      * @param array<string, mixed> $parameters
      *
      * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     public function __construct(
         private readonly string $name,

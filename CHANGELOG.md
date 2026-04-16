@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.2] - 2026-04-16
+
+### Security
+
+- `ConfFileWriter::save()` — guard a TOCTOU race where a symlink pre-exists at the chosen temp path: `Filesystem::mkdir` is a no-op over an existing link, so the path is now verified via `is_link`/`is_dir` after creation
+- `ConfFileWriter::writeTemporaryFiles()` — canonicalize each written file via `realpath` and verify it stays within the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks
+- `ConfFileWriter::writeTemporaryFiles()` — append a trailing separator to the destination prefix before `str_starts_with`, so `/tmp/conf` no longer matches `/tmp/confAAAA/...` via prefix alone
+
+### Fixed
+
+- `AbstractCommand::initialize()` — skip the decorated title block when stdout cannot render it (non-decorated / piped / redirected) or when verbosity is quiet, avoiding title pollution in machine-readable output
+- `InstancesTrait::computeInstances()` — guard `getOption()` calls with `hasOption()`, consistent with `MemoryLimitTrait` and `TimeLimitTrait`
+- `ScheduleDto::validateField()` — reject ranges with fewer than two parts (`5-`, `-5`) and ranges whose bounds are not numeric before comparison
+- `SettingsTrait::getSetting()` — map `true` → `'true'` and `false` → `'false'` instead of falling through to `(string)` cast (where `false` becomes `''`, ambiguous with `null`)
+- `SettingsTrait::loadProperties()` — wrap `TypeError` from typed property assignment into `InvalidValueException`; reject non-scalar setting values up-front
+- `SymfonyStyleTrait::format()` — cache the `[HH:MM:SS][memory]` prefix per second (kept per-instance so concurrent commands and tests do not share state); removes the per-call `DateTimeImmutable` allocation
+- `MemoryLimitTrait::getMemoryLimitReached()` — cache the parsed byte value of `--memory-limit` on first call instead of re-parsing on every iteration
+- `MemoryService::setMemoryLimitIfNotHigher()` — bail out when `ini_get('memory_limit')` returns `false` on unusual PHP builds, instead of propagating a `TypeError` from `returnBytes(false)`
+- `KubernetesCronjobTemplate::buildCommand()` — stop pre-wrapping the `schedule` value in quotes; quoting is the YAML layer's responsibility (`escapeYamlValue()`), which already quotes reserved glob chars such as `*`
+- `KubernetesWorkerTemplate::buildCommand()` — stop pre-wrapping the `command` value in quotes, for the same reason
+- `KubernetesCronjobTemplate::generate()` — simplify the destinationFile guard to `'' === $destinationFile` (the DTO's `getDestinationFile(): string` is non-nullable)
+- `Configuration::buildCronjob()` / `buildWorker()` — replace `@var NodeBuilder` type-narrowing comment with a runtime `assert(instanceof ArrayNodeDefinition)` plus a scoped `@phpstan-ignore`
+- `AttributeService::getCommandName()` — remove defensive null check on `$asCommand->name` (Symfony 7 types it as non-nullable)
+- `CrontabTemplate`, `SupervisorTemplate`, `KubernetesCronjobTemplate`, and `KubernetesWorkerTemplate` — use `rtrim($dir, '/')` before path concatenation, preventing double slashes when a configured directory has a trailing slash
+- `phpstan-baseline.neon` — remove 9 now-invalid entries and adjust Mockery-related counts after source fixes
+
+### Added
+
+- `@throws` annotations on `CronjobCreateCommand::execute()` and `WorkerCreateCommand::execute()`
+- Tests: `AbstractCommandTest` (title suppression for non-decorated / quiet output); new `SettingsTraitTest` cases for bool mapping, `TypeError` wrapping, and non-scalar rejection; `ConfFileWriterTest::testSaveThrowsWhenTemporaryDirectoryIsSymlink` (TOCTOU symlink guard); extra `InstancesTrait` cases covering the unregistered-option `hasOption` path
+
+### Changed
+
+- `AbstractCommand::$input` / `$output` — removed `readonly` to allow subclasses that initialize through non-standard paths
+- `services.php` — exclude `Template/Trait/` from service registration so traits are not mis-wired as services
+
 ## [v4.2.1] - 2026-04-13
 
 ### Fixed
@@ -18,9 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `AttributeService` — added `private` constructor to prevent instantiation (class exposes only static methods)
 - `MemoryService` — added `private` constructor to prevent instantiation (class exposes only static methods)
-
-### Dependencies
-
 - Bumped `phpstan/phpstan` `2.1.46` → `2.1.47`
 - Bumped `precision-soft/symfony-phpunit` `v3.2.0` → `v3.2.1`
 
@@ -47,9 +80,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `TypeError` imported via `use` in `ConfigDtoTest` (cronjob & worker) — replaced inline `\TypeError::class`
-
-### Dependencies
-
 - Bumped `precision-soft/symfony-phpunit` `v3.1.0` → `v3.1.1`
 
 ## [v4.1.1] - 2026-04-09
@@ -331,6 +361,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MemoryService` for memory usage monitoring and byte conversion
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.2...HEAD
+
+[v4.2.2]: https://github.com/precision-soft/symfony-console/compare/v4.2.1...v4.2.2
 
 [v4.2.1]: https://github.com/precision-soft/symfony-console/compare/v4.2.0...v4.2.1
 

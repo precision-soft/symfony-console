@@ -310,12 +310,12 @@ class MyCommand extends AbstractCommand
 
 The bundle defines the following interfaces in the `PrecisionSoft\Symfony\Console\Contract` namespace:
 
-| Interface           | Purpose                                                                         |
-|---------------------|---------------------------------------------------------------------------------|
-| `TemplateInterface` | Implemented by all templates — `generate(ConfigInterface, array): ConfFilesDto` |
-| `ConfigInterface`   | Provides template class, logs dir, conf files dir, and settings                 |
-| `SettingsInterface` | Provides access to the settings object via `getSettings(): SettingInterface`    |
-| `SettingInterface`  | Retrieves a single setting value via `getSetting(string): ?string`              |
+| Interface           | Purpose                                                                                                                                                                                             |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `TemplateInterface` | Implemented by all templates — `generate(ConfigInterface, array): ConfFilesDto`                                                                                                                     |
+| `ConfigInterface`   | Provides template class, logs dir, conf files dir, and settings                                                                                                                                     |
+| `SettingsInterface` | Provides access to the settings object via `getSettings(): SettingInterface`                                                                                                                        |
+| `SettingInterface`  | Retrieves a single setting value via `getSetting(string): ?string` — boolean values are returned as the literal strings `'true'` / `'false'`, `null` stays `null`, other scalars are cast to string |
 
 ## Services
 
@@ -356,6 +356,7 @@ All exceptions extend `PrecisionSoft\Symfony\Console\Exception\Exception`:
 
 - Automatic `$this->input`, `$this->output`, and `$this->style` (`SymfonyStyle`) initialization in `initialize()`
 - Output helper methods via `SymfonyStyleTrait`: `writeln()`, `error()`, `info()`, `warning()`, `success()`
+- The decorated title block is emitted only when the output is decorated (TTY) and verbosity is above quiet — piped / redirected / `-q` invocations stay clean for machine consumers
 
 ## For custom templates
 
@@ -398,7 +399,8 @@ When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>
 
 ### Path traversal protection
 
-`ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Do not bypass this by symlinking the destination to a sensitive location.
+`ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Each written file is additionally canonicalized via `realpath` and re-checked against the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks; the temp directory itself is verified to be a real directory (not a pre-existing symlink) to
+close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking the destination to a sensitive location.
 
 ### Configuration values in generated files
 

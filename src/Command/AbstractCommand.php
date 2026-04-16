@@ -18,8 +18,8 @@ abstract class AbstractCommand extends Command
 {
     use SymfonyStyleTrait;
 
-    protected readonly InputInterface $input;
-    protected readonly OutputInterface $output;
+    protected InputInterface $input;
+    protected OutputInterface $output;
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
@@ -28,7 +28,12 @@ abstract class AbstractCommand extends Command
 
         $this->initializeSymfonyStyle($input, $output);
 
+        /** @info skip the decorated title block when stdout cannot render it (piped / redirected / non-decorated) or when the user has requested quiet output — otherwise the title pollutes machine-readable output */
+        if (false === $output->isDecorated() || OutputInterface::VERBOSITY_QUIET >= $output->getVerbosity()) {
+            return;
+        }
+
         $commandName = $this->getName();
-        $this->style->title(\sprintf('<bg=blue>[%s]</> %s', (new DateTimeImmutable())->format('Y-m-d'), null !== $commandName ? $commandName : 'unknown'));
+        $this->style->title(\sprintf('<bg=blue>[%s]</> %s', (new DateTimeImmutable())->format('Y-m-d'), $commandName ?? 'unknown'));
     }
 }

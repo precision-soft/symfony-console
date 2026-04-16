@@ -39,7 +39,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         $destinationFile = $configInterface->getSettings()->getDestinationFile();
 
-        if (null === $destinationFile || '' === $destinationFile) {
+        if ('' === $destinationFile) {
             throw new InvalidConfigurationException('the `destination file` is mandatory for kubernetes cronjob template');
         }
 
@@ -59,7 +59,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         $content .= \PHP_EOL;
 
-        $crontabPath = $configInterface->getConfFilesDir() . '/' . $destinationFile;
+        $crontabPath = \rtrim($configInterface->getConfFilesDir(), '/') . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 
@@ -72,6 +72,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
     /**
      * @return array<string, string>
+     * @throws InvalidValueException
      */
     protected function buildCommand(
         CommandDto $commandDto,
@@ -81,7 +82,8 @@ class KubernetesCronjobTemplate implements TemplateInterface
         return [
             'name' => $name,
             'command' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
-            'schedule' => '"' . $commandDto->getSchedule()->toCronExpression() . '"',
+            /** @info do not pre-wrap in quotes — `escapeYamlValue()` triggers on the `*` characters and handles YAML quoting itself, otherwise we would double-quote */
+            'schedule' => $commandDto->getSchedule()->toCronExpression(),
         ];
     }
 }

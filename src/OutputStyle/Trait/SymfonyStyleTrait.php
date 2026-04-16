@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\OutputStyle\Trait;
 
-use DateTimeImmutable;
 use PrecisionSoft\Symfony\Console\Service\MemoryService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,6 +17,11 @@ use Throwable;
 trait SymfonyStyleTrait
 {
     protected SymfonyStyle $style;
+
+    /** @info cache the composed `[HH:MM:SS][<memory>]` prefix for the current second so a tight output loop does not re-run `memory_get_usage` + log/round math per line; kept per-instance so concurrent commands and tests do not share state */
+    private ?int $cachedPrefixSecond = null;
+
+    private string $cachedPrefix = '';
 
     protected function writeln(string $text): void
     {
@@ -64,12 +68,18 @@ trait SymfonyStyleTrait
 
     protected function format(string $text): string
     {
-        return \sprintf(
-            '[%s][%s] %s',
-            (new DateTimeImmutable())->format('H:i:s'),
-            MemoryService::getMemoryUsage(),
-            $text,
-        );
+        $currentSecond = \time();
+
+        if ($currentSecond !== $this->cachedPrefixSecond) {
+            $this->cachedPrefixSecond = $currentSecond;
+            $this->cachedPrefix = \sprintf(
+                '[%s][%s]',
+                \date('H:i:s', $currentSecond),
+                MemoryService::getMemoryUsage(),
+            );
+        }
+
+        return $this->cachedPrefix . ' ' . $text;
     }
 
     protected function initializeSymfonyStyle(InputInterface $input, OutputInterface $output): void

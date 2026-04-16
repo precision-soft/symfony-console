@@ -37,6 +37,7 @@ trait KubernetesJobTrait
         return \implode(\PHP_EOL, $command);
     }
 
+    /** @throws InvalidValueException */
     protected function sanitize(string $input): string
     {
         $sanitizedInput = \preg_replace('/[^a-z0-9\\-]+/i', '-', $input);

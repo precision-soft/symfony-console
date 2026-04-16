@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\Dto\Worker;
 
 use PrecisionSoft\Symfony\Console\Contract\SettingsInterface;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CommandDto implements SettingsInterface
 {
@@ -19,6 +20,7 @@ class CommandDto implements SettingsInterface
 
     /**
      * @param array<string, mixed> $parameters
+     * @throws InvalidValueException
      */
     public function __construct(
         private readonly string $name,

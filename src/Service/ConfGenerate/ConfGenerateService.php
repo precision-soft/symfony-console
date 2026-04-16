@@ -46,6 +46,7 @@ class ConfGenerateService
         return $this->confFileWriter->save($confFilesDto, $configInterface->getConfFilesDir());
     }
 
+    /** @throws ConfGenerateException */
     protected function getTemplate(ConfigInterface $configInterface): TemplateInterface
     {
         $templateClass = $configInterface->getTemplateClass();

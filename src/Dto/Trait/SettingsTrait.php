@@ -17,7 +17,11 @@ trait SettingsTrait
 {
     private stdClass $settings;
 
-    /** @throws SettingNotFoundException */
+    /**
+     * @info values are coerced to string via PHP's `(string)` cast, with an explicit bool mapping so `true` → `'true'` and `false` → `'false'` (PHP's default `(string)false` is `''`, which is ambiguous with null and has burned consumers). Non-scalar values never reach this path — `loadProperties()` rejects them up-front
+     *
+     * @throws SettingNotFoundException
+     */
     public function getSetting(string $setting): ?string
     {
         if (false === \property_exists($this->settings, $setting)) {
@@ -26,10 +30,18 @@ trait SettingsTrait
 
         $value = $this->settings->{$setting};
 
-        return null !== $value ? (string)$value : null;
+        return match (true) {
+            null === $value => null,
+            true === $value => 'true',
+            false === $value => 'false',
+            default => (string)$value,
+        };
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * @param array<string, mixed> $data
+     * @throws InvalidValueException
+     */
     protected function loadProperties(array $data): void
     {
         $this->settings = new stdClass();

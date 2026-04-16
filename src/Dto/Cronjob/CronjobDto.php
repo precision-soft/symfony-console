@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Dto\Cronjob;
 
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
+use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CronjobDto
 {
@@ -16,7 +18,11 @@ class CronjobDto
     /** @var array<string, CommandDto> */
     private array $commands;
 
-    /** @param array<string, mixed> $cron */
+    /**
+     * @param array<string, mixed> $cron
+     * @throws InvalidConfigurationException
+     * @throws InvalidValueException
+     */
     public function __construct(array $cron)
     {
         $this->config = new ConfigDto($cron[Configuration::CONFIG]);

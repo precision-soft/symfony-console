@@ -26,15 +26,7 @@ class AttributeService
         $reflectionAttributes = $reflectionClass->getAttributes(AsCommand::class);
 
         foreach ($reflectionAttributes as $reflectionAttribute) {
-            $asCommand = $reflectionAttribute->newInstance();
-
-            if (null === $asCommand->name) {
-                throw new InvalidConfigurationException(
-                    \sprintf('the `AsCommand` attribute on `%s` has a null name', $commandClass),
-                );
-            }
-
-            return $asCommand->name;
+            return $reflectionAttribute->newInstance()->name;
         }
 
         throw new InvalidConfigurationException(

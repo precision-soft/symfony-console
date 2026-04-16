@@ -21,7 +21,10 @@ class ScheduleDto
     private readonly string $month;
     private readonly string $dayOfWeek;
 
-    /** @param array<string, string> $schedule */
+    /**
+     * @param array<string, string> $schedule
+     * @throws InvalidValueException
+     */
     public function __construct(array $schedule)
     {
         $this->minute = $schedule[Configuration::MINUTE];
@@ -76,6 +79,7 @@ class ScheduleDto
         );
     }
 
+    /** @throws InvalidValueException */
     protected function validateField(string $fieldName, string $value, int $min, int $max): void
     {
         if ('*' === $value) {
@@ -98,9 +102,16 @@ class ScheduleDto
             if (true === \str_contains($rangeOnly, '-')) {
                 $rangeParts = \explode('-', $rangeOnly);
 
-                if (\count($rangeParts) < 2) {
+                /** @info after `str_contains('-')` + `explode('-')` we always have at least 2 parts, but individual parts may be empty strings (e.g. `5-` → ['5', '']) or non-numeric (e.g. `-5` → ['', '5']); both are invalid */
+                if (
+                    2 !== \count($rangeParts)
+                    || '' === $rangeParts[0]
+                    || '' === $rangeParts[1]
+                    || 1 !== \preg_match('/^\d+$/', $rangeParts[0])
+                    || 1 !== \preg_match('/^\d+$/', $rangeParts[1])
+                ) {
                     throw new InvalidValueException(
-                        \sprintf('cron %s range `%s` is invalid: expected start-end format', $fieldName, $rangeOnly),
+                        \sprintf('cron %s range `%s` is invalid: expected start-end format with numeric bounds', $fieldName, $rangeOnly),
                     );
                 }
 

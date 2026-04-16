@@ -14,6 +14,7 @@ use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
 class SupervisorTemplate implements TemplateInterface
@@ -24,6 +25,7 @@ class SupervisorTemplate implements TemplateInterface
      * @param CommandDto[] $commands
      *
      * @throws InvalidConfigurationException
+     * @throws InvalidValueException
      */
     public function generate(
         ConfigInterface $configInterface,
@@ -52,9 +54,10 @@ class SupervisorTemplate implements TemplateInterface
         ConfigDto $configDto,
         CommandDto $commandDto,
     ): string {
-        return \sprintf('%s/%s.conf', $configDto->getConfFilesDir(), $commandDto->getName());
+        return \sprintf('%s/%s.conf', \rtrim($configDto->getConfFilesDir(), '/'), $commandDto->getName());
     }
 
+    /** @throws InvalidConfigurationException */
     protected function buildCommand(
         CommandDto $commandDto,
         ConfigDto $configDto,
@@ -66,7 +69,8 @@ class SupervisorTemplate implements TemplateInterface
             '%numberOfProcesses%' => (string)$this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
             '%autoRestart%' => true === $this->getAutoRestart($configDto, $commandDto) ? 'true' : 'false',
-            '%logFile%' => $commandDto->getSettings()->getLogFile() ?? \sprintf('%s/%s.log', $configDto->getLogsDir(), $commandDto->getName()),
+            /** @info custom logFile values from settings are used as-is (absolute paths); validation is the caller's responsibility */
+            '%logFile%' => $commandDto->getSettings()->getLogFile() ?? \sprintf('%s/%s.log', \rtrim($configDto->getLogsDir(), '/'), $commandDto->getName()),
         ];
 
         return \str_replace(
@@ -76,6 +80,7 @@ class SupervisorTemplate implements TemplateInterface
         );
     }
 
+    /** @throws InvalidConfigurationException */
     protected function getAutoStart(
         ConfigDto $configDto,
         CommandDto $commandDto,
@@ -89,6 +94,7 @@ class SupervisorTemplate implements TemplateInterface
         return $autoStart;
     }
 
+    /** @throws InvalidConfigurationException */
     protected function getAutoRestart(
         ConfigDto $configDto,
         CommandDto $commandDto,
@@ -102,6 +108,7 @@ class SupervisorTemplate implements TemplateInterface
         return $autoRestart;
     }
 
+    /** @throws InvalidConfigurationException */
     protected function getPrefix(
         ConfigDto $configDto,
         CommandDto $commandDto,
@@ -115,6 +122,7 @@ class SupervisorTemplate implements TemplateInterface
         return $prefix;
     }
 
+    /** @throws InvalidConfigurationException */
     protected function getUser(
         ConfigDto $configDto,
         CommandDto $commandDto,

@@ -33,6 +33,7 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         'PrecisionSoft\\Symfony\\Console\\Template\\',
         __DIR__ . '/../../Template/*',
     )
+        ->exclude(__DIR__ . '/../../Template/Trait/')
         ->tag(PrecisionSoftSymfonyConsoleExtension::CONSOLE_TEMPLATE)
         ->autowire()
         ->autoconfigure();
