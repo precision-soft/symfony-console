@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.3] - 2026-04-17
+
+### Fixed
+
+- `CrontabTemplate::buildCommand()` — stop running `escapeshellarg` on each element of `CommandDto::getCommand()`; when users configured `command: 'php bin/console cmd:name'` as a YAML string, the config normalizer wrapped it into a single-element array containing the whole command, and per-element escaping quoted the entire string as one shell argument (`'php bin/console cmd:name'`), producing crontab lines cron tried to execute as a single nonexistent program
+- `SupervisorTemplate::buildCommand()` — same revert; per-element `escapeshellarg` broke string-form commands
+- `KubernetesCronjobTemplate::buildCommand()` — same revert; per-element `escapeshellarg` broke string-form commands
+- `KubernetesWorkerTemplate::buildCommand()` — same revert; per-element `escapeshellarg` broke string-form commands
+
+### Changed
+
+- Template command output is now emitted as-is via `implode(' ', $commandDto->getCommand())`, matching the pre-v4.2.x behavior; log-file redirection in `CrontabTemplate::buildLog()` remains `escapeshellarg`-protected since it is built from code-controlled paths
+
 ## [v4.2.2] - 2026-04-16
 
 ### Security
@@ -362,7 +375,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SymfonyStyle` wrapper with timestamp and memory usage formatting
 - `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.2...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.3...HEAD
+
+[v4.2.3]: https://github.com/precision-soft/symfony-console/compare/v4.2.2...v4.2.3
 
 [v4.2.2]: https://github.com/precision-soft/symfony-console/compare/v4.2.1...v4.2.2
 

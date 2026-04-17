@@ -71,7 +71,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         $content = \reset($files);
         static::assertStringContainsString('test-job', $content);
         static::assertStringContainsString('*/5 * * * *', $content);
-        static::assertStringContainsString("'bin/console' 'app:test'", $content);
+        static::assertStringContainsString('bin/console app:test', $content);
     }
 
     public function testGenerateWithEmptyCommands(): void
@@ -241,7 +241,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        static::assertStringContainsString("'bin/console' 'app:test'", $content);
+        static::assertStringContainsString('bin/console app:test', $content);
     }
 
     public function testNullDestinationFileThrowsException(): void

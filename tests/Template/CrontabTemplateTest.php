@@ -67,7 +67,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         static::assertCount(1, $files);
 
         $content = \reset($files);
-        static::assertStringContainsString("* * * * * 'test'", $content);
+        static::assertStringContainsString('* * * * * test', $content);
         static::assertStringContainsString('GENERATED FILE', $content);
         static::assertStringContainsString(">> 'test/test.log' 2>&1", $content);
         static::assertStringContainsString('/bin/touch', $content);
@@ -115,7 +115,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         static::assertCount(1, $files);
 
         $content = \reset($files);
-        static::assertStringContainsString("0 6 * * * 'bin/console' 'app:test'", $content);
+        static::assertStringContainsString('0 6 * * * bin/console app:test', $content);
         static::assertStringNotContainsString('/bin/touch', $content);
         static::assertStringNotContainsString('heartbeat', $content);
     }
@@ -205,7 +205,7 @@ final class CrontabTemplateTest extends AbstractTestCase
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        static::assertStringContainsString("www-data 'bin/console' 'app:test'", $content);
+        static::assertStringContainsString('www-data bin/console app:test', $content);
     }
 
     public function testMultipleCommandsAcrossFiles(): void

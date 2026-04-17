@@ -81,7 +81,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         return [
             'name' => $name,
-            'command' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
+            'command' => \implode(' ', $commandDto->getCommand()),
             /** @info do not pre-wrap in quotes — `escapeYamlValue()` triggers on the `*` characters and handles YAML quoting itself, otherwise we would double-quote */
             'schedule' => $commandDto->getSchedule()->toCronExpression(),
         ];

@@ -100,7 +100,7 @@ class CrontabTemplate implements TemplateInterface
             $commandParts[] = $user;
         }
 
-        $commandParts = \array_merge($commandParts, \array_map('\escapeshellarg', $commandDto->getCommand()));
+        $commandParts = \array_merge($commandParts, $commandDto->getCommand());
 
         $logPart = $this->buildLog($commandDto, $configDto);
         if (null !== $logPart) {

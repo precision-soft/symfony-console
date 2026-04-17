@@ -85,8 +85,7 @@ class KubernetesWorkerTemplate implements TemplateInterface
 
         return [
             'name' => $name,
-            /** @info do not pre-wrap in quotes — `escapeshellarg` already produces single-quoted tokens and `escapeYamlValue()` handles YAML-level quoting, otherwise we would double-quote */
-            'command' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
+            'command' => \implode(' ', $commandDto->getCommand()),
             'parallelism' => $this->getNumberOfProcesses($configDto, $commandDto),
         ];
     }

@@ -63,7 +63,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
         static::assertStringContainsString('test-worker', $content);
-        static::assertStringContainsString("'bin/console' 'app:worker'", $content);
+        static::assertStringContainsString('bin/console app:worker', $content);
         static::assertStringContainsString('parallelism: 3', $content);
     }
 
@@ -158,7 +158,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        static::assertStringContainsString("'bin/console' 'messenger:consume'", $content);
+        static::assertStringContainsString('bin/console messenger:consume', $content);
     }
 
     public function testGenerateContentContainsParallelism(): void

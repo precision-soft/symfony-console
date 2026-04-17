@@ -64,7 +64,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
         $content = \reset($files);
         static::assertStringContainsString('[program:test-test]', $content);
-        static::assertStringContainsString("command = 'test'", $content);
+        static::assertStringContainsString('command = test', $content);
         static::assertStringContainsString('numprocs = 1', $content);
         static::assertStringContainsString('autostart = true', $content);
         static::assertStringContainsString('autorestart = true', $content);
@@ -375,6 +375,6 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
         $files = $confFilesDto->getFiles();
         $content = \reset($files);
-        static::assertStringContainsString("command = 'bin/console' 'messenger:consume' '--limit=100'", $content);
+        static::assertStringContainsString('command = bin/console messenger:consume --limit=100', $content);
     }
 }

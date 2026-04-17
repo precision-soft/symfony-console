@@ -64,7 +64,7 @@ class SupervisorTemplate implements TemplateInterface
     ): string {
         $configurationParameters = [
             '%programGroupName%' => \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
-            '%command%' => \implode(' ', \array_map('\escapeshellarg', $commandDto->getCommand())),
+            '%command%' => \implode(' ', $commandDto->getCommand()),
             '%user%' => $this->getUser($configDto, $commandDto),
             '%numberOfProcesses%' => (string)$this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
