@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped `phpstan/phpstan` `2.1.46` → `2.1.47`
 - Bumped `precision-soft/symfony-phpunit` `v3.2.0` → `v3.2.1`
 
-## [v4.2.0] - 2026-04-12
+## [v4.2.0] - 2026-04-13
 
 ### Changed
 
@@ -119,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `ConfigInterface` — removed `getSettings(): SettingInterface` method (responsibility moved to `SettingsTrait`)
 
-## [v4.0.1] - 2026-04-05
+## [v4.0.1] - 2026-04-06
 
 ### Fixed
 
@@ -179,7 +179,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename `test()` to `testGenerate()` in `CrontabTemplateTest` and `SupervisorTemplateTest`
 - Replace `expectNotToPerformAssertions()` with explicit `assertFalse(getScriptReachedLimits())` in `MemoryAndTimeLimitsTraitTest`
 
-## [v3.0.2] - 2026-04-02
+## [v3.0.2] - 2026-03-31
 
 ### Fixed
 
@@ -197,19 +197,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **`ConfigInterface` now extends `SettingsInterface`** — all implementations must add a `getSettings(): SettingInterface` method
-- **`MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException`** instead of calling `exit(Command::INVALID)` — callers must catch this exception
-- **`MemoryAndTimeLimitsTrait::hasScriptReachedLimits()` renamed to `getScriptReachedLimits()`** — naming convention compliance, update all call sites
-- **`MemoryLimitTrait::isMemoryLimitReached()` renamed to `getMemoryLimitReached()`** — naming convention compliance
-- **`TimeLimitTrait::isTimeLimitReached()` renamed to `getTimeLimitReached()`** — naming convention compliance
-- **`CronjobCreateCommand` and `WorkerCreateCommand` now extend `AbstractCreateConfigCommand`** instead of `AbstractCommand` — constructor signatures changed; `execute()` logic moved to parent
-- **`CronjobCreateCommand` catches `ConfGenerateException` only** instead of generic `Throwable` — unexpected exceptions now propagate
-- **`WorkerCreateCommand` catches `ConfGenerateException` only** instead of generic `Throwable` — unexpected exceptions now propagate
-- **Removed `version` field from `composer.json`** — version is now derived from git tags only
-- **Replaced `squizlabs/php_codesniffer` with `phpstan/phpstan`** in dev dependencies
-- **Upgraded `precision-soft/symfony-phpunit` from `1.*` to `^2.0`**
-- **Symfony dependency constraints changed from `7.*` to `^7.0`** (stricter semver)
-- **Renamed `phpunit.xml` to `phpunit.xml.dist`** — local overrides via `phpunit.xml` are now gitignored
+- `ConfigInterface` now extends `SettingsInterface` — all implementations must add a `getSettings(): SettingInterface` method
+- `MemoryAndTimeLimitsTrait::stopScriptIfLimitsReached()` now throws `LimitExceededException` instead of calling `exit(Command::INVALID)` — callers must catch this exception
+- `MemoryAndTimeLimitsTrait::hasScriptReachedLimits()` renamed to `getScriptReachedLimits()` — naming convention compliance, update all call sites
+- `MemoryLimitTrait::isMemoryLimitReached()` renamed to `getMemoryLimitReached()` — naming convention compliance
+- `TimeLimitTrait::isTimeLimitReached()` renamed to `getTimeLimitReached()` — naming convention compliance
+- `CronjobCreateCommand` and `WorkerCreateCommand` now extend `AbstractCreateConfigCommand` instead of `AbstractCommand` — constructor signatures changed; `execute()` logic moved to parent
+- `CronjobCreateCommand` catches `ConfGenerateException` only instead of generic `Throwable` — unexpected exceptions now propagate
+- `WorkerCreateCommand` catches `ConfGenerateException` only instead of generic `Throwable` — unexpected exceptions now propagate
+- Removed `version` field from `composer.json` — version is now derived from git tags only
+- Replaced `squizlabs/php_codesniffer` with `phpstan/phpstan` in dev dependencies
+- Upgraded `precision-soft/symfony-phpunit` from `1.*` to `^2.0`
+- Symfony dependency constraints changed from `7.*` to `^7.0` (stricter semver)
+- Renamed `phpunit.xml` to `phpunit.xml.dist` — local overrides via `phpunit.xml` are now gitignored
 
 ### Added
 
@@ -250,130 +250,159 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MemoryService::convertBytesToHumanReadable()` — clamps unit index to prevent out-of-bounds array access
 - `KubernetesWorkerTemplate` — validates `destinationFile` is not null before generating
 - Trailing space removed from bytes unit in `MemoryService::convertBytesToHumanReadable()`
-- **`services.php` DI argument name mismatch** — `$config` did not match constructor parameters `$cronjobConfiguration`/`$workerConfiguration`, commands never received configuration via the service container
-- **`ConfFileWriter` false failure on backup cleanup** — a failed backup removal after successful deploy no longer masks the success as a failure
+- `services.php` DI argument name mismatch — `$config` did not match constructor parameters `$cronjobConfiguration`/`$workerConfiguration`, commands never received configuration via the service container
+- `ConfFileWriter` false failure on backup cleanup — a failed backup removal after successful deploy no longer masks the success as a failure
 
 ## [v2.3.7] - 2026-03-21
 
 ### Fixed
 
-- Trailing space removed from bytes unit in `MemoryService::convertBytesToHumanReadable()`
+- `MemoryService::convertBytesToHumanReadable()` — trailing space removed from the `B` entry in the units array; byte-level output previously rendered with a double space (`1024  B`)
 
 ## [v2.3.6] - 2026-03-20
 
 ### Fixed
 
-- Corrected README clone URL
+- `README.md` — clone URL corrected to point at GitHub instead of GitLab
 
 ## [v2.3.5] - 2026-03-19
 
 ### Fixed
 
-- `MemoryService::convertBytesToHumanReadable()` clamps unit index to prevent overflow
+- `MemoryService::convertBytesToHumanReadable()` — unit index clamped with `\min((int)\floor(\log($bytes, 1024)), \count($unit) - 1)` to prevent out-of-bounds array access for values larger than `PB`
 
 ## [v2.3.4] - 2026-03-19
 
 ### Changed
 
-- `ConfFileWriter::save()` rewritten with atomic file generation (temp dir, backup, restore)
-- Replaced `empty()` with explicit comparisons throughout codebase
+- `ConfGenerateService::generate()` — refactored to write configuration into a temporary directory and atomically rename to the destination, with rollback/cleanup on exception so a failed generation cannot corrupt the active config
+- `TimeLimitTrait::initializeTimeLimit()`, `MemoryLimitTrait::initializeMemoryLimit()`, `SupervisorTemplate`, `WorkerNumberOfProcessesTrait` — `empty(...)` replaced with explicit null/zero/boolean comparisons for predictable evaluation
 
 ## [v2.3.3] - 2026-03-19
 
 ### Changed
 
-- Moved dev scripts to `.dev/` directory
-- Updated dev dependencies
+- Moved development scripts directory from `dev/` to `.dev/` (Docker config, git hooks, shared shell utilities, `.profile`, `.env`)
+- Updated pre-commit hook, composer scripts, and utility references to the new `.dev/` location
+- `composer.json` — homepage URL corrected to match the GitHub repository URL
+- `composer.lock` refreshed via `composer update`
 
 ## [v2.3.2] - 2026-03-19
 
 ### Fixed
 
-- Type correctness and code style alignment across codebase
+- `Worker\CommandDto::getName()` and `getCommand()` — return types tightened from `?string` to `string`
+- `CronjobDto::getConfig()` and `getCommands()` — return types tightened to non-nullable `ConfigDto` / `array`
+- `WorkerDto::getConfig()` and `getCommands()` — return types tightened to non-nullable equivalents
+- `MemoryService::convertBytesToHumanReadable()` — zero-byte input now returns a formatted `0 B` instead of dividing by zero via `\log(0, 1024)`
+
+### Added
+
+- `Worker\ConfigSettingsDto::getDestinationFile()` — typed getter for the destination file setting; `KubernetesWorkerTemplate` and `SupervisorTemplate` switched from raw setting lookups to this accessor
+
+### Changed
+
+- `CrontabTemplate::buildLog()` — Yoda-style conditionals standardized; `\array_merge()` and `\sprintf()` calls prefixed with the global namespace for consistency
 
 ## [v2.3.1] - 2026-03-13
 
 ### Changed
 
-- Normalized source code style
+- Source code style normalized across `src/`: parameter formatting, Yoda conditions, and variable naming aligned across `MemoryLimitTrait`, `TimeLimitTrait`, `SymfonyStyleTrait`, `AttributeService`, and `ConfGenerateService` without any functional changes
+- `composer.json` — version field refreshed for the v2 package line
 
 ## [v2.3.0] - 2025-11-03
 
 ### Added
 
-- `MemoryLimitTrait` for memory limit enforcement in long-running commands
-- `TimeLimitTrait` for time limit enforcement in long-running commands
-- `MemoryAndTimeLimitsTrait` combining both limits
+- `MemoryLimitTrait` — `initializeMemoryLimit()` and `getMemoryLimit()` for enforcing a byte budget inside long-running workers and cronjobs
+- `TimeLimitTrait` — `$startTime`, `initializeTimeLimit()`, `getTimeLimit()` for enforcing a wall-clock budget
+- `MemoryAndTimeLimitsTrait` — composite trait combining both limits so a single `stopScriptIfLimitsReached()` call covers memory and time
+- `MemoryService::setMemoryLimitIfNotHigher()` — raises the PHP `memory_limit` only when the requested value is greater than the current one
 
 ## [v2.2.1] - 2025-10-25
 
 ### Fixed
 
-- Null deprecation warnings
+- `SymfonyStyleTrait` and related output helpers — nullable type handling corrected to silence PHP 8.4 implicit-nullable deprecations
 
 ## [v2.2.0] - 2025-01-06
 
 ### Added
 
-- `SupervisorSettingsTrait::getLogFile()` for custom log file paths in Supervisor config
+- `SupervisorSettingsTrait::getLogFile()` — typed accessor for per-command Supervisor log file path
+- `Configuration` — `log_file` node added to the Supervisor configuration schema
 
 ## [v2.1.0] - 2024-12-13
 
 ### Added
 
-- `CrontabTemplate::getHeartbeatCommand()` — allows overriding the default heartbeat command
+- `CrontabTemplate::getHeartbeatCommand()` — protected method that returns the `CommandDto` used as heartbeat so subclasses can override the default heartbeat command
+
+### Changed
+
+- Heartbeat command generation moved out of the cronjob DTO and into template-level logic; `CrontabTemplate::buildCrontab()` now composes heartbeat entries uniformly alongside user-defined commands
 
 ## [v2.0.1] - 2024-12-13
 
 ### Fixed
 
-- Heartbeat command now added to all generated crontab files (not just the first)
+- `CrontabTemplate::buildCrontab()` — heartbeat entries are now emitted in every generated crontab file, not only the first one produced during a multi-file generation
 
 ## [v2.0.0] - 2024-12-11
 
 ### Added
 
-- Multiple cronjob file generation (one command can target a specific `destination_file`)
+- Multiple cronjob file generation — a single configuration can target several crontab outputs via per-command `destination_file`; `ConfGenerateService` iterates the declared files accordingly
+- `TemplateInterface::setDestinationFile()` / `getDestinationFile()` — introduced on the template contract so implementations carry their target file through generation
 
 ### Changed
 
-- **Breaking:** Modified visibility of several template methods from `private` to `protected`
+- `CrontabTemplate::buildLog()`, `buildCommand()`, `buildSchedule()` visibility widened from `private` to `protected` to support subclass customization of the new multi-file flow
+- `CronjobCreateCommand`, `WorkerCreateCommand` — internal helpers relaxed from `private` to `protected` to support the shared generation pipeline
+- `CommandDto` and `ScheduleDto` refactored to carry the additional per-command destination context
 
 ## [v1.2.1] - 2024-12-09
 
 ### Fixed
 
-- `InstancesTrait` validation for max instances and instance index
+- `InstancesTrait::formatMessageWithInstances()` — template-string interpolation corrected so `[index/max]` prefixes render consistently
+- `CrontabTemplate` — cron expression generation edge cases addressed (whitespace handling, trailing separators)
 
 ## [v1.2.0] - 2024-11-05
 
 ### Added
 
-- `InstancesTrait::formatMessageWithInstances()` for prefixing output with `[index/max]`
+- `InstancesTrait::formatMessageWithInstances()` — helper for prefixing output with `[<instanceIndex>/<maxInstances>]` so parallel workers/cronjobs produce self-identifying log lines
 
 ## [v1.1.0] - 2024-10-04
 
 ### Added
 
-- `user` and `log_file_name` options for cronjob commands
-- `AttributeService` for extracting Symfony command names from `#[AsCommand]` attributes
+- `CrontabTemplate` — `user` and `log_file_name` options exposed on cronjob commands; generated cron lines respect per-command overrides
+- `AttributeService::getCommandName()` — reads the Symfony `#[AsCommand]` attribute to extract command names for template generation
+- `Configuration` — schema extended to expose `user` and `log_file_name` settings under the cronjob command tree
 
 ## [v1.0.0] - 2024-09-19
 
 ### Added
 
-- Initial release
-- `CronjobCreateCommand` and `WorkerCreateCommand` Symfony console commands
-- `CrontabTemplate` for generating standard crontab files
-- `SupervisorTemplate` for generating Supervisor `.conf` files
-- `KubernetesCronjobTemplate` for Kubernetes CronJob manifests
-- `KubernetesWorkerTemplate` for Kubernetes Worker manifests
-- Symfony DI configuration with `precision_soft_symfony_console` config tree
-- `TemplateInterface` contract for custom template implementations
-- `ConfGenerateService` for orchestrating template generation and file output
-- `MemoryService` for memory usage monitoring and byte conversion
-- `SymfonyStyle` wrapper with timestamp and memory usage formatting
-- `InstancesTrait` for parallel execution with `--max-instances` and `--instance-index` options
+- `CronjobCreateCommand` and `WorkerCreateCommand` — Symfony console commands that render runtime configuration from the bundle's own configuration tree
+- `CrontabTemplate` — generates standard crontab files
+- `SupervisorTemplate` — generates Supervisor `.conf` files
+- `KubernetesCronjobTemplate` — generates Kubernetes `CronJob` manifests
+- `KubernetesWorkerTemplate` — generates Kubernetes `Deployment`/worker manifests
+- `ConfGenerateService` — orchestrates template selection, generation, and file output
+- `MemoryService` — memory-usage helpers (`returnBytes()`, `convertBytesToHumanReadable()`)
+- `SymfonyStyleTrait` — styled output wrapper with timestamp and memory-usage prefix
+- `InstancesTrait` — parallel-execution helper using `--max-instances` and `--instance-index` options
+- `TemplateInterface` — extension contract for custom template implementations
+- `ConfigInterface`, `SettingsInterface` — configuration contracts
+- Symfony DI configuration under the `precision_soft_symfony_console` tree
+
+### Notes
+
+- Initial public release of `precision-soft/symfony-console`
 
 [Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.3...HEAD
 
