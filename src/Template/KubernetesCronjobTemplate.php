@@ -17,6 +17,10 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 
+/**
+ * Command parts are rendered verbatim into the generated Kubernetes cronjob YAML.
+ * Sanitizing command input (shell metacharacters, newlines) is the caller's responsibility.
+ */
 class KubernetesCronjobTemplate implements TemplateInterface
 {
     use KubernetesJobTrait;

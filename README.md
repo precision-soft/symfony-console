@@ -404,7 +404,7 @@ close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking th
 
 ### Configuration values in generated files
 
-Command strings and settings are written as-is into generated config files (crontab, Supervisor `.conf`, Kubernetes YAML). Shell-sensitive characters in crontab are escaped via `\escapeshellarg()`, and YAML special characters are escaped in Kubernetes templates. Avoid passing untrusted user input as command strings or settings.
+Command parts (the `command` array) are rendered verbatim into generated config files (crontab, Supervisor `.conf`, Kubernetes YAML). The templates do not shell-escape command parts, so sanitizing command input (shell metacharacters, newlines) is the caller's responsibility. YAML special characters in Kubernetes templates are escaped via `escapeYamlValue()`, and log file paths in crontab are escaped via `\escapeshellarg()`. Do not pass untrusted user input as command strings or settings.
 
 ## Dev
 

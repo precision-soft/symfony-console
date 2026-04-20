@@ -340,7 +340,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
         static::assertArrayHasKey('/etc/supervisor/conf.d/worker-two.conf', $files);
     }
 
-    public function testCommandIsEscaped(): void
+    public function testCommandPassesThroughVerbatim(): void
     {
         /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);

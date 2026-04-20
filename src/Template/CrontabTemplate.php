@@ -17,6 +17,10 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
+/**
+ * Command parts are rendered verbatim into the generated crontab file.
+ * Sanitizing command input (shell metacharacters, newlines) is the caller's responsibility.
+ */
 class CrontabTemplate implements TemplateInterface
 {
     /**

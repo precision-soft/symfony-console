@@ -17,6 +17,10 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
+/**
+ * Command parts are rendered verbatim into the generated Supervisor `.conf` file.
+ * Sanitizing command input (shell metacharacters, newlines) is the caller's responsibility.
+ */
 class SupervisorTemplate implements TemplateInterface
 {
     use WorkerNumberOfProcessesTrait;

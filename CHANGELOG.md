@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.4] - 2026-04-20 - Clarify template escaping boundary
+
+### Changed
+
+- `CrontabTemplate`, `SupervisorTemplate`, `KubernetesCronjobTemplate`, `KubernetesWorkerTemplate` — class-level PHPDoc documents that command parts are rendered verbatim into the generated config file and that sanitizing command input (shell metacharacters, newlines) is the caller's responsibility
+- `README.md` — clarified the "Configuration values in generated files" section so the escaping contract is unambiguous: command parts pass through verbatim, YAML specials are escaped via `escapeYamlValue()` in the Kubernetes templates, and only the crontab log path is wrapped in `escapeshellarg()`
+- `tests/Template/SupervisorTemplateTest.php` — renamed `testCommandIsEscaped()` → `testCommandPassesThroughVerbatim()` so the test name matches the documented behavior
+
 ## [v4.2.3] - 2026-04-17
 
 ### Fixed
@@ -404,7 +412,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.3...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.4...HEAD
+
+[v4.2.4]: https://github.com/precision-soft/symfony-console/compare/v4.2.3...v4.2.4
 
 [v4.2.3]: https://github.com/precision-soft/symfony-console/compare/v4.2.2...v4.2.3
 
