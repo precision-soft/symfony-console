@@ -24,8 +24,8 @@ trait TimeLimitTrait
         $this->startTime = \time();
         $this->timeLimit = null;
 
-        if (true === $this->input->hasOption(self::TIME_LIMIT)) {
-            $timeLimit = $this->input->getOption(self::TIME_LIMIT);
+        if (true === $this->input->hasOption(static::TIME_LIMIT)) {
+            $timeLimit = $this->input->getOption(static::TIME_LIMIT);
 
             if (null !== $timeLimit && '' !== $timeLimit) {
                 if (false === \is_numeric($timeLimit) || 0 >= (int)$timeLimit) {
@@ -40,7 +40,7 @@ trait TimeLimitTrait
     protected function configureTimeLimit(int $default = 600): void
     {
         $this->addOption(
-            self::TIME_LIMIT,
+            static::TIME_LIMIT,
             null,
             InputOption::VALUE_OPTIONAL,
             'max runtime in seconds that the command is allowed to run for',

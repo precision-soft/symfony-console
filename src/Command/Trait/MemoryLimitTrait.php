@@ -27,8 +27,8 @@ trait MemoryLimitTrait
         $this->memoryLimit = null;
         $this->memoryLimitBytes = null;
 
-        if (true === $this->input->hasOption(self::MEMORY_LIMIT)) {
-            $memoryLimit = $this->input->getOption(self::MEMORY_LIMIT);
+        if (true === $this->input->hasOption(static::MEMORY_LIMIT)) {
+            $memoryLimit = $this->input->getOption(static::MEMORY_LIMIT);
 
             if (null !== $memoryLimit && '' !== $memoryLimit) {
                 $this->memoryLimit = $memoryLimit;
@@ -41,7 +41,7 @@ trait MemoryLimitTrait
     protected function configureMemoryLimit(string $default = '512M'): void
     {
         $this->addOption(
-            self::MEMORY_LIMIT,
+            static::MEMORY_LIMIT,
             null,
             InputOption::VALUE_OPTIONAL,
             'max memory allowed to be used before the command automatically stops',

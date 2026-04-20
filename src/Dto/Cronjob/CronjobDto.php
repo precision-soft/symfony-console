@@ -14,21 +14,21 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CronjobDto
 {
-    private ConfigDto $config;
+    protected ConfigDto $config;
     /** @var array<string, CommandDto> */
-    private array $commands;
+    protected array $commands;
 
     /**
-     * @param array<string, mixed> $cron
+     * @param array<string, mixed> $cronjob
      * @throws InvalidConfigurationException
      * @throws InvalidValueException
      */
-    public function __construct(array $cron)
+    public function __construct(array $cronjob)
     {
-        $this->config = new ConfigDto($cron[Configuration::CONFIG]);
+        $this->config = new ConfigDto($cronjob[Configuration::CONFIG]);
 
         $this->commands = [];
-        foreach ($cron[Configuration::COMMANDS] as $name => $parameters) {
+        foreach ($cronjob[Configuration::COMMANDS] as $name => $parameters) {
             $this->commands[$name] = new CommandDto($name, $parameters);
         }
     }
@@ -38,7 +38,7 @@ class CronjobDto
         return $this->config;
     }
 
-    /** @return CommandDto[] */
+    /** @return array<string, CommandDto> */
     public function getCommands(): array
     {
         return $this->commands;

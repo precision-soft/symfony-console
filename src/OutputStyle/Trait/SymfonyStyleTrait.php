@@ -19,9 +19,9 @@ trait SymfonyStyleTrait
     protected SymfonyStyle $style;
 
     /** @info cache the composed `[HH:MM:SS][<memory>]` prefix for the current second so a tight output loop does not re-run `memory_get_usage` + log/round math per line; kept per-instance so concurrent commands and tests do not share state */
-    private ?int $cachedPrefixSecond = null;
+    protected ?int $cachedPrefixSecond = null;
 
-    private string $cachedPrefix = '';
+    protected string $cachedPrefix = '';
 
     protected function writeln(string $text): void
     {

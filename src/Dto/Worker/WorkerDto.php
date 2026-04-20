@@ -13,9 +13,9 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class WorkerDto
 {
-    private ConfigDto $config;
+    protected ConfigDto $config;
     /** @var array<string, CommandDto> */
-    private array $commands;
+    protected array $commands;
 
     /**
      * @param array<string, mixed> $worker
@@ -36,7 +36,7 @@ class WorkerDto
         return $this->config;
     }
 
-    /** @return CommandDto[] */
+    /** @return array<string, CommandDto> */
     public function getCommands(): array
     {
         return $this->commands;

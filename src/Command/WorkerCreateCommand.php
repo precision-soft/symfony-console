@@ -30,7 +30,7 @@ class WorkerCreateCommand extends AbstractCreateConfigCommand
             $confGenerateService,
             $workerDto?->getConfig(),
             $workerDto?->getCommands() ?? [],
-            self::NAME,
+            static::NAME,
         );
     }
 }

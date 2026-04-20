@@ -18,7 +18,7 @@ class ConfigSettingsDto implements SettingInterface
     use SettingsTrait;
     use SupervisorSettingsTrait;
 
-    private ?string $destinationFile = null;
+    protected ?string $destinationFile = null;
 
     /**
      * @param array<string, mixed> $settings

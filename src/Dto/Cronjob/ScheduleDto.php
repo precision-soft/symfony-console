@@ -13,13 +13,13 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class ScheduleDto
 {
-    private const CRON_FIELD_PATTERN = '/^(\*(\/[1-9]\d*)?|\d+(-\d+)?(\/[1-9]\d*)?)(,(\*(\/[1-9]\d*)?|\d+(-\d+)?(\/[1-9]\d*)?))*$/';
+    protected const CRON_FIELD_PATTERN = '/^(\*(\/[1-9]\d*)?|\d+(-\d+)?(\/[1-9]\d*)?)(,(\*(\/[1-9]\d*)?|\d+(-\d+)?(\/[1-9]\d*)?))*$/';
 
-    private readonly string $minute;
-    private readonly string $hour;
-    private readonly string $dayOfMonth;
-    private readonly string $month;
-    private readonly string $dayOfWeek;
+    protected readonly string $minute;
+    protected readonly string $hour;
+    protected readonly string $dayOfMonth;
+    protected readonly string $month;
+    protected readonly string $dayOfWeek;
 
     /**
      * @param array<string, string> $schedule
@@ -86,7 +86,7 @@ class ScheduleDto
             return;
         }
 
-        if (1 !== \preg_match(self::CRON_FIELD_PATTERN, $value)) {
+        if (1 !== \preg_match(static::CRON_FIELD_PATTERN, $value)) {
             throw new InvalidValueException(\sprintf('invalid cron %s value: `%s`', $fieldName, $value));
         }
 

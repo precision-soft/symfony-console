@@ -23,8 +23,8 @@ trait InstancesTrait
      */
     protected function computeInstances(): array
     {
-        $maxInstancesOption = true === $this->input->hasOption(self::MAX_INSTANCES) ? $this->input->getOption(self::MAX_INSTANCES) : null;
-        $instanceIndexOption = true === $this->input->hasOption(self::INSTANCE_INDEX) ? $this->input->getOption(self::INSTANCE_INDEX) : null;
+        $maxInstancesOption = true === $this->input->hasOption(static::MAX_INSTANCES) ? $this->input->getOption(static::MAX_INSTANCES) : null;
+        $instanceIndexOption = true === $this->input->hasOption(static::INSTANCE_INDEX) ? $this->input->getOption(static::INSTANCE_INDEX) : null;
 
         if (null === $maxInstancesOption || null === $instanceIndexOption || '' === $maxInstancesOption || '' === $instanceIndexOption) {
             throw new InvalidConfigurationException('max-instances and instance-index options are required');
@@ -50,8 +50,8 @@ trait InstancesTrait
 
     protected function configureInstances(): void
     {
-        $this->addOption(self::MAX_INSTANCES, null, InputOption::VALUE_OPTIONAL, 'the number of instances of this command', 1)
-            ->addOption(self::INSTANCE_INDEX, null, InputOption::VALUE_OPTIONAL, 'the index of the current command instance up to the max instances', 1);
+        $this->addOption(static::MAX_INSTANCES, null, InputOption::VALUE_OPTIONAL, 'the number of instances of this command', 1)
+            ->addOption(static::INSTANCE_INDEX, null, InputOption::VALUE_OPTIONAL, 'the index of the current command instance up to the max instances', 1);
     }
 
     /**

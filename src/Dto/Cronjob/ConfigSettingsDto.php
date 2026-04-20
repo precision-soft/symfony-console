@@ -16,10 +16,10 @@ class ConfigSettingsDto implements SettingInterface
 {
     use SettingsTrait;
 
-    private bool $log = false;
-    private string $destinationFile = '';
-    private bool $heartbeat = false;
-    private ?string $user = null;
+    protected bool $log = false;
+    protected string $destinationFile = '';
+    protected bool $heartbeat = false;
+    protected ?string $user = null;
 
     /**
      * @param array<string, mixed> $settings

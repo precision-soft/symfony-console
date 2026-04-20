@@ -10,12 +10,12 @@ namespace PrecisionSoft\Symfony\Console\Dto\Trait;
 
 trait SupervisorSettingsTrait
 {
-    private ?int $numberOfProcesses = null;
-    private ?bool $autoStart = null;
-    private ?bool $autoRestart = null;
-    private ?string $prefix = null;
-    private ?string $user = null;
-    private ?string $logFile = null;
+    protected ?int $numberOfProcesses = null;
+    protected ?bool $autoStart = null;
+    protected ?bool $autoRestart = null;
+    protected ?string $prefix = null;
+    protected ?string $user = null;
+    protected ?string $logFile = null;
 
     public function getNumberOfProcesses(): ?int
     {

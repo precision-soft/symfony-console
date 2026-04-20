@@ -16,7 +16,7 @@ class CommandSettingsDto implements SettingInterface
 {
     use SettingsTrait;
 
-    private ?bool $log = null;
+    protected ?bool $log = null;
 
     /**
      * @param array<string, mixed> $settings

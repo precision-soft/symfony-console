@@ -63,12 +63,12 @@ class KubernetesCronjobTemplate implements TemplateInterface
 
         $content .= \PHP_EOL;
 
-        $crontabPath = \rtrim($configInterface->getConfFilesDir(), '/') . '/' . $destinationFile;
+        $cronjobPath = \rtrim($configInterface->getConfFilesDir(), '/') . '/' . $destinationFile;
 
         $confFilesDto = new ConfFilesDto();
 
         if (0 < \count($cronjobs)) {
-            $confFilesDto->addFile($crontabPath, $content);
+            $confFilesDto->addFile($cronjobPath, $content);
         }
 
         return $confFilesDto;

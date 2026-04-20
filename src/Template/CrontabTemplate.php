@@ -42,6 +42,7 @@ class CrontabTemplate implements TemplateInterface
         $cronjobs = [];
 
         $defaultDestinationFile = $configInterface->getSettings()->getDestinationFile();
+        $heartbeatEnabled = true === $configInterface->getSettings()->getHeartbeat();
 
         $heartbeat = null;
 
@@ -57,14 +58,14 @@ class CrontabTemplate implements TemplateInterface
             $cronjobs[$destinationFile][] = $this->buildCommand($commandDto, $configInterface);
         }
 
-        if (0 === \count($cronjobs) && true === $configInterface->getSettings()->getHeartbeat()) {
+        if (0 === \count($cronjobs) && true === $heartbeatEnabled) {
             $cronjobs[$defaultDestinationFile] = [];
         }
 
         $confFilesDto = new ConfFilesDto();
 
         foreach ($cronjobs as $destinationFile => $cronjobCommands) {
-            if (true === $configInterface->getSettings()->getHeartbeat()) {
+            if (true === $heartbeatEnabled) {
                 $cronjobCommands[] = $this->buildCommand(
                     $heartbeat ?? $this->getHeartbeatCommand($configInterface, $destinationFile),
                     $configInterface,
@@ -72,12 +73,8 @@ class CrontabTemplate implements TemplateInterface
             }
 
             $content = \str_replace(
-                [
-                    '%commands%',
-                ],
-                [
-                    \implode(\PHP_EOL . \PHP_EOL, $cronjobCommands),
-                ],
+                '%commands%',
+                \implode(\PHP_EOL . \PHP_EOL, $cronjobCommands),
                 $this->getTemplate(),
             );
 

@@ -15,7 +15,7 @@ use TypeError;
 
 trait SettingsTrait
 {
-    private stdClass $settings;
+    protected stdClass $settings;
 
     /**
      * @info values are coerced to string via PHP's `(string)` cast, with an explicit bool mapping so `true` → `'true'` and `false` → `'false'` (PHP's default `(string)false` is `''`, which is ambiguous with null and has burned consumers). Non-scalar values never reach this path — `loadProperties()` rejects them up-front

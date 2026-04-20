@@ -32,7 +32,7 @@ class CronjobCreateCommand extends AbstractCreateConfigCommand
             $confGenerateService,
             $cronjobDto?->getConfig(),
             $cronjobDto?->getCommands() ?? [],
-            self::NAME,
+            static::NAME,
         );
     }
 }

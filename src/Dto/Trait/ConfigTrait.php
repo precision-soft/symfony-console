@@ -12,9 +12,9 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 
 trait ConfigTrait
 {
-    private string $templateClass;
-    private string $confFilesDir;
-    private string $logsDir;
+    protected string $templateClass;
+    protected string $confFilesDir;
+    protected string $logsDir;
 
     public function getTemplateClass(): string
     {
@@ -31,11 +31,11 @@ trait ConfigTrait
         return $this->logsDir;
     }
 
-    /** @param array<string, mixed> $config */
-    protected function setConfigs(array $config): void
+    /** @param array<string, mixed> $configuration */
+    protected function setConfig(array $configuration): void
     {
-        $this->templateClass = $config[Configuration::TEMPLATE_CLASS];
-        $this->confFilesDir = $config[Configuration::CONF_FILES_DIR];
-        $this->logsDir = $config[Configuration::LOGS_DIR];
+        $this->templateClass = $configuration[Configuration::TEMPLATE_CLASS];
+        $this->confFilesDir = $configuration[Configuration::CONF_FILES_DIR];
+        $this->logsDir = $configuration[Configuration::LOGS_DIR];
     }
 }

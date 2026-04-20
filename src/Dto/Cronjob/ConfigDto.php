@@ -17,7 +17,7 @@ class ConfigDto implements ConfigInterface
 {
     use ConfigTrait;
 
-    private ConfigSettingsDto $settings;
+    protected ConfigSettingsDto $settings;
 
     /**
      * @param array<string, mixed> $config
@@ -25,7 +25,7 @@ class ConfigDto implements ConfigInterface
      */
     public function __construct(array $config)
     {
-        $this->setConfigs($config);
+        $this->setConfig($config);
 
         $this->settings = new ConfigSettingsDto($config[Configuration::SETTINGS]);
     }

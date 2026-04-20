@@ -14,13 +14,13 @@ use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 
 class ConfGenerateService
 {
-    /** @var TemplateInterface[] */
-    private array $templates;
+    /** @var array<class-string<TemplateInterface>, TemplateInterface> */
+    protected array $templates;
 
     /** @param iterable<TemplateInterface> $templates */
     public function __construct(
         iterable $templates,
-        private readonly ConfFileWriter $confFileWriter,
+        protected readonly ConfFileWriter $confFileWriter,
     ) {
         $this->templates = [];
         foreach ($templates as $templateInterface) {

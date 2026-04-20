@@ -15,13 +15,13 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CommandDto implements SettingsInterface
 {
-    private readonly ?string $logFileName;
-    private readonly ?string $user;
-    private readonly ?string $destinationFile;
+    protected readonly ?string $logFileName;
+    protected readonly ?string $user;
+    protected readonly ?string $destinationFile;
     /** @var array<int, string> */
-    private readonly array $command;
-    private readonly ScheduleDto $scheduleDto;
-    private readonly CommandSettingsDto $settings;
+    protected readonly array $command;
+    protected readonly ScheduleDto $schedule;
+    protected readonly CommandSettingsDto $settings;
 
     /**
      * @param array<string, mixed> $parameters
@@ -30,7 +30,7 @@ class CommandDto implements SettingsInterface
      * @throws InvalidValueException
      */
     public function __construct(
-        private readonly string $name,
+        protected readonly string $name,
         array $parameters,
     ) {
         $this->logFileName = $parameters[Configuration::LOG_FILE_NAME] ?? null;
@@ -42,7 +42,7 @@ class CommandDto implements SettingsInterface
             throw new InvalidConfigurationException(\sprintf('the `%s` key is required for command `%s`', Configuration::SCHEDULE, $name));
         }
 
-        $this->scheduleDto = new ScheduleDto($parameters[Configuration::SCHEDULE]);
+        $this->schedule = new ScheduleDto($parameters[Configuration::SCHEDULE]);
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);
     }
 
@@ -74,7 +74,7 @@ class CommandDto implements SettingsInterface
 
     public function getSchedule(): ScheduleDto
     {
-        return $this->scheduleDto;
+        return $this->schedule;
     }
 
     public function getSettings(): CommandSettingsDto

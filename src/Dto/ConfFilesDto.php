@@ -13,7 +13,7 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 class ConfFilesDto
 {
     /** @var array<string, string> */
-    private array $files;
+    protected array $files;
 
     public function __construct()
     {

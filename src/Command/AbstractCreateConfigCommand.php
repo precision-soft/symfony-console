@@ -20,9 +20,9 @@ abstract class AbstractCreateConfigCommand extends AbstractCommand
      * @param array<string, mixed> $commands
      */
     public function __construct(
-        private readonly ConfGenerateService $confGenerateService,
-        private readonly ?ConfigInterface $configInterface,
-        private readonly array $commands,
+        protected readonly ConfGenerateService $confGenerateService,
+        protected readonly ?ConfigInterface $configInterface,
+        protected readonly array $commands,
         string $name,
     ) {
         parent::__construct($name);

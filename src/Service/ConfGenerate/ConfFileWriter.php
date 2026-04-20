@@ -16,7 +16,7 @@ use Throwable;
 class ConfFileWriter
 {
     public function __construct(
-        private readonly Filesystem $filesystem,
+        protected readonly Filesystem $filesystem,
     ) {}
 
     /**

@@ -15,15 +15,15 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 class CommandDto implements SettingsInterface
 {
     /** @var array<int, string> */
-    private readonly array $command;
-    private readonly CommandSettingsDto $settings;
+    protected readonly array $command;
+    protected readonly CommandSettingsDto $settings;
 
     /**
      * @param array<string, mixed> $parameters
      * @throws InvalidValueException
      */
     public function __construct(
-        private readonly string $name,
+        protected readonly string $name,
         array $parameters,
     ) {
         $this->command = $parameters[Configuration::COMMAND];
