@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.6] - 2026-04-21 - Complete late static binding coverage in Configuration and MemoryService
+
+### Changed
+
+- `Configuration::buildCronjob()`, `buildWorker()`, `appendSupervisorConfig()` — remaining `self::` references to the class's public configuration constants (`CRONJOB`, `WORKER`, `CONFIG`, `COMMANDS`, `COMMAND`, `SCHEDULE`, `SETTINGS`, `LOG`, `LOG_FILE`, `LOG_FILE_NAME`, `TEMPLATE_CLASS`, `CONF_FILES_DIR`, `LOGS_DIR`, `HEARTBEAT`, `DESTINATION_FILE`, `MINUTE`, `HOUR`, `DAY_OF_MONTH`, `MONTH`, `DAY_OF_WEEK`, `NUMBER_OF_PROCESSES`, `AUTO_START`, `AUTO_RESTART`, `PREFIX`, `USER`) switched to `static::` for late static binding; a subclass that overrides a configuration-key constant now has its override picked up by the tree-builder methods instead of being locked to the parent's value. The two private constants (`self::DESTINATION_DIR`, `self::NAME`) deliberately keep `self::` since private constants are not inherited and `static::` against them would fail in a subclass context
+- `MemoryService::setMemoryLimitIfNotHigher()` — internal `self::returnBytes()` calls switched to `static::returnBytes()` so a subclass that overrides the parser (e.g. for custom memory-value syntax) has its override honored when the current and target limits are compared
+- `MemoryService::getMemoryUsage()` — internal `self::convertBytesToHumanReadable()` switched to `static::convertBytesToHumanReadable()` for the same reason
+
 ## [v4.2.5] - 2026-04-20 - Late static binding, naming consistency, extensibility pass, and template polish
 
 ### Changed
@@ -447,7 +455,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.5...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.6...HEAD
+
+[v4.2.6]: https://github.com/precision-soft/symfony-console/compare/v4.2.5...v4.2.6
 
 [v4.2.5]: https://github.com/precision-soft/symfony-console/compare/v4.2.4...v4.2.5
 

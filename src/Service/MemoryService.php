@@ -28,7 +28,7 @@ class MemoryService
             return;
         }
 
-        if (self::returnBytes($currentLimit) < self::returnBytes($newLimit)) {
+        if (static::returnBytes($currentLimit) < static::returnBytes($newLimit)) {
             \ini_set('memory_limit', $newLimit);
         }
     }
@@ -37,7 +37,7 @@ class MemoryService
     {
         $bytes = \memory_get_usage(true);
 
-        return self::convertBytesToHumanReadable($bytes);
+        return static::convertBytesToHumanReadable($bytes);
     }
 
     public static function convertBytesToHumanReadable(int $bytes): string
