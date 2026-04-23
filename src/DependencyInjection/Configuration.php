@@ -44,8 +44,8 @@ class Configuration implements ConfigurationInterface
     public const WORKER = 'worker';
     public const SETTINGS = 'settings';
 
-    private const DESTINATION_DIR = '%kernel.project_dir%/generated_conf/';
-    private const NAME = 'name';
+    protected const DESTINATION_DIR = '%kernel.project_dir%/generated_conf/';
+    protected const NAME = 'name';
 
     public function getConfigTreeBuilder(): TreeBuilder
     {
@@ -69,7 +69,7 @@ class Configuration implements ConfigurationInterface
 
         $configTree->children()
             ->scalarNode(static::TEMPLATE_CLASS)->defaultValue(CrontabTemplate::class)->end()
-            ->scalarNode(static::CONF_FILES_DIR)->defaultValue(self::DESTINATION_DIR . 'cron')->end()
+            ->scalarNode(static::CONF_FILES_DIR)->defaultValue(static::DESTINATION_DIR . 'cron')->end()
             ->scalarNode(static::LOGS_DIR)->defaultValue('%kernel.logs_dir%/cron')->end();
 
         $configTree->children()->arrayNode(static::SETTINGS)
@@ -83,7 +83,7 @@ class Configuration implements ConfigurationInterface
 
         $commandsTreeDefinition = $cronjobTree->children()->arrayNode(static::COMMANDS)
             ->isRequired()
-            ->useAttributeAsKey(self::NAME)
+            ->useAttributeAsKey(static::NAME)
             ->prototype('array');
 
         /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
@@ -91,7 +91,7 @@ class Configuration implements ConfigurationInterface
 
         $commandsTree = $commandsTreeDefinition->children();
 
-        $commandsTree->scalarNode(self::NAME)->end()
+        $commandsTree->scalarNode(static::NAME)->end()
             ->scalarNode(static::LOG_FILE_NAME)->defaultNull()->end()
             ->scalarNode(static::USER)->defaultNull()->end()
             ->scalarNode(static::DESTINATION_FILE)->defaultNull()->end();
@@ -129,7 +129,7 @@ class Configuration implements ConfigurationInterface
 
         $configTree->children()
             ->scalarNode(static::TEMPLATE_CLASS)->defaultValue(SupervisorTemplate::class)->end()
-            ->scalarNode(static::CONF_FILES_DIR)->defaultValue(self::DESTINATION_DIR . 'worker')->end()
+            ->scalarNode(static::CONF_FILES_DIR)->defaultValue(static::DESTINATION_DIR . 'worker')->end()
             ->scalarNode(static::LOGS_DIR)->defaultValue('%kernel.logs_dir%/worker')->end();
 
         $settingsTree = $configTree->children()->arrayNode(static::SETTINGS)
@@ -139,14 +139,14 @@ class Configuration implements ConfigurationInterface
 
         $commandsTree = $workerTree->children()->arrayNode(static::COMMANDS)
             ->isRequired()
-            ->useAttributeAsKey(self::NAME)
+            ->useAttributeAsKey(static::NAME)
             ->prototype('array');
 
         /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
         \assert($commandsTree instanceof ArrayNodeDefinition);
 
         $commandsTree->children()
-            ->scalarNode(self::NAME)->end()
+            ->scalarNode(static::NAME)->end()
             ->arrayNode(static::COMMAND)
             ->isRequired()
             ->beforeNormalization()->ifString()->then(fn($commandValue) => [$commandValue])->end()

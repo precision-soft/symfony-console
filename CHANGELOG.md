@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.8] - 2026-04-23 - Complete Late Static Binding in Configuration
+
+### Fixed
+
+- `Configuration::DESTINATION_DIR` and `Configuration::NAME` — widened from `private` to `protected` and changed all 6 `self::` references in `buildCronjob()` and `buildWorker()` to `static::` so subclasses can override the destination path and key name defaults; the v4.2.7 pass covered public constants but left these two private, blocking both visibility and late static binding
+
 ## [v4.2.7] - 2026-04-23 - Rename YAML output accumulator in KubernetesJobTrait
 
 ### Changed
@@ -461,7 +467,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.7...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.8...HEAD
+
+[v4.2.8]: https://github.com/precision-soft/symfony-console/compare/v4.2.7...v4.2.8
 
 [v4.2.7]: https://github.com/precision-soft/symfony-console/compare/v4.2.6...v4.2.7
 
