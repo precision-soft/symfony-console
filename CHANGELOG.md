@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.7] - 2026-04-23 - Rename YAML output accumulator in KubernetesJobTrait
+
+### Changed
+
+- `KubernetesJobTrait::convertArrayToString()` — local variable `$command` renamed to `$lines`; the variable accumulates YAML output lines, not a command, so the old name was semantically wrong and misleading to readers
+
 ## [v4.2.6] - 2026-04-21 - Complete late static binding coverage in Configuration and MemoryService
 
 ### Changed
@@ -455,7 +461,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.6...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.7...HEAD
+
+[v4.2.7]: https://github.com/precision-soft/symfony-console/compare/v4.2.6...v4.2.7
 
 [v4.2.6]: https://github.com/precision-soft/symfony-console/compare/v4.2.5...v4.2.6
 

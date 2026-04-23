@@ -20,21 +20,21 @@ trait KubernetesJobTrait
         int $baseIndentLevel = 0,
         int $indentSize = 4,
     ): string {
-        $command = [];
+        $lines = [];
 
         $baseIndent = $this->getIndent($baseIndentLevel, $indentSize);
 
         foreach ($array as $entryKey => $entryValue) {
             if (true === \is_array($entryValue)) {
-                $command[] = \sprintf('%s%s:', $baseIndent, $entryKey);
-                $command[] = $this->convertArrayToString($entryValue, $baseIndentLevel + 1, $indentSize);
+                $lines[] = \sprintf('%s%s:', $baseIndent, $entryKey);
+                $lines[] = $this->convertArrayToString($entryValue, $baseIndentLevel + 1, $indentSize);
                 continue;
             }
 
-            $command[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, true === \is_string($entryValue) ? $this->escapeYamlValue($entryValue) : (string)$entryValue);
+            $lines[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, true === \is_string($entryValue) ? $this->escapeYamlValue($entryValue) : (string)$entryValue);
         }
 
-        return \implode(\PHP_EOL, $command);
+        return \implode(\PHP_EOL, $lines);
     }
 
     /** @throws InvalidValueException */
