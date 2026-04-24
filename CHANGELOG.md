@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.9] - 2026-04-23 - Widen ConfFilesDto fluent return type to static
+
+### Changed
+
+- `ConfFilesDto::addFile()` — return type widened from `self` to `static`; the class has a `protected array $files` property indicating subclassing is intended, so fluent chains on a `ConfFilesDto` subclass now return the subclass type
+
 ## [v4.2.8] - 2026-04-23 - Complete Late Static Binding in Configuration
 
 ### Fixed
@@ -467,7 +473,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.8...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.9...HEAD
+
+[v4.2.9]: https://github.com/precision-soft/symfony-console/compare/v4.2.8...v4.2.9
 
 [v4.2.8]: https://github.com/precision-soft/symfony-console/compare/v4.2.7...v4.2.8
 
