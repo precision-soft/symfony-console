@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.10] - 2026-06-17 - Add composer convenience scripts
+
+### Added
+
+- `composer.json` — added `test`, `phpstan`, `cs-check`, `cs-fix` and an aggregate `check` convenience script wrapping `simple-phpunit`, `phpstan`, and `php-cs-fixer`
+
 ## [v4.2.9] - 2026-04-23 - Widen ConfFilesDto fluent return type to static
 
 ### Changed
