@@ -29,7 +29,8 @@ class ConfFileWriter
             return [];
         }
 
-        $temporaryDirectory = \sys_get_temp_dir() . '/conf_' . \bin2hex(\random_bytes(8));
+        /** @info stage the temp tree next to the destination (same parent dir) so the activation rename is a true atomic same-filesystem swap; staging under sys_get_temp_dir() would degrade to Symfony's non-atomic mirror() copy whenever /tmp is on a different filesystem (common in containers) */
+        $temporaryDirectory = \rtrim(\dirname($destinationDir), '/') . '/.conf_' . \bin2hex(\random_bytes(8));
 
         $this->filesystem->mkdir($temporaryDirectory, 0755);
 

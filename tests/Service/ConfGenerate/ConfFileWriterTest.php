@@ -302,4 +302,47 @@ final class ConfFileWriterTest extends AbstractTestCase
             $this->filesystem->remove($destinationDirectory);
         }
     }
+
+    public function testSaveStagesTemporaryDirectoryNextToDestination(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_staging_' . \uniqid('', true);
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . '/test.conf', 'content');
+
+        $capturedTemporaryDirectory = null;
+
+        $filesystemMock = Mockery::mock(Filesystem::class);
+        $filesystemMock->shouldReceive('mkdir')->andReturnUsing(function (string $dir, int $mode) use (&$capturedTemporaryDirectory): void {
+            $capturedTemporaryDirectory ??= $dir;
+            (new Filesystem())->mkdir($dir, $mode);
+        });
+        $filesystemMock->shouldReceive('dumpFile')->andReturnUsing(function (string $path, string $content): void {
+            (new Filesystem())->dumpFile($path, $content);
+        });
+        $filesystemMock->shouldReceive('exists')->andReturnUsing(function (string $path): bool {
+            return (new Filesystem())->exists($path);
+        });
+        $filesystemMock->shouldReceive('rename')->andReturnUsing(function (string $origin, string $target): void {
+            (new Filesystem())->rename($origin, $target);
+        });
+        $filesystemMock->shouldReceive('remove')->andReturnUsing(function ($paths): void {
+            (new Filesystem())->remove($paths);
+        });
+
+        $confFileWriter = new ConfFileWriter($filesystemMock);
+
+        try {
+            $confFileWriter->save($confFilesDto, $destinationDirectory);
+
+            static::assertNotNull($capturedTemporaryDirectory);
+            /** @info staging next to the destination keeps the activation rename on the same filesystem (true atomic swap) */
+            static::assertSame(
+                \dirname($destinationDirectory),
+                \dirname($capturedTemporaryDirectory),
+            );
+        } finally {
+            $this->filesystem->remove($destinationDirectory);
+        }
+    }
 }

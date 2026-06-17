@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.2.11] - 2026-06-17 - Atomic Same-Filesystem Staging for Config Activation
+
+### Fixed
+
+- `ConfFileWriter::save()` — the staging directory is now created next to the destination (same parent directory, hidden `.conf_` prefix) instead of under `sys_get_temp_dir()`, so the activation step is a true atomic same-filesystem `rename()`; staging under `/tmp` degraded to a non-atomic cross-filesystem copy whenever `/tmp` sits on a different mount (common in containers), opening a window in which a partially-populated destination could be observed
+
 ## [v4.2.10] - 2026-06-17 - Add composer convenience scripts
 
 ### Added
@@ -480,7 +486,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.9...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.11...HEAD
+
+[v4.2.11]: https://github.com/precision-soft/symfony-console/compare/v4.2.10...v4.2.11
+
+[v4.2.10]: https://github.com/precision-soft/symfony-console/compare/v4.2.9...v4.2.10
 
 [v4.2.9]: https://github.com/precision-soft/symfony-console/compare/v4.2.8...v4.2.9
 
