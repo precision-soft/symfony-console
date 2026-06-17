@@ -31,7 +31,7 @@ class CrontabTemplate implements TemplateInterface
      */
     public function generate(
         ConfigInterface $configInterface,
-        array           $commands,
+        array $commands,
     ): ConfFilesDto {
         if (false === ($configInterface instanceof ConfigDto)) {
             throw new InvalidConfigurationException(
@@ -90,7 +90,7 @@ class CrontabTemplate implements TemplateInterface
 
     protected function buildCommand(
         CommandDto $commandDto,
-        ConfigDto  $configDto,
+        ConfigDto $configDto,
     ): string {
         $commandParts = [
             $commandDto->getSchedule()->toCronExpression(),
@@ -113,7 +113,7 @@ class CrontabTemplate implements TemplateInterface
 
     protected function buildLog(
         CommandDto $commandDto,
-        ConfigDto  $configDto,
+        ConfigDto $configDto,
     ): ?string {
         $logEnabled = $commandDto->getSettings()->getLog() ?? $configDto->getSettings()->getLog();
 
@@ -128,7 +128,7 @@ class CrontabTemplate implements TemplateInterface
 
     protected function getHeartbeatCommand(
         ConfigDto $configDto,
-        string    $destinationFile,
+        string $destinationFile,
     ): CommandDto {
         return new CommandDto(
             Configuration::HEARTBEAT,

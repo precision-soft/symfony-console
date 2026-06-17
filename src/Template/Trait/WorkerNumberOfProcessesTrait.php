@@ -16,7 +16,7 @@ trait WorkerNumberOfProcessesTrait
 {
     /** @throws InvalidConfigurationException */
     protected function getNumberOfProcesses(
-        ConfigDto  $configDto,
+        ConfigDto $configDto,
         CommandDto $commandDto,
     ): int {
         $numberOfProcesses = $commandDto->getSettings()->getNumberOfProcesses() ?? $configDto->getSettings()->getNumberOfProcesses();

@@ -24,7 +24,7 @@ class CommandDto implements SettingsInterface
      */
     public function __construct(
         protected readonly string $name,
-        array                     $parameters,
+        array $parameters,
     ) {
         $this->command = $parameters[Configuration::COMMAND];
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);

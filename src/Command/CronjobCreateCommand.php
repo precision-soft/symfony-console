@@ -24,7 +24,7 @@ class CronjobCreateCommand extends AbstractCreateConfigCommand
      */
     public function __construct(
         ConfGenerateService $confGenerateService,
-        ?array              $cronjobConfiguration,
+        ?array $cronjobConfiguration,
     ) {
         $cronjobDto = null === $cronjobConfiguration ? null : new CronjobDto($cronjobConfiguration);
 

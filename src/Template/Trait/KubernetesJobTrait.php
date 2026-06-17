@@ -17,8 +17,8 @@ trait KubernetesJobTrait
      */
     protected function convertArrayToString(
         array $array,
-        int   $baseIndentLevel = 0,
-        int   $indentSize = 4,
+        int $baseIndentLevel = 0,
+        int $indentSize = 4,
     ): string {
         $lines = [];
 

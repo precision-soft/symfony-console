@@ -35,7 +35,7 @@ class KubernetesWorkerTemplate implements TemplateInterface
      */
     public function generate(
         ConfigInterface $configInterface,
-        array           $commands,
+        array $commands,
     ): ConfFilesDto {
         if (false === ($configInterface instanceof ConfigDto)) {
             throw new InvalidConfigurationException(
@@ -83,7 +83,7 @@ class KubernetesWorkerTemplate implements TemplateInterface
      */
     protected function buildCommand(
         CommandDto $commandDto,
-        ConfigDto  $configDto,
+        ConfigDto $configDto,
     ): array {
         $name = $this->sanitize($commandDto->getName());
 

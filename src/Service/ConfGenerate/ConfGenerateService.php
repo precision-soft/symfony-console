@@ -19,7 +19,7 @@ class ConfGenerateService
 
     /** @param iterable<TemplateInterface> $templates */
     public function __construct(
-        iterable                          $templates,
+        iterable $templates,
         protected readonly ConfFileWriter $confFileWriter,
     ) {
         $this->templates = [];
@@ -35,7 +35,7 @@ class ConfGenerateService
      */
     public function generate(
         ConfigInterface $configInterface,
-        array           $commands,
+        array $commands,
     ): array {
         $this->confFileWriter->initLogsDir($configInterface->getLogsDir());
 

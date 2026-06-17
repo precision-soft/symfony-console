@@ -22,7 +22,7 @@ class WorkerCreateCommand extends AbstractCreateConfigCommand
      */
     public function __construct(
         ConfGenerateService $confGenerateService,
-        ?array              $workerConfiguration,
+        ?array $workerConfiguration,
     ) {
         $workerDto = null === $workerConfiguration ? null : new WorkerDto($workerConfiguration);
 
