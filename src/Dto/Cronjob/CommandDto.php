@@ -31,7 +31,7 @@ class CommandDto implements SettingsInterface
      */
     public function __construct(
         protected readonly string $name,
-        array $parameters,
+        array                     $parameters,
     ) {
         $this->logFileName = $parameters[Configuration::LOG_FILE_NAME] ?? null;
         $this->user = $parameters[Configuration::USER] ?? null;

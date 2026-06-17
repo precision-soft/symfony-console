@@ -23,7 +23,7 @@ trait MemoryAndTimeLimitsTrait
 
     protected function configureMemoryAndTimeLimits(
         string $defaultMemoryLimit = '512M',
-        int $defaultTimeLimit = 600,
+        int    $defaultTimeLimit = 600,
     ): void {
         $this->configureMemoryLimit($defaultMemoryLimit);
 

@@ -33,7 +33,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
      */
     public function generate(
         ConfigInterface $configInterface,
-        array $commands,
+        array           $commands,
     ): ConfFilesDto {
         if (false === ($configInterface instanceof ConfigDto)) {
             throw new InvalidConfigurationException(

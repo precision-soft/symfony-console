@@ -29,9 +29,9 @@ trait SymfonyStyleTrait
     }
 
     protected function error(
-        string $text,
+        string     $text,
         ?Throwable $throwable = null,
-        bool $exposeTrace = false,
+        bool       $exposeTrace = false,
     ): void {
         if (null !== $throwable) {
             $text = \sprintf('%s / %s', $text, $this->formatThrowable($throwable, $exposeTrace));

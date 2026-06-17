@@ -33,7 +33,7 @@ class SupervisorTemplate implements TemplateInterface
      */
     public function generate(
         ConfigInterface $configInterface,
-        array $commands,
+        array           $commands,
     ): ConfFilesDto {
         if (false === ($configInterface instanceof ConfigDto)) {
             throw new InvalidConfigurationException(
@@ -55,7 +55,7 @@ class SupervisorTemplate implements TemplateInterface
     }
 
     protected function getPath(
-        ConfigDto $configDto,
+        ConfigDto  $configDto,
         CommandDto $commandDto,
     ): string {
         return \sprintf('%s/%s.conf', \rtrim($configDto->getConfFilesDir(), '/'), $commandDto->getName());
@@ -64,7 +64,7 @@ class SupervisorTemplate implements TemplateInterface
     /** @throws InvalidConfigurationException */
     protected function buildCommand(
         CommandDto $commandDto,
-        ConfigDto $configDto,
+        ConfigDto  $configDto,
     ): string {
         $configurationParameters = [
             '%programGroupName%' => \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
@@ -86,7 +86,7 @@ class SupervisorTemplate implements TemplateInterface
 
     /** @throws InvalidConfigurationException */
     protected function getAutoStart(
-        ConfigDto $configDto,
+        ConfigDto  $configDto,
         CommandDto $commandDto,
     ): bool {
         $autoStart = $commandDto->getSettings()->getAutoStart() ?? $configDto->getSettings()->getAutoStart();
@@ -100,7 +100,7 @@ class SupervisorTemplate implements TemplateInterface
 
     /** @throws InvalidConfigurationException */
     protected function getAutoRestart(
-        ConfigDto $configDto,
+        ConfigDto  $configDto,
         CommandDto $commandDto,
     ): bool {
         $autoRestart = $commandDto->getSettings()->getAutoRestart() ?? $configDto->getSettings()->getAutoRestart();
@@ -114,7 +114,7 @@ class SupervisorTemplate implements TemplateInterface
 
     /** @throws InvalidConfigurationException */
     protected function getPrefix(
-        ConfigDto $configDto,
+        ConfigDto  $configDto,
         CommandDto $commandDto,
     ): string {
         $prefix = $commandDto->getSettings()->getPrefix() ?? $configDto->getSettings()->getPrefix();
@@ -128,7 +128,7 @@ class SupervisorTemplate implements TemplateInterface
 
     /** @throws InvalidConfigurationException */
     protected function getUser(
-        ConfigDto $configDto,
+        ConfigDto  $configDto,
         CommandDto $commandDto,
     ): string {
         $user = $commandDto->getSettings()->getUser() ?? $configDto->getSettings()->getUser();
