@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
 /**
@@ -241,6 +242,44 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertSame(['single-command'], $processedConfiguration[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::COMMAND]);
     }
 
+    public function testLogsDirsDefaultsToEmptyList(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, []);
+
+        static::assertSame([], $processedConfiguration[Configuration::LOGS_DIRS]);
+    }
+
+    public function testLogsDirsRejectsEmptyEntries(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::LOGS_DIRS => [''],
+            ],
+        ]);
+    }
+
+    /** @info `performNoDeepMerging()` — a later configuration file replaces the list instead of appending to it */
+    public function testLogsDirsFromLaterConfigurationReplacesEarlierOne(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, [
+            [Configuration::LOGS_DIRS => ['/tmp/first']],
+            [Configuration::LOGS_DIRS => ['/tmp/second']],
+        ]);
+
+        static::assertSame(['/tmp/second'], $processedConfiguration[Configuration::LOGS_DIRS]);
+    }
+
     public function testConstantsExist(): void
     {
         static::assertSame('command', Configuration::COMMAND);
@@ -251,6 +290,7 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertSame('template_class', Configuration::TEMPLATE_CLASS);
         static::assertSame('conf_files_dir', Configuration::CONF_FILES_DIR);
         static::assertSame('logs_dir', Configuration::LOGS_DIR);
+        static::assertSame('logs_dirs', Configuration::LOGS_DIRS);
         static::assertSame('heartbeat', Configuration::HEARTBEAT);
         static::assertSame('destination_file', Configuration::DESTINATION_FILE);
         static::assertSame('config', Configuration::CONFIG);

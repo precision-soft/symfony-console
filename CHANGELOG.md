@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v4.3.0] - 2026-07-10 - Standalone Logs Dir Creation
+
+### Added
+
+- `LogsDirCreateCommand` (`precision-soft:symfony:console:logs-dir-create`) — creates the configured logs dirs on its own, idempotently. `cronjob-create` and `worker-create` create their own logs dir too, but only as a side effect of generating conf files, so a deployment that never runs them is left without the directories
+- `logs_dirs` configuration node — a root-level list of *additional* directories to create, empty by default, for applications that log into directories no cronjob or worker owns. Deliberately kept outside `cronjob`/`worker` so it stays meaningful when neither is declared
+- `precision_soft_symfony_console.logs_dirs` container parameter — derived as `cronjob.config.logs_dir` + `worker.config.logs_dir` + `logs_dirs`, deduplicated. Overriding `cronjob.config.logs_dir` therefore moves the directory `logs-dir-create` creates, instead of silently drifting away from it
+
+### Changed
+
+- `ConfFileWriter::initLogsDir()` now wraps filesystem failures in `ConfGenerateException` instead of letting Symfony's `IOException` escape, matching `save()` and honouring the `@throws ConfGenerateException` already declared on `ConfGenerateService::generate()`
+
 ## [v4.2.11] - 2026-06-17 - Atomic Same-Filesystem Staging for Config Activation
 
 ### Fixed
@@ -486,7 +498,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.2.11...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.3.0...HEAD
+
+[v4.3.0]: https://github.com/precision-soft/symfony-console/compare/v4.2.11...v4.3.0
 
 [v4.2.11]: https://github.com/precision-soft/symfony-console/compare/v4.2.10...v4.2.11
 

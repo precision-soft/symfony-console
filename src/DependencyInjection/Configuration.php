@@ -26,6 +26,7 @@ class Configuration implements ConfigurationInterface
     public const TEMPLATE_CLASS = 'template_class';
     public const CONF_FILES_DIR = 'conf_files_dir';
     public const LOGS_DIR = 'logs_dir';
+    public const LOGS_DIRS = 'logs_dirs';
     public const HEARTBEAT = 'heartbeat';
     public const DESTINATION_FILE = 'destination_file';
     public const CONFIG = 'config';
@@ -53,10 +54,29 @@ class Configuration implements ConfigurationInterface
 
         $treeBuilder->getRootNode()
             ->children()
+            ->append($this->buildLogsDirs())
             ->append($this->buildCronjob())
             ->append($this->buildWorker());
 
         return $treeBuilder;
+    }
+
+    /**
+     * @info additional directories for `logs-dir-create` to create, on top of `cronjob.config.logs_dir` and
+     * `worker.config.logs_dir`, which the extension derives on its own. Kept outside `cronjob`/`worker` so it stays
+     * meaningful for applications that declare neither.
+     */
+    protected function buildLogsDirs(): NodeDefinition
+    {
+        $logsDirsTree = (new TreeBuilder(static::LOGS_DIRS, 'array'))->getRootNode();
+
+        /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
+        \assert($logsDirsTree instanceof ArrayNodeDefinition);
+
+        return $logsDirsTree
+            ->performNoDeepMerging()
+            ->scalarPrototype()->cannotBeEmpty()->end()
+            ->defaultValue([]);
     }
 
     protected function buildCronjob(): NodeDefinition

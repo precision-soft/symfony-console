@@ -7,8 +7,10 @@ declare(strict_types=1);
  */
 
 use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
+use PrecisionSoft\Symfony\Console\Command\LogsDirCreateCommand;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\PrecisionSoftSymfonyConsoleExtension;
+use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfFileWriter;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -48,6 +50,13 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     $services->set(WorkerCreateCommand::class)
         ->arg('$confGenerateService', new Reference(ConfGenerateService::class))
         ->arg('$workerConfiguration', '%precision_soft_symfony_console.worker%')
+        ->tag('console.command')
+        ->autowire()
+        ->autoconfigure();
+
+    $services->set(LogsDirCreateCommand::class)
+        ->arg('$confFileWriter', new Reference(ConfFileWriter::class))
+        ->arg('$logsDirs', '%precision_soft_symfony_console.logs_dirs%')
         ->tag('console.command')
         ->autowire()
         ->autoconfigure();

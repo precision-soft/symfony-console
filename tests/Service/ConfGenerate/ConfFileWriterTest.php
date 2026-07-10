@@ -180,6 +180,25 @@ final class ConfFileWriterTest extends AbstractTestCase
         }
     }
 
+    public function testInitLogsDirWrapsFilesystemFailureInConfGenerateException(): void
+    {
+        $blockedParent = \sys_get_temp_dir() . '/cfw_logs_blocked_' . \uniqid('', true);
+
+        /** @info a regular file where the parent dir is expected, so the underlying `mkdir` cannot succeed */
+        $this->filesystem->dumpFile($blockedParent, '');
+
+        $logsDirectory = $blockedParent . '/cron';
+
+        try {
+            $this->expectException(ConfGenerateException::class);
+            $this->expectExceptionMessage(\sprintf('logs directory `%s` could not be created', $logsDirectory));
+
+            $this->confFileWriter->initLogsDir($logsDirectory);
+        } finally {
+            $this->filesystem->remove($blockedParent);
+        }
+    }
+
     public function testSavePreservesBackupWhenRestoreFails(): void
     {
         $destinationDirectory = \sys_get_temp_dir() . '/cfw_preserve_backup_' . \uniqid('', true);

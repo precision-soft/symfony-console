@@ -27,5 +27,26 @@ class PrecisionSoftSymfonyConsoleExtension extends Extension
 
         $containerBuilder->setParameter('precision_soft_symfony_console.cronjob', $processedConfiguration[Configuration::CRONJOB] ?? null);
         $containerBuilder->setParameter('precision_soft_symfony_console.worker', $processedConfiguration[Configuration::WORKER] ?? null);
+        $containerBuilder->setParameter('precision_soft_symfony_console.logs_dirs', $this->buildLogsDirs($processedConfiguration));
+    }
+
+    /**
+     * @info derived rather than defaulted, so overriding `cronjob.config.logs_dir` also moves the directory that
+     * `logs-dir-create` creates, instead of silently drifting away from it
+     *
+     * @param array<string, mixed> $processedConfiguration
+     * @return array<int, string>
+     */
+    protected function buildLogsDirs(array $processedConfiguration): array
+    {
+        $logsDirs = [
+            $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::LOGS_DIR] ?? null,
+            $processedConfiguration[Configuration::WORKER][Configuration::CONFIG][Configuration::LOGS_DIR] ?? null,
+            ...$processedConfiguration[Configuration::LOGS_DIRS] ?? [],
+        ];
+
+        $logsDirs = \array_filter($logsDirs, static fn(?string $logsDir): bool => null !== $logsDir && '' !== $logsDir);
+
+        return \array_values(\array_unique($logsDirs));
     }
 }

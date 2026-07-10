@@ -75,9 +75,18 @@ class ConfFileWriter
         }
     }
 
+    /** @throws ConfGenerateException */
     public function initLogsDir(string $logsDir): void
     {
-        $this->filesystem->mkdir($logsDir, 0755);
+        try {
+            $this->filesystem->mkdir($logsDir, 0755);
+        } catch (Throwable $throwable) {
+            throw new ConfGenerateException(
+                \sprintf('logs directory `%s` could not be created — %s', $logsDir, $throwable->getMessage()),
+                (int)$throwable->getCode(),
+                $throwable,
+            );
+        }
     }
 
     /**

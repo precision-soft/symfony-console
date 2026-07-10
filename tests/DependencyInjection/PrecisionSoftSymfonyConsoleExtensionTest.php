@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\DependencyInjection;
 
 use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
+use PrecisionSoft\Symfony\Console\Command\LogsDirCreateCommand;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\DependencyInjection\PrecisionSoftSymfonyConsoleExtension;
@@ -41,6 +42,7 @@ final class PrecisionSoftSymfonyConsoleExtensionTest extends AbstractTestCase
 
         static::assertTrue($containerBuilder->hasDefinition(CronjobCreateCommand::class));
         static::assertTrue($containerBuilder->hasDefinition(WorkerCreateCommand::class));
+        static::assertTrue($containerBuilder->hasDefinition(LogsDirCreateCommand::class));
         static::assertTrue($containerBuilder->hasDefinition(ConfFileWriter::class));
         static::assertTrue($containerBuilder->hasDefinition(ConfGenerateService::class));
         static::assertTrue($containerBuilder->hasDefinition(CrontabTemplate::class));
@@ -102,6 +104,66 @@ final class PrecisionSoftSymfonyConsoleExtensionTest extends AbstractTestCase
         static::assertIsArray($workerParameter);
         static::assertArrayHasKey(Configuration::CONFIG, $cronjobParameter);
         static::assertArrayHasKey(Configuration::CONFIG, $workerParameter);
+    }
+
+    public function testLoadWithEmptyConfigSetsDefaultLogsDirs(): void
+    {
+        $containerBuilder = new ContainerBuilder();
+        $precisionSoftSymfonyConsoleExtension = new PrecisionSoftSymfonyConsoleExtension();
+
+        $precisionSoftSymfonyConsoleExtension->load([], $containerBuilder);
+
+        static::assertTrue($containerBuilder->hasParameter('precision_soft_symfony_console.logs_dirs'));
+
+        static::assertSame(
+            ['%kernel.logs_dir%/cron', '%kernel.logs_dir%/worker'],
+            $containerBuilder->getParameter('precision_soft_symfony_console.logs_dirs'),
+        );
+    }
+
+    public function testLoadDerivesLogsDirsFromCronjobWorkerAndExtras(): void
+    {
+        $containerBuilder = new ContainerBuilder();
+        $precisionSoftSymfonyConsoleExtension = new PrecisionSoftSymfonyConsoleExtension();
+
+        $precisionSoftSymfonyConsoleExtension->load([
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::LOGS_DIR => '/tmp/crontab',
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [
+                            Configuration::COMMAND => ['test'],
+                        ],
+                    ],
+                ],
+                Configuration::LOGS_DIRS => ['/tmp/command'],
+            ],
+        ], $containerBuilder);
+
+        static::assertSame(
+            ['/tmp/crontab', '%kernel.logs_dir%/worker', '/tmp/command'],
+            $containerBuilder->getParameter('precision_soft_symfony_console.logs_dirs'),
+        );
+    }
+
+    public function testLoadDeduplicatesLogsDirs(): void
+    {
+        $containerBuilder = new ContainerBuilder();
+        $precisionSoftSymfonyConsoleExtension = new PrecisionSoftSymfonyConsoleExtension();
+
+        $precisionSoftSymfonyConsoleExtension->load([
+            'precision_soft_symfony_console' => [
+                Configuration::LOGS_DIRS => ['%kernel.logs_dir%/cron', '/tmp/command'],
+            ],
+        ], $containerBuilder);
+
+        /** @info `assertSame` also pins the reindexing, a duplicate removed from the middle must not leave a hole */
+        static::assertSame(
+            ['%kernel.logs_dir%/cron', '%kernel.logs_dir%/worker', '/tmp/command'],
+            $containerBuilder->getParameter('precision_soft_symfony_console.logs_dirs'),
+        );
     }
 
     public function testConstConsoleTemplate(): void

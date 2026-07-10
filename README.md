@@ -33,12 +33,29 @@ composer require precision-soft/symfony-console
 
 ## Commands
 
-| Command                                         | Description                                                       |
-|-------------------------------------------------|-------------------------------------------------------------------|
-| `precision-soft:symfony:console:cronjob-create` | Generates cron job configuration files based on the bundle config |
-| `precision-soft:symfony:console:worker-create`  | Generates worker configuration files based on the bundle config   |
+| Command                                           | Description                                                       |
+|---------------------------------------------------|-------------------------------------------------------------------|
+| `precision-soft:symfony:console:cronjob-create`   | Generates cron job configuration files based on the bundle config |
+| `precision-soft:symfony:console:worker-create`    | Generates worker configuration files based on the bundle config   |
+| `precision-soft:symfony:console:logs-dir-create`  | Creates the configured logs directories, idempotently             |
 
 ## Configuration
+
+### Logs directories
+
+`cronjob-create` and `worker-create` create their own logs directory, but only as a side effect of generating conf files, so a deployment that never runs them is left without the directories. `logs-dir-create` creates them on its own, and can be run at any point of a deployment.
+
+The directories it creates are derived from **precision_soft_symfony_console.cronjob.config.logs_dir** and **precision_soft_symfony_console.worker.config.logs_dir**, so overriding either of those also moves the directory that gets created. Use the root-level **logs_dirs** node to add directories that no cron job or worker owns:
+
+```yaml
+precision_soft_symfony_console:
+    logs_dirs:
+        - '%kernel.logs_dir%/command'
+```
+
+Both `cronjob.config.logs_dir` and `worker.config.logs_dir` have defaults, so `%kernel.logs_dir%/cron` and `%kernel.logs_dir%/worker` are created even by an application that declares no cron job and no worker.
+
+The resulting list is deduplicated and exposed as the `precision_soft_symfony_console.logs_dirs` container parameter. Deduplication compares the configured values before the container expands them, so `logs_dirs: ['var/log/cron']` is kept alongside `%kernel.logs_dir%/cron` even when both resolve to the same path — harmless, since the directories are created idempotently.
 
 ### Cron job configuration
 
