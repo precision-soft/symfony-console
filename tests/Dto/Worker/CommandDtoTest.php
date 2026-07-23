@@ -54,4 +54,32 @@ final class CommandDtoTest extends AbstractTestCase
 
         static::assertInstanceOf(CommandSettingsDto::class, $commandDto->getSettings());
     }
+
+    public function testDestinationDefaultsToNull(): void
+    {
+        $commandDto = new CommandDto(
+            'test',
+            [
+                Configuration::COMMAND => ['test'],
+            ],
+        );
+
+        static::assertNull($commandDto->getDestinationSubDir());
+        static::assertNull($commandDto->getDestinationSuffix());
+    }
+
+    public function testDestinationGetters(): void
+    {
+        $commandDto = new CommandDto(
+            'test',
+            [
+                Configuration::COMMAND => ['test'],
+                Configuration::DESTINATION_SUB_DIR => 'machine-a',
+                Configuration::DESTINATION_SUFFIX => 'blue',
+            ],
+        );
+
+        static::assertSame('machine-a', $commandDto->getDestinationSubDir());
+        static::assertSame('blue', $commandDto->getDestinationSuffix());
+    }
 }

@@ -20,6 +20,10 @@ class ConfigSettingsDto implements SettingInterface
 
     protected ?string $destinationFile = null;
 
+    protected ?string $destinationSubDir = null;
+
+    protected ?string $destinationSuffix = null;
+
     /**
      * @param array<string, mixed> $settings
      * @throws InvalidValueException
@@ -32,5 +36,15 @@ class ConfigSettingsDto implements SettingInterface
     public function getDestinationFile(): ?string
     {
         return $this->destinationFile;
+    }
+
+    public function getDestinationSubDir(): ?string
+    {
+        return $this->destinationSubDir;
+    }
+
+    public function getDestinationSuffix(): ?string
+    {
+        return $this->destinationSuffix;
     }
 }

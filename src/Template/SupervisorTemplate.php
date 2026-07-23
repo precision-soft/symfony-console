@@ -58,7 +58,33 @@ class SupervisorTemplate implements TemplateInterface
         ConfigDto $configDto,
         CommandDto $commandDto,
     ): string {
-        return \sprintf('%s/%s.conf', \rtrim($configDto->getConfFilesDir(), '/'), $commandDto->getName());
+        $destinationSubDir = $commandDto->getDestinationSubDir() ?? $configDto->getSettings()->getDestinationSubDir();
+        $destinationSuffix = $commandDto->getDestinationSuffix() ?? $configDto->getSettings()->getDestinationSuffix();
+
+        $pathParts = [\rtrim($configDto->getConfFilesDir(), '/')];
+
+        /** @info collapse the sub dir into its meaningful segments, dropping empty ones (leading, trailing and repeated
+         * separators) and `.`, so the returned path is the one actually written — `ConfFileWriter` reports these paths
+         * back to the user and `ConfFilesDto` detects collisions by comparing them verbatim */
+        foreach (\explode('/', $destinationSubDir ?? '') as $destinationSubDirPart) {
+            if ('' === $destinationSubDirPart || '.' === $destinationSubDirPart) {
+                continue;
+            }
+
+            $pathParts[] = $destinationSubDirPart;
+        }
+
+        $fileNameParts = [$commandDto->getName()];
+
+        if (null !== $destinationSuffix && '' !== \trim($destinationSuffix, '.')) {
+            $fileNameParts[] = \trim($destinationSuffix, '.');
+        }
+
+        $fileNameParts[] = 'conf';
+
+        $pathParts[] = \implode('.', $fileNameParts);
+
+        return \implode('/', $pathParts);
     }
 
     /** @throws InvalidConfigurationException */

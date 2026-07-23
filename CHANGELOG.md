@@ -2,10 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v4.4.0] - 2026-07-23 - Per-Command Supervisor Destination Sub Directories
+
+### Added
+
+- `destination_sub_dir` and `destination_suffix` configuration nodes for workers, available both under `worker.config.settings` and per command. `SupervisorTemplate` resolves the per-command value first and falls back to the config-level one, so a single application config can spread its Supervisor `.conf` files across sub directories of `conf_files_dir` — one per machine, region or deployment colour — instead of dumping them all in a flat directory. Setting either to an empty string at command level opts that command out of the config-level value
+- `Worker\CommandDto::getDestinationSubDir()` and `getDestinationSuffix()` — typed accessors for the per-command values
+- `Worker\ConfigSettingsDto::getDestinationSubDir()` and `getDestinationSuffix()` — typed accessors for the config-level values
+- `Configuration::appendDestinationConfig()` — declares both nodes with validation that rejects `..` and backslashes (plus `/` for the suffix) at container build time, naming the offending node in the message. `ConfFileWriter` already rejected such paths, but only at generation time and with a raw filesystem path in the error
+- `WorkerCreateEndToEndTest` — compiles a real container and runs `worker-create` end to end, covering the worker configuration surviving `%kernel.project_dir%` expansion inside an array parameter and `destination_sub_dir` reaching the filesystem as an actual directory tree
+
+### Fixed
+
+- `SupervisorTemplate::getPath()` — the returned path is now collapsed to its meaningful segments, so a `destination_sub_dir` of `.`, `a//b` or `./x` no longer yields a path that differs from the file actually written. `AbstractCreateConfigCommand` prints these paths back to the user, and `ConfFilesDto::addFile()` detects collisions by comparing them verbatim, so both were working off a path that could not be resolved as printed
+- `ConfGenerateService::generate()` — template failures are now wrapped in `ConfGenerateException` instead of escaping as `InvalidConfigurationException` / `InvalidValueException`, honouring the `@throws ConfGenerateException` the method already declared and matching how `ConfFileWriter` wraps its own failures. `AbstractCreateConfigCommand` only catches `ConfGenerateException`, so those exceptions escaped the command as uncaught fatals with a stack trace instead of a clean error message and a `FAILURE` exit code. Previously unreachable for `SupervisorTemplate` — command names are unique config keys, so its generated paths could never collide — but `destination_suffix` makes a collision expressible (a command `worker` with suffix `blue` and a command `worker.blue` both resolve to `worker.blue.conf`)
+
+### Changed
+
+- `Worker\ConfigSettingsDto` — `destination_file` is now declared on the `worker.config.settings` node instead of being carried through as an undeclared extra key, so it normalizes and defaults to `null` like every other setting
 
 ## [v4.3.0] - 2026-07-10 - Standalone Logs Dir Creation
 
@@ -498,7 +516,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.3.0...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.4.0...HEAD
+
+[v4.4.0]: https://github.com/precision-soft/symfony-console/compare/v4.3.0...v4.4.0
 
 [v4.3.0]: https://github.com/precision-soft/symfony-console/compare/v4.2.11...v4.3.0
 

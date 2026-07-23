@@ -33,11 +33,11 @@ composer require precision-soft/symfony-console
 
 ## Commands
 
-| Command                                           | Description                                                       |
-|---------------------------------------------------|-------------------------------------------------------------------|
-| `precision-soft:symfony:console:cronjob-create`   | Generates cron job configuration files based on the bundle config |
-| `precision-soft:symfony:console:worker-create`    | Generates worker configuration files based on the bundle config   |
-| `precision-soft:symfony:console:logs-dir-create`  | Creates the configured logs directories, idempotently             |
+| Command                                          | Description                                                       |
+|--------------------------------------------------|-------------------------------------------------------------------|
+| `precision-soft:symfony:console:cronjob-create`  | Generates cron job configuration files based on the bundle config |
+| `precision-soft:symfony:console:worker-create`   | Generates worker configuration files based on the bundle config   |
+| `precision-soft:symfony:console:logs-dir-create` | Creates the configured logs directories, idempotently             |
 
 ## Configuration
 
@@ -115,6 +115,48 @@ precision_soft_symfony_console:
 ```
 
 Each command generates a separate `.conf` file for Supervisor. The `prefix`, `user`, `auto_start`, `auto_restart`, `log_file`, and `number_of_processes` are available settings with defaults (can be set at the config level and overridden per command). If `log_file` is not specified, it defaults to `<logs_dir>/<command-name>.log`.
+
+#### Splitting worker files into sub directories
+
+By default every command lands directly in `conf_files_dir` as `<command-name>.conf`. Use `destination_sub_dir` and `destination_suffix` to spread the generated files across sub directories or to disambiguate their file names — useful when a single application config describes workers for several machines, and each machine's Supervisor only includes its own sub directory:
+
+```yaml
+precision_soft_symfony_console:
+    worker:
+        config:
+            conf_files_dir: '/etc/supervisor/conf.d'
+            settings:
+                prefix: 'app-name'
+                user: 'root'
+                destination_sub_dir: 'machine-a'
+        commands:
+            inherits:
+                command: '%kernel.project_dir%/bin/console app:one'
+            overrides:
+                command: '%kernel.project_dir%/bin/console app:two'
+                destination_sub_dir: 'machine-b/eu-west'
+            opts_out:
+                command: '%kernel.project_dir%/bin/console app:three'
+                destination_sub_dir: ''
+            suffixed:
+                command: '%kernel.project_dir%/bin/console app:four'
+                destination_suffix: 'blue'
+```
+
+Generates:
+
+```
+/etc/supervisor/conf.d/machine-a/inherits.conf
+/etc/supervisor/conf.d/machine-b/eu-west/overrides.conf
+/etc/supervisor/conf.d/opts_out.conf
+/etc/supervisor/conf.d/machine-a/suffixed.blue.conf
+```
+
+Both options are resolved per command first and fall back to the config-level `settings` value. Setting either to an empty string at command level opts that command out of the config-level value. `destination_sub_dir` is always relative to `conf_files_dir` and is collapsed to its meaningful segments, so leading, trailing and repeated `/` as well as `.` segments are dropped; `destination_suffix` is inserted before the `.conf` extension with surrounding dots stripped. Values containing `..` or a backslash are rejected at container build time, and `destination_suffix` additionally rejects `/`.
+
+That validation runs on the configuration as written, so a value supplied through a container parameter (`destination_sub_dir: '%app.machine%'`) is still a literal placeholder at that point and cannot be checked. `ConfFileWriter` remains the backstop — it rejects any generated path that escapes `conf_files_dir`, whatever produced it.
+
+Both options are honoured only by `SupervisorTemplate`. `KubernetesWorkerTemplate` writes a single manifest whose name comes from `destination_file`, and ignores them.
 
 ### Kubernetes CronJob template
 
@@ -416,8 +458,7 @@ When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>
 
 ### Path traversal protection
 
-`ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Each written file is additionally canonicalized via `realpath` and re-checked against the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks; the temp directory itself is verified to be a real directory (not a pre-existing symlink) to
-close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking the destination to a sensitive location.
+`ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Each written file is additionally canonicalized via `realpath` and re-checked against the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks; the temp directory itself is verified to be a real directory (not a pre-existing symlink) to close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking the destination to a sensitive location.
 
 ### Configuration values in generated files
 

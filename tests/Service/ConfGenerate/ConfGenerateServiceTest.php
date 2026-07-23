@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfFileWriter;
 use PrecisionSoft\Symfony\Console\Service\ConfGenerate\ConfGenerateService;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
@@ -90,6 +91,66 @@ final class ConfGenerateServiceTest extends AbstractTestCase
 
             static::assertCount(1, $generatedFiles);
             static::assertSame($temporaryDirectory . '/test.conf', $generatedFiles[0]);
+        } finally {
+            $filesystem = new Filesystem();
+            $filesystem->remove([$temporaryDirectory, $logsDirectory]);
+        }
+    }
+
+    public function testGenerateWrapsTemplateExceptionsInConfGenerateException(): void
+    {
+        $temporaryDirectory = \sys_get_temp_dir() . '/test_conf_generate_wrap_' . \uniqid('', true);
+        $logsDirectory = \sys_get_temp_dir() . '/test_logs_wrap_' . \uniqid('', true);
+
+        $invalidValueException = new InvalidValueException('the file path is in use `worker.blue.conf`');
+
+        $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
+        $templateInterfaceMock->shouldReceive('generate')->once()->andThrow($invalidValueException);
+
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
+
+        $configInterfaceMock = Mockery::mock(ConfigInterface::class);
+        $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
+        $configInterfaceMock->shouldReceive('getLogsDir')->andReturn($logsDirectory);
+        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($temporaryDirectory);
+
+        try {
+            $confGenerateService->generate($configInterfaceMock, []);
+
+            static::fail(\sprintf('expected a %s', ConfGenerateException::class));
+        } catch (ConfGenerateException $confGenerateException) {
+            static::assertSame('the file path is in use `worker.blue.conf`', $confGenerateException->getMessage());
+            static::assertSame($invalidValueException, $confGenerateException->getPrevious());
+        } finally {
+            $filesystem = new Filesystem();
+            $filesystem->remove([$temporaryDirectory, $logsDirectory]);
+        }
+    }
+
+    public function testGenerateDoesNotRewrapConfGenerateException(): void
+    {
+        $temporaryDirectory = \sys_get_temp_dir() . '/test_conf_generate_norewrap_' . \uniqid('', true);
+        $logsDirectory = \sys_get_temp_dir() . '/test_logs_norewrap_' . \uniqid('', true);
+
+        $confGenerateException = new ConfGenerateException('already wrapped');
+
+        $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
+        $templateInterfaceMock->shouldReceive('generate')->once()->andThrow($confGenerateException);
+
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
+
+        $configInterfaceMock = Mockery::mock(ConfigInterface::class);
+        $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
+        $configInterfaceMock->shouldReceive('getLogsDir')->andReturn($logsDirectory);
+        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($temporaryDirectory);
+
+        try {
+            $confGenerateService->generate($configInterfaceMock, []);
+
+            static::fail(\sprintf('expected a %s', ConfGenerateException::class));
+        } catch (ConfGenerateException $caughtException) {
+            static::assertSame($confGenerateException, $caughtException);
+            static::assertNull($caughtException->getPrevious());
         } finally {
             $filesystem = new Filesystem();
             $filesystem->remove([$temporaryDirectory, $logsDirectory]);

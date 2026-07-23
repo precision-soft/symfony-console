@@ -151,6 +151,103 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertTrue($settings[Configuration::AUTO_RESTART]);
         static::assertNull($settings[Configuration::PREFIX]);
         static::assertNull($settings[Configuration::USER]);
+        static::assertNull($settings[Configuration::DESTINATION_FILE]);
+        static::assertNull($settings[Configuration::DESTINATION_SUB_DIR]);
+        static::assertNull($settings[Configuration::DESTINATION_SUFFIX]);
+    }
+
+    public function testWorkerDestinationDefaultsToNullPerCommand(): void
+    {
+        $processedConfiguration = $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+            ],
+        ]);
+
+        $command = $processedConfiguration[Configuration::WORKER][Configuration::COMMANDS]['test'];
+        static::assertNull($command[Configuration::DESTINATION_SUB_DIR]);
+        static::assertNull($command[Configuration::DESTINATION_SUFFIX]);
+    }
+
+    public function testWorkerDestinationIsReadPerCommandAndAtConfigLevel(): void
+    {
+        $processedConfiguration = $this->processWorkerConfiguration(
+            [
+                'test' => [
+                    Configuration::COMMAND => ['test'],
+                    Configuration::DESTINATION_SUB_DIR => 'machine-b',
+                    Configuration::DESTINATION_SUFFIX => 'green',
+                ],
+            ],
+            [
+                Configuration::DESTINATION_SUB_DIR => 'machine-a',
+                Configuration::DESTINATION_SUFFIX => 'blue',
+            ],
+        );
+
+        $settings = $processedConfiguration[Configuration::WORKER][Configuration::CONFIG][Configuration::SETTINGS];
+        static::assertSame('machine-a', $settings[Configuration::DESTINATION_SUB_DIR]);
+        static::assertSame('blue', $settings[Configuration::DESTINATION_SUFFIX]);
+
+        $command = $processedConfiguration[Configuration::WORKER][Configuration::COMMANDS]['test'];
+        static::assertSame('machine-b', $command[Configuration::DESTINATION_SUB_DIR]);
+        static::assertSame('green', $command[Configuration::DESTINATION_SUFFIX]);
+    }
+
+    public function testWorkerDestinationSubDirRejectsPathTraversal(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_sub_dir#');
+
+        $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+                Configuration::DESTINATION_SUB_DIR => '../escape',
+            ],
+        ]);
+    }
+
+    public function testWorkerDestinationSubDirRejectsPathTraversalAtConfigLevel(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_sub_dir#');
+
+        $this->processWorkerConfiguration(
+            [
+                'test' => [
+                    Configuration::COMMAND => ['test'],
+                ],
+            ],
+            [
+                Configuration::DESTINATION_SUB_DIR => 'a/../../escape',
+            ],
+        );
+    }
+
+    public function testWorkerDestinationSuffixRejectsDirectorySeparator(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_suffix#');
+
+        $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+                Configuration::DESTINATION_SUFFIX => 'a/b',
+            ],
+        ]);
+    }
+
+    public function testWorkerDestinationSuffixRejectsPathTraversal(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_suffix#');
+
+        $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+                Configuration::DESTINATION_SUFFIX => '..',
+            ],
+        ]);
     }
 
     public function testCronjobScheduleDefaults(): void
@@ -293,6 +390,8 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertSame('logs_dirs', Configuration::LOGS_DIRS);
         static::assertSame('heartbeat', Configuration::HEARTBEAT);
         static::assertSame('destination_file', Configuration::DESTINATION_FILE);
+        static::assertSame('destination_sub_dir', Configuration::DESTINATION_SUB_DIR);
+        static::assertSame('destination_suffix', Configuration::DESTINATION_SUFFIX);
         static::assertSame('config', Configuration::CONFIG);
         static::assertSame('commands', Configuration::COMMANDS);
         static::assertSame('minute', Configuration::MINUTE);
@@ -308,5 +407,31 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertSame('cronjob', Configuration::CRONJOB);
         static::assertSame('worker', Configuration::WORKER);
         static::assertSame('settings', Configuration::SETTINGS);
+    }
+
+    /**
+     * @param array<string, mixed> $commands
+     * @param array<string, mixed> $settings
+     * @return array<string, mixed>
+     */
+    protected function processWorkerConfiguration(array $commands, array $settings = []): array
+    {
+        return (new Processor())->processConfiguration(new Configuration(), [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::COMMANDS => [
+                        'test' => [
+                            Configuration::COMMAND => ['test'],
+                        ],
+                    ],
+                ],
+                Configuration::WORKER => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => $settings,
+                    ],
+                    Configuration::COMMANDS => $commands,
+                ],
+            ],
+        ]);
     }
 }

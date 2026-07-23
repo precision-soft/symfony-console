@@ -61,6 +61,46 @@ final class ConfFileWriterTest extends AbstractTestCase
         }
     }
 
+    public function testSaveCreatesNestedSubDirectories(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_nested_' . \uniqid('', true);
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . '/machine-a/worker-one.conf', 'first content');
+        $confFilesDto->addFile($destinationDirectory . '/machine-b/eu-west/worker-two.conf', 'second content');
+        $confFilesDto->addFile($destinationDirectory . '/worker-three.conf', 'third content');
+
+        try {
+            $configurationFiles = $this->confFileWriter->save($confFilesDto, $destinationDirectory);
+
+            static::assertCount(3, $configurationFiles);
+            static::assertDirectoryExists($destinationDirectory . '/machine-a');
+            static::assertDirectoryExists($destinationDirectory . '/machine-b/eu-west');
+            static::assertSame('first content', \file_get_contents($destinationDirectory . '/machine-a/worker-one.conf'));
+            static::assertSame('second content', \file_get_contents($destinationDirectory . '/machine-b/eu-west/worker-two.conf'));
+            static::assertSame('third content', \file_get_contents($destinationDirectory . '/worker-three.conf'));
+        } finally {
+            $this->filesystem->remove($destinationDirectory);
+        }
+    }
+
+    public function testSaveThrowsOnTraversalThroughASubDirectory(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_nested_traversal_' . \uniqid('', true);
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . '/../escape/worker-one.conf', 'content');
+
+        $this->expectException(ConfGenerateException::class);
+        $this->expectExceptionMessageMatches('#path traversal detected#');
+
+        try {
+            $this->confFileWriter->save($confFilesDto, $destinationDirectory);
+        } finally {
+            $this->filesystem->remove($destinationDirectory);
+        }
+    }
+
     public function testSaveReplacesExistingDestinationDir(): void
     {
         $destinationDirectory = \sys_get_temp_dir() . '/cfw_replace_' . \uniqid('', true);

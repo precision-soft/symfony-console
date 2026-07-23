@@ -29,6 +29,8 @@ class Configuration implements ConfigurationInterface
     public const LOGS_DIRS = 'logs_dirs';
     public const HEARTBEAT = 'heartbeat';
     public const DESTINATION_FILE = 'destination_file';
+    public const DESTINATION_SUB_DIR = 'destination_sub_dir';
+    public const DESTINATION_SUFFIX = 'destination_suffix';
     public const CONFIG = 'config';
     public const COMMANDS = 'commands';
     public const MINUTE = 'minute';
@@ -155,7 +157,10 @@ class Configuration implements ConfigurationInterface
         $settingsTree = $configTree->children()->arrayNode(static::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet();
-        $this->appendSupervisorConfig($settingsTree->children());
+        $settingsNodeBuilder = $settingsTree->children();
+        $this->appendSupervisorConfig($settingsNodeBuilder);
+        $settingsNodeBuilder->scalarNode(static::DESTINATION_FILE)->defaultNull()->end();
+        $this->appendDestinationConfig($settingsNodeBuilder);
 
         $commandsTree = $workerTree->children()->arrayNode(static::COMMANDS)
             ->isRequired()
@@ -165,13 +170,16 @@ class Configuration implements ConfigurationInterface
         /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
         \assert($commandsTree instanceof ArrayNodeDefinition);
 
-        $commandsTree->children()
-            ->scalarNode(static::NAME)->end()
+        $commandsNodeBuilder = $commandsTree->children();
+
+        $commandsNodeBuilder->scalarNode(static::NAME)->end()
             ->arrayNode(static::COMMAND)
             ->isRequired()
             ->beforeNormalization()->ifString()->then(fn($commandValue) => [$commandValue])->end()
             ->scalarPrototype()->end()
             ->end();
+
+        $this->appendDestinationConfig($commandsNodeBuilder);
 
         $settingsTree = $commandsTree->children()->arrayNode(static::SETTINGS)
             ->ignoreExtraKeys(false)
@@ -179,6 +187,30 @@ class Configuration implements ConfigurationInterface
         $this->appendSupervisorConfig($settingsTree->children(), false);
 
         return $workerTree;
+    }
+
+    /**
+     * @info both values are appended to `conf_files_dir` by the template, so they must not be able to walk out of it.
+     * `ConfFileWriter` rejects such paths as a last line of defence, but validating here fails at container build time
+     * with the offending node named in the message, instead of at generation time with a raw path in the error
+     */
+    protected function appendDestinationConfig(NodeBuilder $nodeBuilder): void
+    {
+        $nodeBuilder->scalarNode(static::DESTINATION_SUB_DIR)
+            ->defaultNull()
+            ->validate()
+            ->ifTrue(fn($destinationSubDir) => null !== $destinationSubDir && 1 === \preg_match('#\.\.|\\\\#', (string)$destinationSubDir))
+            ->thenInvalid(\sprintf('the `%s` must not contain `..` or a backslash, got %%s', static::DESTINATION_SUB_DIR))
+            ->end()
+            ->end();
+
+        $nodeBuilder->scalarNode(static::DESTINATION_SUFFIX)
+            ->defaultNull()
+            ->validate()
+            ->ifTrue(fn($destinationSuffix) => null !== $destinationSuffix && 1 === \preg_match('#[/\\\\]|\.\.#', (string)$destinationSuffix))
+            ->thenInvalid(\sprintf('the `%s` must not contain `/`, a backslash or `..`, got %%s', static::DESTINATION_SUFFIX))
+            ->end()
+            ->end();
     }
 
     protected function appendSupervisorConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void

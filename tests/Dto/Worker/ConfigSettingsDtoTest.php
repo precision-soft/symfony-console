@@ -51,6 +51,8 @@ final class ConfigSettingsDtoTest extends AbstractTestCase
         static::assertNull($configSettingsDto->getUser());
         static::assertNull($configSettingsDto->getLogFile());
         static::assertNull($configSettingsDto->getDestinationFile());
+        static::assertNull($configSettingsDto->getDestinationSubDir());
+        static::assertNull($configSettingsDto->getDestinationSuffix());
     }
 
     public function testAllSettingsAreSet(): void
@@ -63,6 +65,8 @@ final class ConfigSettingsDtoTest extends AbstractTestCase
             Configuration::USER => 'root',
             Configuration::LOG_FILE => '/var/log/app.log',
             Configuration::DESTINATION_FILE => 'workers.conf',
+            Configuration::DESTINATION_SUB_DIR => 'machine-a',
+            Configuration::DESTINATION_SUFFIX => 'blue',
         ]);
 
         static::assertSame(3, $configSettingsDto->getNumberOfProcesses());
@@ -72,5 +76,7 @@ final class ConfigSettingsDtoTest extends AbstractTestCase
         static::assertSame('root', $configSettingsDto->getUser());
         static::assertSame('/var/log/app.log', $configSettingsDto->getLogFile());
         static::assertSame('workers.conf', $configSettingsDto->getDestinationFile());
+        static::assertSame('machine-a', $configSettingsDto->getDestinationSubDir());
+        static::assertSame('blue', $configSettingsDto->getDestinationSuffix());
     }
 }

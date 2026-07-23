@@ -14,6 +14,8 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class CommandDto implements SettingsInterface
 {
+    protected readonly ?string $destinationSubDir;
+    protected readonly ?string $destinationSuffix;
     /** @var array<int, string> */
     protected readonly array $command;
     protected readonly CommandSettingsDto $settings;
@@ -26,6 +28,8 @@ class CommandDto implements SettingsInterface
         protected readonly string $name,
         array $parameters,
     ) {
+        $this->destinationSubDir = $parameters[Configuration::DESTINATION_SUB_DIR] ?? null;
+        $this->destinationSuffix = $parameters[Configuration::DESTINATION_SUFFIX] ?? null;
         $this->command = $parameters[Configuration::COMMAND];
         $this->settings = new CommandSettingsDto($parameters[Configuration::SETTINGS] ?? []);
     }
@@ -33,6 +37,16 @@ class CommandDto implements SettingsInterface
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getDestinationSubDir(): ?string
+    {
+        return $this->destinationSubDir;
+    }
+
+    public function getDestinationSuffix(): ?string
+    {
+        return $this->destinationSuffix;
     }
 
     /** @return array<int, string> */

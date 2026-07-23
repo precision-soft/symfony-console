@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
@@ -338,6 +339,424 @@ final class SupervisorTemplateTest extends AbstractTestCase
         static::assertCount(2, $files);
         static::assertArrayHasKey('/etc/supervisor/conf.d/worker-one.conf', $files);
         static::assertArrayHasKey('/etc/supervisor/conf.d/worker-two.conf', $files);
+    }
+
+    public function testDestinationSubDirSplitsCommandsIntoSubDirectories(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUB_DIR => 'm1',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker-two',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::DESTINATION_SUB_DIR => 'm2',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker-three',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:three'],
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(3, $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/m1/worker-one.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/m2/worker-two.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-three.conf', $files);
+    }
+
+    public function testDestinationSubDirFallsBackToConfigSettings(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                    Configuration::DESTINATION_SUB_DIR => 'm1',
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker-two',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::DESTINATION_SUB_DIR => 'm2',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(2, $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/m1/worker-one.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/m2/worker-two.conf', $files);
+    }
+
+    public function testEmptyCommandDestinationOptsOutOfTheConfigLevelValues(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                    Configuration::DESTINATION_SUB_DIR => 'm1',
+                    Configuration::DESTINATION_SUFFIX => 'blue',
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUB_DIR => '',
+                    Configuration::DESTINATION_SUFFIX => '',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-one.conf', $files);
+    }
+
+    public function testCollidingDestinationPathsAreRejected(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUFFIX => 'blue',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker.blue',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('the file path is in use `/etc/supervisor/conf.d/worker.blue.conf`');
+
+        $supervisorTemplate->generate($configDto, $commands);
+    }
+
+    public function testDestinationSubDirSeparatorsAreNormalized(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d/',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUB_DIR => '/m1/',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker-two',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::DESTINATION_SUB_DIR => '/',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertArrayHasKey('/etc/supervisor/conf.d/m1/worker-one.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-two.conf', $files);
+    }
+
+    public function testDestinationSubDirRedundantSegmentsAreCollapsed(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'current-dir',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUB_DIR => '.',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'repeated-separators',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::DESTINATION_SUB_DIR => 'a//b',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'leading-current-dir',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:three'],
+                    Configuration::DESTINATION_SUB_DIR => './x/',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertArrayHasKey('/etc/supervisor/conf.d/current-dir.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/a/b/repeated-separators.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/x/leading-current-dir.conf', $files);
+    }
+
+    public function testDestinationSuffixIsAppendedBeforeTheExtension(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUFFIX => 'm2',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker-two',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(2, $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-one.m2.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-two.conf', $files);
+    }
+
+    public function testDestinationSuffixFallsBackToConfigSettings(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                    Configuration::DESTINATION_SUFFIX => 'm1',
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+            new CommandDto(
+                'worker-two',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:two'],
+                    Configuration::DESTINATION_SUFFIX => 'm3',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertCount(2, $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-one.m1.conf', $files);
+        static::assertArrayHasKey('/etc/supervisor/conf.d/worker-two.m3.conf', $files);
+    }
+
+    public function testDestinationSubDirAndSuffixCombine(): void
+    {
+        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto(
+            [
+                Configuration::TEMPLATE_CLASS => 'test',
+                Configuration::CONF_FILES_DIR => '/etc/supervisor/conf.d',
+                Configuration::LOGS_DIR => 'test',
+                Configuration::SETTINGS => [
+                    Configuration::AUTO_START => true,
+                    Configuration::AUTO_RESTART => true,
+                    Configuration::PREFIX => 'app',
+                    Configuration::USER => 'www-data',
+                    Configuration::NUMBER_OF_PROCESSES => 1,
+                ],
+            ],
+        );
+
+        $commands = [
+            new CommandDto(
+                'worker-one',
+                [
+                    Configuration::COMMAND => ['bin/console', 'app:one'],
+                    Configuration::DESTINATION_SUB_DIR => 'eu-west',
+                    Configuration::DESTINATION_SUFFIX => '.m2.',
+                    Configuration::SETTINGS => [],
+                ],
+            ),
+        ];
+
+        $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
+
+        $files = $confFilesDto->getFiles();
+        static::assertArrayHasKey('/etc/supervisor/conf.d/eu-west/worker-one.m2.conf', $files);
     }
 
     public function testCommandPassesThroughVerbatim(): void
