@@ -13,11 +13,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-/**
- * @info `cronjob-create` and `worker-create` create their own logs dir, but only as a side effect of generating conf
- * files, so a deployment that never runs them is left without the directories. This command creates them on their own,
- * and covers the extra dirs declared under `logs_dirs` that no cronjob or worker owns.
- */
 class LogsDirCreateCommand extends AbstractCommand
 {
     public const NAME = 'precision-soft:symfony:console:logs-dir-create';
@@ -48,7 +43,7 @@ class LogsDirCreateCommand extends AbstractCommand
             return static::FAILURE;
         }
 
-        $this->success(\sprintf('ensured `%s` logs dirs', \count($this->logsDirs)));
+        $this->success(\sprintf('ensured `%d` logs dirs', \count($this->logsDirs)));
 
         foreach ($this->logsDirs as $logsDir) {
             $this->writeln($logsDir);

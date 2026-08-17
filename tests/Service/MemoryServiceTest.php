@@ -194,7 +194,6 @@ final class MemoryServiceTest extends AbstractTestCase
     public function testGetMemoryUsageReturnsString(): void
     {
         $memoryUsage = MemoryService::getMemoryUsage();
-        static::assertIsString($memoryUsage);
         static::assertMatchesRegularExpression('/^\d+\.?\d*\s(B|KB|MB|GB|TB|PB)$/', $memoryUsage);
     }
 

@@ -363,7 +363,6 @@ final class ConfigurationTest extends AbstractTestCase
         ]);
     }
 
-    /** @info `performNoDeepMerging()` — a later configuration file replaces the list instead of appending to it */
     public function testLogsDirsFromLaterConfigurationReplacesEarlierOne(): void
     {
         $configuration = new Configuration();
@@ -375,6 +374,218 @@ final class ConfigurationTest extends AbstractTestCase
         ]);
 
         static::assertSame(['/tmp/second'], $processedConfiguration[Configuration::LOGS_DIRS]);
+    }
+
+    public function testLogsDirsRejectsNonStringEntries(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#logs_dirs#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::LOGS_DIRS => [123],
+            ],
+        ]);
+    }
+
+    public function testUnrecognisedSettingsKeysSurviveAtEverySettingsNode(): void
+    {
+        $processedConfiguration = (new Processor())->processConfiguration(new Configuration(), [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => ['mailto' => 'ops@example.com'],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [
+                            Configuration::COMMAND => ['test'],
+                            Configuration::SETTINGS => ['nice' => 10],
+                        ],
+                    ],
+                ],
+                Configuration::WORKER => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => ['stopwaitsecs' => 30],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [
+                            Configuration::COMMAND => ['test'],
+                            Configuration::SETTINGS => ['killasgroup' => true],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $cronjobConfiguration = $processedConfiguration[Configuration::CRONJOB];
+        $workerConfiguration = $processedConfiguration[Configuration::WORKER];
+
+        static::assertSame(
+            'ops@example.com',
+            $cronjobConfiguration[Configuration::CONFIG][Configuration::SETTINGS]['mailto'] ?? null,
+        );
+        static::assertSame(
+            10,
+            $cronjobConfiguration[Configuration::COMMANDS]['test'][Configuration::SETTINGS]['nice'] ?? null,
+        );
+        static::assertSame(
+            30,
+            $workerConfiguration[Configuration::CONFIG][Configuration::SETTINGS]['stopwaitsecs'] ?? null,
+        );
+        static::assertTrue(
+            $workerConfiguration[Configuration::COMMANDS]['test'][Configuration::SETTINGS]['killasgroup'] ?? null,
+        );
+    }
+
+    public function testDestinationFileAcceptsAnExplicitValueAtEveryDeclarationSite(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILE => 'my-crontab',
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [
+                            Configuration::COMMAND => ['test'],
+                            Configuration::DESTINATION_FILE => 'test.cron',
+                        ],
+                    ],
+                ],
+                Configuration::WORKER => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILE => 'workers.conf',
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+
+        $cronjobConfiguration = $processedConfiguration[Configuration::CRONJOB];
+        $workerConfiguration = $processedConfiguration[Configuration::WORKER];
+
+        static::assertSame(
+            'my-crontab',
+            $cronjobConfiguration[Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILE],
+        );
+        static::assertSame(
+            'test.cron',
+            $cronjobConfiguration[Configuration::COMMANDS]['test'][Configuration::DESTINATION_FILE],
+        );
+        static::assertSame(
+            'workers.conf',
+            $workerConfiguration[Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILE],
+        );
+    }
+
+    public function testCronjobConfigDestinationFileRejectsTraversal(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_file#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILE => '../../etc/cron.d/escaped',
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testCronjobCommandDestinationFileRejectsTraversal(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_file#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::COMMANDS => [
+                        'test' => [
+                            Configuration::COMMAND => ['test'],
+                            Configuration::DESTINATION_FILE => '..\\escaped',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testWorkerConfigDestinationFileRejectsTraversal(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_file#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::WORKER => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILE => '../workers.yaml',
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testDestinationFileKeepsItsDefaults(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+                Configuration::WORKER => [
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+
+        $cronjobConfiguration = $processedConfiguration[Configuration::CRONJOB];
+        $workerConfiguration = $processedConfiguration[Configuration::WORKER];
+
+        static::assertSame('crontab', $cronjobConfiguration[Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILE]);
+        static::assertNull($cronjobConfiguration[Configuration::COMMANDS]['test'][Configuration::DESTINATION_FILE]);
+        static::assertNull($workerConfiguration[Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILE]);
     }
 
     public function testConstantsExist(): void

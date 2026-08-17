@@ -12,10 +12,9 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
-use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
+use PrecisionSoft\Symfony\Console\Test\Utility\WorkerNumberOfProcessesTraitObject;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use ReflectionMethod;
 use stdClass;
 
 /**
@@ -30,7 +29,7 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
 
     public function testGetNumberOfProcessesFromCommand(): void
     {
-        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = new WorkerNumberOfProcessesTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -51,14 +50,14 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
             ],
         );
 
-        $numberOfProcesses = $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $numberOfProcesses = $workerNumberOfProcessesTraitObject->resolveNumberOfProcesses($configDto, $commandDto);
 
         static::assertSame(5, $numberOfProcesses);
     }
 
     public function testGetNumberOfProcessesFallsBackToConfig(): void
     {
-        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = new WorkerNumberOfProcessesTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -77,14 +76,14 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
             ],
         );
 
-        $numberOfProcesses = $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $numberOfProcesses = $workerNumberOfProcessesTraitObject->resolveNumberOfProcesses($configDto, $commandDto);
 
         static::assertSame(3, $numberOfProcesses);
     }
 
     public function testGetNumberOfProcessesThrowsExceptionWhenNull(): void
     {
-        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = new WorkerNumberOfProcessesTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -104,12 +103,12 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
-        $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $workerNumberOfProcessesTraitObject->resolveNumberOfProcesses($configDto, $commandDto);
     }
 
     public function testGetNumberOfProcessesThrowsExceptionWhenZero(): void
     {
-        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = new WorkerNumberOfProcessesTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -133,12 +132,12 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
-        $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
+        $workerNumberOfProcessesTraitObject->resolveNumberOfProcesses($configDto, $commandDto);
     }
 
     public function testGetNumberOfProcessesThrowsExceptionWhenNegative(): void
     {
-        $workerNumberOfProcessesTraitObject = $this->createTraitObject();
+        $workerNumberOfProcessesTraitObject = new WorkerNumberOfProcessesTraitObject();
 
         $configDto = new ConfigDto([
             Configuration::TEMPLATE_CLASS => 'test',
@@ -162,20 +161,6 @@ final class WorkerNumberOfProcessesTraitTest extends AbstractTestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('invalid `number of processes`');
 
-        $this->callMethod($workerNumberOfProcessesTraitObject, 'getNumberOfProcesses', [$configDto, $commandDto]);
-    }
-
-    private function createTraitObject(): object
-    {
-        return new class {
-            use WorkerNumberOfProcessesTrait;
-        };
-    }
-
-    private function callMethod(object $workerNumberOfProcessesTraitObject, string $method, array $args = []): mixed
-    {
-        $reflection = new ReflectionMethod($workerNumberOfProcessesTraitObject, $method);
-
-        return $reflection->invokeArgs($workerNumberOfProcessesTraitObject, $args);
+        $workerNumberOfProcessesTraitObject->resolveNumberOfProcesses($configDto, $commandDto);
     }
 }

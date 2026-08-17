@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Command\Trait;
 
+use Closure;
 use Mockery;
 use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\Trait\MemoryAndTimeLimitsTrait;
@@ -26,6 +27,16 @@ class MemoryAndTimeLimitsTraitTestObject
     use SymfonyStyleTrait;
 
     public InputInterface $input;
+
+    /* mirrors AbstractCommand by hand: extending Command breaks the partial mocks, its constructor calls its own setters */
+    /**
+     * @param string|array<int, string>|null $shortcut
+     * @param array<int, string>|Closure $suggestedValues
+     */
+    public function addOption(string $name, string|array|null $shortcut = null, ?int $mode = null, string $description = '', mixed $default = null, array|Closure $suggestedValues = []): static
+    {
+        return $this;
+    }
 }
 
 /**
@@ -43,7 +54,7 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
         $originalLimit = \ini_get('memory_limit');
 
         try {
-            /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+            /** @var MemoryAndTimeLimitsTraitTestObject&MockInterface $traitObject */
             $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
             $inputInterface = Mockery::mock(InputInterface::class);
@@ -70,7 +81,7 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
     public function testDidScriptReachedLimitsReturnsFalseWhenNoLimitsReached(): void
     {
-        /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryAndTimeLimitsTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -87,7 +98,7 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
     public function testDidScriptReachedLimitsReturnsTrueWhenTimeLimitReached(): void
     {
-        /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryAndTimeLimitsTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -113,7 +124,7 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
     public function testDidScriptReachedLimitsReturnsTrueWhenMemoryLimitReached(): void
     {
-        /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryAndTimeLimitsTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -136,7 +147,7 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
     public function testStopScriptIfLimitsReachedDoesNothingWhenNoLimits(): void
     {
-        /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryAndTimeLimitsTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -156,7 +167,7 @@ final class MemoryAndTimeLimitsTraitTest extends AbstractTestCase
 
     public function testStopScriptIfLimitsReachedThrowsRuntimeException(): void
     {
-        /** @var MemoryAndTimeLimitsTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryAndTimeLimitsTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryAndTimeLimitsTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');

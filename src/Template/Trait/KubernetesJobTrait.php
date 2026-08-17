@@ -9,32 +9,19 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Template\Trait;
 
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
+use Symfony\Component\Yaml\Yaml;
 
 trait KubernetesJobTrait
 {
-    /**
-     * @param array<string, mixed> $array
-     */
-    protected function convertArrayToString(
-        array $array,
-        int $baseIndentLevel = 0,
-        int $indentSize = 4,
-    ): string {
-        $lines = [];
+    /* a manifest is three levels deep, so anything below 4 collapses an entry onto a single line */
+    protected const YAML_INLINE_LEVEL = 4;
 
-        $baseIndent = $this->getIndent($baseIndentLevel, $indentSize);
+    protected const YAML_INDENT_SIZE = 4;
 
-        foreach ($array as $entryKey => $entryValue) {
-            if (true === \is_array($entryValue)) {
-                $lines[] = \sprintf('%s%s:', $baseIndent, $entryKey);
-                $lines[] = $this->convertArrayToString($entryValue, $baseIndentLevel + 1, $indentSize);
-                continue;
-            }
-
-            $lines[] = \sprintf('%s%s: %s', $baseIndent, $entryKey, true === \is_string($entryValue) ? $this->escapeYamlValue($entryValue) : (string)$entryValue);
-        }
-
-        return \implode(\PHP_EOL, $lines);
+    /** @param array<string, mixed> $array */
+    protected function convertArrayToString(array $array): string
+    {
+        return Yaml::dump($array, static::YAML_INLINE_LEVEL, static::YAML_INDENT_SIZE);
     }
 
     /** @throws InvalidValueException */
@@ -47,30 +34,5 @@ trait KubernetesJobTrait
         }
 
         return \trim($sanitizedInput, '-');
-    }
-
-    protected function escapeYamlValue(string $value): string
-    {
-        $yamlReservedWords = ['true', 'false', 'yes', 'no', 'on', 'off', 'null', '~'];
-
-        if (
-            1 === \preg_match('/[:#{}\\[\\],&*?|<>=!%@\\\\\'"\\n\\r\\t-]/', $value)
-            || true === \in_array(\strtolower($value), $yamlReservedWords, true)
-            || true === \is_numeric($value)
-            || '' === $value
-        ) {
-            return \sprintf('"%s"', \str_replace(
-                ['\\', '"', "\n", "\r", "\t"],
-                ['\\\\', '\\"', '\\n', '\\r', '\\t'],
-                $value,
-            ));
-        }
-
-        return $value;
-    }
-
-    protected function getIndent(int $level = 1, int $size = 4): string
-    {
-        return \str_repeat(' ', $level * $size);
     }
 }

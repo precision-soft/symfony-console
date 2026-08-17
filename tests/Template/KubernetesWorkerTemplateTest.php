@@ -14,8 +14,10 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate;
+use PrecisionSoft\Symfony\Console\Test\Utility\ConfFiles;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @internal
@@ -29,7 +31,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateWithSingleCommand(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -61,15 +63,27 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         static::assertCount(1, $confFilesDto->getFiles());
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
-        static::assertStringContainsString('test-worker', $content);
-        static::assertStringContainsString('bin/console app:worker', $content);
-        static::assertStringContainsString('parallelism: 3', $content);
+        $content = ConfFiles::getFirstContent($files);
+
+        static::assertSame(
+            [
+                'Jobs' => [
+                    'workers' => [
+                        [
+                            'name' => 'test-worker',
+                            'command' => 'bin/console app:worker',
+                            'parallelism' => 3,
+                        ],
+                    ],
+                ],
+            ],
+            Yaml::parse($content),
+        );
     }
 
     public function testGenerateWithEmptyCommands(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -91,7 +105,7 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
 
     public function testGenerateContentContainsWorkerName(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -121,13 +135,13 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('my-worker', $content);
     }
 
     public function testGenerateContentContainsCommand(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -157,13 +171,13 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('bin/console messenger:consume', $content);
     }
 
     public function testGenerateContentContainsParallelism(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -193,13 +207,13 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('parallelism: 5', $content);
     }
 
     public function testGenerateWithMultipleCommands(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -240,14 +254,14 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         static::assertCount(1, $confFilesDto->getFiles());
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('worker-one', $content);
         static::assertStringContainsString('worker-two', $content);
     }
 
     public function testGenerateFallsBackToConfigNumberOfProcesses(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(
@@ -275,13 +289,13 @@ final class KubernetesWorkerTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesWorkerTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('parallelism: 4', $content);
     }
 
     public function testMissingDestinationFileThrowsException(): void
     {
-        /** @var KubernetesWorkerTemplate|MockInterface $kubernetesWorkerTemplate */
+        /** @var KubernetesWorkerTemplate&MockInterface $kubernetesWorkerTemplate */
         $kubernetesWorkerTemplate = $this->get(KubernetesWorkerTemplate::class);
 
         $configDto = new ConfigDto(

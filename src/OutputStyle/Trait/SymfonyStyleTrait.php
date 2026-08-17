@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\OutputStyle\Trait;
 
+use PrecisionSoft\Symfony\Console\Contract\ExceptionInterface;
 use PrecisionSoft\Symfony\Console\Service\MemoryService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,9 +17,10 @@ use Throwable;
 
 trait SymfonyStyleTrait
 {
+    protected const THROWABLE_CHAIN_LIMIT = 10;
+
     protected SymfonyStyle $style;
 
-    /** @info cache the composed `[HH:MM:SS][<memory>]` prefix for the current second so a tight output loop does not re-run `memory_get_usage` + log/round math per line; kept per-instance so concurrent commands and tests do not share state */
     protected ?int $cachedPrefixSecond = null;
 
     protected string $cachedPrefix = '';
@@ -57,13 +59,46 @@ trait SymfonyStyleTrait
 
     protected function formatThrowable(Throwable $throwable, bool $exposeTrace = false): string
     {
-        $text = \sprintf('%s::%s::%s', $throwable::class, $throwable->getFile(), $throwable->getLine());
+        $chainParts = [];
+
+        $rootThrowable = $throwable;
+        $currentThrowable = $throwable;
+        $depth = 0;
+
+        while (null !== $currentThrowable && static::THROWABLE_CHAIN_LIMIT > $depth) {
+            $chainParts[] = $this->formatThrowableLink($currentThrowable);
+
+            $rootThrowable = $currentThrowable;
+            $currentThrowable = $currentThrowable->getPrevious();
+            ++$depth;
+        }
+
+        $text = \implode(' <- ', $chainParts);
 
         if (true === $exposeTrace) {
-            $text = \sprintf('%s / %s', $text, $throwable->getTraceAsString());
+            $text = \sprintf('%s / %s', $text, $rootThrowable->getTraceAsString());
         }
 
         return $text;
+    }
+
+    protected function formatThrowableLink(Throwable $throwable): string
+    {
+        $text = \sprintf('%s::%s::%s', $throwable::class, $throwable->getFile(), $throwable->getLine());
+
+        if (false === ($throwable instanceof ExceptionInterface)) {
+            return $text;
+        }
+
+        $context = $throwable->getContext();
+
+        if (0 === \count($context)) {
+            return $text;
+        }
+
+        $encodedContext = \json_encode($context);
+
+        return \sprintf('%s::%s', $text, false === $encodedContext ? 'un-encodable context' : $encodedContext);
     }
 
     protected function format(string $text): string

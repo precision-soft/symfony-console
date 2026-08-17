@@ -21,6 +21,7 @@ use PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -159,11 +160,25 @@ final class PrecisionSoftSymfonyConsoleExtensionTest extends AbstractTestCase
             ],
         ], $containerBuilder);
 
-        /** @info `assertSame` also pins the reindexing, a duplicate removed from the middle must not leave a hole */
         static::assertSame(
             ['%kernel.logs_dir%/cron', '%kernel.logs_dir%/worker', '/tmp/command'],
             $containerBuilder->getParameter('precision_soft_symfony_console.logs_dirs'),
         );
+    }
+
+    public function testLoadRejectsNonStringLogsDirsWithANamedConfigurationError(): void
+    {
+        $containerBuilder = new ContainerBuilder();
+        $precisionSoftSymfonyConsoleExtension = new PrecisionSoftSymfonyConsoleExtension();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#logs_dirs#');
+
+        $precisionSoftSymfonyConsoleExtension->load([
+            'precision_soft_symfony_console' => [
+                Configuration::LOGS_DIRS => [123],
+            ],
+        ], $containerBuilder);
     }
 
     public function testConstConsoleTemplate(): void

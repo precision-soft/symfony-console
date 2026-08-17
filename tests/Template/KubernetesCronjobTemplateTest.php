@@ -14,8 +14,10 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Template\KubernetesCronjobTemplate;
+use PrecisionSoft\Symfony\Console\Test\Utility\ConfFiles;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @internal
@@ -29,7 +31,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateWithSingleCommand(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -68,15 +70,27 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         static::assertCount(1, $confFilesDto->getFiles());
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
-        static::assertStringContainsString('test-job', $content);
-        static::assertStringContainsString('*/5 * * * *', $content);
-        static::assertStringContainsString('bin/console app:test', $content);
+        $content = ConfFiles::getFirstContent($files);
+
+        static::assertSame(
+            [
+                'CronJobs' => [
+                    'jobs' => [
+                        [
+                            'name' => 'test-job',
+                            'command' => 'bin/console app:test',
+                            'schedule' => '*/5 * * * *',
+                        ],
+                    ],
+                ],
+            ],
+            Yaml::parse($content),
+        );
     }
 
     public function testGenerateWithEmptyCommands(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -98,7 +112,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateWithMultipleCommands(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -153,14 +167,14 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         static::assertCount(1, $confFilesDto->getFiles());
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('job-one', $content);
         static::assertStringContainsString('job-two', $content);
     }
 
     public function testGenerateContentContainsSchedule(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -197,13 +211,13 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('15 3 * * 1', $content);
     }
 
     public function testGenerateContentContainsCommandParts(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -240,13 +254,13 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('bin/console app:test', $content);
     }
 
     public function testNullDestinationFileThrowsException(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -287,7 +301,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testEmptyDestinationFileThrowsException(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -329,7 +343,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
 
     public function testGenerateSanitizesName(): void
     {
-        /** @var KubernetesCronjobTemplate|MockInterface $kubernetesCronjobTemplate */
+        /** @var KubernetesCronjobTemplate&MockInterface $kubernetesCronjobTemplate */
         $kubernetesCronjobTemplate = $this->get(KubernetesCronjobTemplate::class);
 
         $configDto = new ConfigDto(
@@ -366,7 +380,7 @@ final class KubernetesCronjobTemplateTest extends AbstractTestCase
         $confFilesDto = $kubernetesCronjobTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('app-test-command', $content);
     }
 }

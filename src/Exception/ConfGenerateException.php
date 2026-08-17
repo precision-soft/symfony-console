@@ -8,4 +8,26 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Exception;
 
-class ConfGenerateException extends Exception {}
+use Throwable;
+
+/**
+ * @phpstan-consistent-constructor
+ */
+class ConfGenerateException extends Exception
+{
+    /**
+     * @param array<string, mixed> $context
+     */
+    public static function from(
+        Throwable $throwable,
+        array $context = [],
+        ?string $message = null,
+    ): static {
+        return new static(
+            $message ?? $throwable->getMessage(),
+            (int)$throwable->getCode(),
+            $throwable,
+            $context,
+        );
+    }
+}

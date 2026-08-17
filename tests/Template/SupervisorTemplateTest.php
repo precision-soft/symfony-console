@@ -15,6 +15,7 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
+use PrecisionSoft\Symfony\Console\Test\Utility\ConfFiles;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
@@ -30,7 +31,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testGenerate(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -63,7 +64,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);
 
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('[program:test-test]', $content);
         static::assertStringContainsString('command = test', $content);
         static::assertStringContainsString('numprocs = 1', $content);
@@ -74,7 +75,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testSettingsFallBackToConfig(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -105,7 +106,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
         $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('[program:config-prefix-worker]', $content);
         static::assertStringContainsString('user = config-user', $content);
         static::assertStringContainsString('autostart = false', $content);
@@ -115,7 +116,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testMissingPrefixThrowsException(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -151,7 +152,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testMissingUserThrowsException(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -187,7 +188,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testMissingAutoStartThrowsException(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -223,7 +224,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testMissingAutoRestartThrowsException(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -259,7 +260,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testCustomLogFileFromCommandSettings(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -292,13 +293,13 @@ final class SupervisorTemplateTest extends AbstractTestCase
         $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('stdout_logfile = /custom/path/worker.log', $content);
     }
 
     public function testMultipleCommandsGenerateMultipleFiles(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -343,7 +344,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSubDirSplitsCommandsIntoSubDirectories(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -398,7 +399,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSubDirFallsBackToConfigSettings(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -445,7 +446,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testEmptyCommandDestinationOptsOutOfTheConfigLevelValues(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -485,7 +486,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testCollidingDestinationPathsAreRejected(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -529,7 +530,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSubDirSeparatorsAreNormalized(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -575,7 +576,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSubDirRedundantSegmentsAreCollapsed(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -630,7 +631,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSuffixIsAppendedBeforeTheExtension(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -676,7 +677,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSuffixFallsBackToConfigSettings(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -723,7 +724,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testDestinationSubDirAndSuffixCombine(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -761,7 +762,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
 
     public function testCommandPassesThroughVerbatim(): void
     {
-        /** @var SupervisorTemplate|MockInterface $supervisorTemplate */
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
         $supervisorTemplate = $this->get(SupervisorTemplate::class);
 
         $configDto = new ConfigDto(
@@ -793,7 +794,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
         $confFilesDto = $supervisorTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('command = bin/console messenger:consume --limit=100', $content);
     }
 }

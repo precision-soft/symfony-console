@@ -28,7 +28,6 @@ abstract class AbstractCommand extends Command
 
         $this->initializeSymfonyStyle($input, $output);
 
-        /** @info skip the decorated title block when stdout cannot render it (piped / redirected / non-decorated) or when the user has requested quiet output — otherwise the title pollutes machine-readable output */
         if (false === $output->isDecorated() || OutputInterface::VERBOSITY_QUIET >= $output->getVerbosity()) {
             return;
         }

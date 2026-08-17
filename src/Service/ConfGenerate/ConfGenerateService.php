@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Service\ConfGenerate;
 
+use Exception;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
-use Throwable;
 
 class ConfGenerateService
 {
@@ -42,15 +42,18 @@ class ConfGenerateService
 
         $templateInterface = $this->getTemplate($configInterface);
 
-        /** @info templates declare `InvalidConfigurationException` and `InvalidValueException`, neither of which the
-         * calling command catches — wrap them so the whole method honours the `@throws ConfGenerateException` it
-         * declares, the same way `ConfFileWriter` wraps the failures it triggers */
         try {
             $confFilesDto = $templateInterface->generate($configInterface, $commands);
-        } catch (Throwable $throwable) {
-            throw true === $throwable instanceof ConfGenerateException
-                ? $throwable
-                : new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
+        } catch (Exception $exception) {
+            throw true === $exception instanceof ConfGenerateException
+                ? $exception
+                : ConfGenerateException::from(
+                    $exception,
+                    [
+                        'templateClass' => $templateInterface::class,
+                        'confFilesDir' => $configInterface->getConfFilesDir(),
+                    ],
+                );
         }
 
         return $this->confFileWriter->save($confFilesDto, $configInterface->getConfFilesDir());

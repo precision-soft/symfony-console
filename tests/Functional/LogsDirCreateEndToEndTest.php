@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
 use PrecisionSoft\Symfony\Console\Command\LogsDirCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\PrecisionSoftSymfonyConsoleExtension;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
@@ -16,13 +17,8 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Filesystem\Filesystem;
 
-/**
- * @info the only test that compiles a real container — it covers what unit tests cannot: `%kernel.logs_dir%` being
- * expanded inside an array parameter, the `%precision_soft_symfony_console.logs_dirs%` argument arriving as an actual
- * array, and the whole service graph staying autowirable
- *
- * @internal
- */
+/** @internal */
+#[Group('integration')]
 final class LogsDirCreateEndToEndTest extends AbstractTestCase
 {
     private string $baseDir;
@@ -99,12 +95,11 @@ final class LogsDirCreateEndToEndTest extends AbstractTestCase
         $containerBuilder->setParameter('kernel.logs_dir', $this->baseDir);
         $containerBuilder->setParameter('kernel.project_dir', $this->baseDir);
 
-        /** @info FrameworkBundle registers this in a real application, the bundle only autowires it */
         $containerBuilder->register(Filesystem::class, Filesystem::class);
 
         (new PrecisionSoftSymfonyConsoleExtension())->load([$configuration], $containerBuilder);
 
-        /** @info without `AddConsoleCommandPass` nothing references the command, so `RemoveUnusedDefinitionsPass` would drop the private definition before we can fetch it */
+        /* nothing references the command, so RemoveUnusedDefinitionsPass would drop the private definition */
         $containerBuilder->getDefinition(LogsDirCreateCommand::class)->setPublic(true);
 
         $containerBuilder->compile();

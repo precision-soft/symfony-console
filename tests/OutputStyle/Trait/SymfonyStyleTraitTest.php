@@ -8,9 +8,12 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\OutputStyle\Trait;
 
+use Exception as BaseException;
 use Mockery;
 use Mockery\MockInterface;
+use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 use PrecisionSoft\Symfony\Console\Exception\Exception;
+use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\OutputStyle\Trait\SymfonyStyleTrait;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
@@ -20,6 +23,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use TypeError;
 
 class SymfonyStyleTraitTestObject
 {
@@ -38,7 +42,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testWriteln(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
@@ -55,7 +59,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testError(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
@@ -72,18 +76,21 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testErrorWithThrowable(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
+
+        $exception = new Exception('inner error');
 
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
         $symfonyStyle->shouldReceive('error')
             ->once()
-            ->with(Mockery::pattern('/error message.*Exception/'));
+            ->with(Mockery::on(static function (string $argument) use ($exception): bool {
+                return 1 === \preg_match('/error message.*Exception/', $argument)
+                    && false === \str_contains($argument, $exception->getTraceAsString());
+            }));
 
         $reflectionProperty = new ReflectionProperty($traitObject, 'style');
         $reflectionProperty->setValue($traitObject, $symfonyStyle);
-
-        $exception = new Exception('inner error');
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'error');
         $reflectionMethod->invoke($traitObject, 'error message', $exception);
@@ -91,7 +98,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testErrorWithThrowableAndExposeTrace(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $exception = new Exception('inner error');
@@ -113,7 +120,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testInfo(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
@@ -130,7 +137,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testWarning(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
@@ -147,7 +154,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testSuccess(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $symfonyStyle = Mockery::mock(SymfonyStyle::class);
@@ -186,7 +193,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testFormatIncludesTimestampAndMemory(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $reflectionMethod = new ReflectionMethod($traitObject, 'format');
@@ -199,7 +206,7 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
     public function testFormatThrowableWithoutTrace(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $exception = new Exception('test error');
@@ -210,11 +217,16 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
         static::assertStringContainsString('Exception', $formattedThrowable);
         static::assertStringContainsString($exception->getFile(), $formattedThrowable);
         static::assertStringContainsString((string)$exception->getLine(), $formattedThrowable);
+
+        static::assertSame(
+            \sprintf('%s::%s::%s', $exception::class, $exception->getFile(), $exception->getLine()),
+            $formattedThrowable,
+        );
     }
 
     public function testFormatThrowableWithTrace(): void
     {
-        /** @var SymfonyStyleTraitTestObject|MockInterface $traitObject */
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
 
         $exception = new Exception('test error');
@@ -224,5 +236,83 @@ final class SymfonyStyleTraitTest extends AbstractTestCase
 
         static::assertStringContainsString('Exception', $formattedThrowable);
         static::assertStringContainsString($exception->getTraceAsString(), $formattedThrowable);
+    }
+
+    public function testFormatThrowableWalksThePreviousChain(): void
+    {
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
+        $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
+
+        $rootTypeError = new TypeError('root cause');
+        $middleException = new InvalidValueException('the file path is in use', 0, $rootTypeError);
+        $exception = new ConfGenerateException('generate failed', 0, $middleException);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $exception);
+
+        static::assertStringContainsString(TypeError::class, $formattedThrowable);
+        static::assertStringContainsString(InvalidValueException::class, $formattedThrowable);
+        static::assertStringContainsString(ConfGenerateException::class, $formattedThrowable);
+        static::assertStringContainsString((string)$rootTypeError->getLine(), $formattedThrowable);
+        static::assertSame(2, \substr_count($formattedThrowable, ' <- '));
+    }
+
+    public function testFormatThrowableRendersTheContext(): void
+    {
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
+        $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
+
+        $exception = new ConfGenerateException('generate failed', 0, null, ['destinationDir' => '/tmp/conf']);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $exception);
+
+        static::assertStringContainsString('{"destinationDir":"\\/tmp\\/conf"}', $formattedThrowable);
+    }
+
+    public function testFormatThrowableOmitsAnEmptyContext(): void
+    {
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
+        $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
+
+        $exception = new ConfGenerateException('generate failed');
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $exception);
+
+        static::assertStringNotContainsString('{', $formattedThrowable);
+        static::assertStringNotContainsString(' <- ', $formattedThrowable);
+    }
+
+    public function testFormatThrowableCapsACyclicChain(): void
+    {
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
+        $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
+
+        /* `previous` is readonly through the constructor, so a cycle has to be forged by reflection */
+        $first = new Exception('first');
+        $second = new Exception('second', 0, $first);
+
+        $reflectionProperty = new ReflectionProperty(BaseException::class, 'previous');
+        $reflectionProperty->setValue($first, $second);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $second);
+
+        static::assertSame(9, \substr_count($formattedThrowable, ' <- '));
+    }
+
+    public function testFormatThrowableWithTraceExposesTheRootCauseTrace(): void
+    {
+        /** @var SymfonyStyleTraitTestObject&MockInterface $traitObject */
+        $traitObject = $this->get(SymfonyStyleTraitTestObject::class);
+
+        $rootTypeError = new TypeError('root cause');
+        $exception = new ConfGenerateException('generate failed', 0, $rootTypeError);
+
+        $reflectionMethod = new ReflectionMethod($traitObject, 'formatThrowable');
+        $formattedThrowable = $reflectionMethod->invoke($traitObject, $exception, true);
+
+        static::assertStringContainsString($rootTypeError->getTraceAsString(), $formattedThrowable);
     }
 }

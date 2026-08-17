@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Functional;
 
+use PHPUnit\Framework\Attributes\Group;
 use PrecisionSoft\Symfony\Console\Command\WorkerCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\PrecisionSoftSymfonyConsoleExtension;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
@@ -16,13 +17,8 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Filesystem\Filesystem;
 
-/**
- * @info compiles a real container and runs the command end to end, covering what the unit tests cannot: the worker
- * configuration surviving `%kernel.project_dir%` expansion inside an array parameter, `WorkerDto` being built from it,
- * and `destination_sub_dir` reaching the filesystem as an actual directory tree
- *
- * @internal
- */
+/** @internal */
+#[Group('integration')]
 final class WorkerCreateEndToEndTest extends AbstractTestCase
 {
     private string $baseDir;
@@ -95,7 +91,7 @@ final class WorkerCreateEndToEndTest extends AbstractTestCase
         static::assertFileExists($expectedPath);
     }
 
-    public function testCompiledCommandRendersTheSupervisorProgramForASubDirectoryWorker(): void
+    public function testCompiledCommandRendersAParsableSupervisorProgramForASubDirectoryWorker(): void
     {
         $this->runWorkerCreate([
             'rendered' => [
@@ -107,10 +103,78 @@ final class WorkerCreateEndToEndTest extends AbstractTestCase
         $contents = \file_get_contents($this->baseDir . '/generated_conf/worker/machine-a/rendered.conf');
 
         static::assertIsString($contents);
-        static::assertStringContainsString('[program:app-rendered]', $contents);
-        static::assertStringContainsString('command = bin/console app:one', $contents);
-        /** @info the log file stays flat in `logs_dir`, the sub dir only splits the conf files */
-        static::assertStringContainsString(\sprintf('stdout_logfile = %s/worker/rendered.log', $this->baseDir), $contents);
+
+        $program = \parse_ini_string($contents, true, \INI_SCANNER_RAW);
+
+        static::assertIsArray($program);
+        static::assertArrayHasKey('program:app-rendered', $program);
+        static::assertSame(
+            [
+                'command' => 'bin/console app:one',
+                'process_name' => '%(program_name)s_%(process_num)s',
+                'numprocs' => '1',
+                'autostart' => 'true',
+                'autorestart' => 'true',
+                'stdout_logfile' => $this->baseDir . '/worker/rendered.log',
+                'stderr_logfile' => $this->baseDir . '/worker/rendered.log',
+                'user' => 'root',
+                'stopwaitsecs' => '30',
+                'stdout_logfile_maxbytes' => '0',
+                'stderr_logfile_maxbytes' => '0',
+                'stdout_logfile_backups' => '0',
+                'stderr_logfile_backups' => '0',
+                'startsecs' => '0',
+            ],
+            $program['program:app-rendered'],
+        );
+    }
+
+    public function testCompiledCommandRendersTheOverriddenSupervisorSettings(): void
+    {
+        $this->runWorkerCreate([
+            'overridden' => [
+                'command' => 'bin/console app:one',
+                'settings' => [
+                    'number_of_processes' => 4,
+                    'auto_start' => false,
+                    'auto_restart' => false,
+                    'prefix' => 'other',
+                    'user' => 'www-data',
+                ],
+            ],
+        ]);
+
+        $contents = \file_get_contents($this->baseDir . '/generated_conf/worker/overridden.conf');
+
+        static::assertIsString($contents);
+
+        $program = \parse_ini_string($contents, true, \INI_SCANNER_RAW);
+
+        static::assertIsArray($program);
+        static::assertArrayHasKey('program:other-overridden', $program);
+        static::assertSame('4', $program['program:other-overridden']['numprocs']);
+        static::assertSame('false', $program['program:other-overridden']['autostart']);
+        static::assertSame('false', $program['program:other-overridden']['autorestart']);
+        static::assertSame('www-data', $program['program:other-overridden']['user']);
+    }
+
+    public function testASemicolonInACommandTruncatesTheDirectiveWhenTheConfIsReadBack(): void
+    {
+        $this->runWorkerCreate([
+            'truncated' => [
+                'command' => ['sh', '-c', 'bin/console app:one; bin/console app:two'],
+            ],
+        ]);
+
+        $contents = \file_get_contents($this->baseDir . '/generated_conf/worker/truncated.conf');
+
+        static::assertIsString($contents);
+        static::assertStringContainsString('command = sh -c bin/console app:one; bin/console app:two', $contents);
+
+        $program = \parse_ini_string($contents, true, \INI_SCANNER_RAW);
+
+        static::assertIsArray($program);
+        static::assertSame('sh -c bin/console app:one', $program['program:app-truncated']['command']);
     }
 
     public function testCompiledCommandFailsCleanlyOnCollidingDestinationPaths(): void
@@ -140,7 +204,6 @@ final class WorkerCreateEndToEndTest extends AbstractTestCase
         $containerBuilder->setParameter('kernel.logs_dir', $this->baseDir);
         $containerBuilder->setParameter('kernel.project_dir', $this->baseDir);
 
-        /** @info FrameworkBundle registers this in a real application, the bundle only autowires it */
         $containerBuilder->register(Filesystem::class, Filesystem::class);
 
         (new PrecisionSoftSymfonyConsoleExtension())->load([
@@ -154,7 +217,7 @@ final class WorkerCreateEndToEndTest extends AbstractTestCase
             ],
         ], $containerBuilder);
 
-        /** @info without `AddConsoleCommandPass` nothing references the command, so `RemoveUnusedDefinitionsPass` would drop the private definition before we can fetch it */
+        /* nothing references the command, so RemoveUnusedDefinitionsPass would drop the private definition */
         $containerBuilder->getDefinition(WorkerCreateCommand::class)->setPublic(true);
 
         $containerBuilder->compile();

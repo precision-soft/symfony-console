@@ -1,0 +1,95 @@
+name: ci
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+    workflow_dispatch:
+
+# read-only: nothing here tags or publishes, so a write-scoped token would only ever be an offer
+permissions:
+    contents: read
+
+# A second push to the same branch makes the first run's answer worthless before it finishes.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    # these read the same bytes on every interpreter, so once rather than three times; php-cs-fixer
+    # would also print a meaningless min-version warning above composer.json's floor
+    static:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.2'
+                    coverage: none
+            -   name: validate the manifest
+                run: composer validate --strict
+            -   name: resolve the composer cache directory
+                id: composer-cache
+                run: echo "path=$(composer config --global cache-files-dir)" >> "${GITHUB_OUTPUT}"
+            -   uses: actions/cache@v4
+                with:
+                    path: ${{ steps.composer-cache.outputs.path }}
+                    key: composer-8.2-${{ hashFiles('composer.lock') }}
+                    restore-keys: composer-8.2-
+            # installed, never resolved: a job resolving its own would certify this code with a different analyser
+            -   name: install the locked dependencies
+                run: composer install --no-progress --no-interaction --prefer-dist
+            -   name: cs check
+                run: composer cs-check
+
+    # phpstan's inference follows the interpreter, so it belongs in the matrix. The integration group
+    # needs no service here, hence no job of its own; --fail-on-skipped because that suite skips only
+    # when the real phpunit binary is absent, which after `composer install` means a broken install.
+    # Every other package resolves this one through `^3.0`, so a red leg here warns six suites early
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                php: [ '8.2', '8.3', '8.4' ]
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php }}
+                    coverage: none
+            -   name: resolve the composer cache directory
+                id: composer-cache
+                run: echo "path=$(composer config --global cache-files-dir)" >> "${GITHUB_OUTPUT}"
+            -   uses: actions/cache@v4
+                with:
+                    path: ${{ steps.composer-cache.outputs.path }}
+                    key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+                    restore-keys: composer-${{ matrix.php }}-
+            -   name: install the locked dependencies
+                run: composer install --no-progress --no-interaction --prefer-dist
+            # simple-phpunit builds a phpunit tree composer.lock does not describe; cached after the
+            # install, since composer owns vendor/ and would clean a pre-restored directory back out
+            -   uses: actions/cache@v4
+                with:
+                    path: vendor/bin/.phpunit
+                    key: phpunit-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+            -   name: phpstan
+                run: composer phpstan
+            -   name: test
+                run: composer test
+            -   name: integration suite
+                run: composer test-integration -- --fail-on-skipped
+
+    # `--locked` reads composer.lock, so no vendor/ and no install step; kept out of `composer check`
+    # because it is the only section needing the network
+    audit:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.2'
+                    coverage: none
+            -   name: audit the locked dependencies
+                run: composer deps-audit

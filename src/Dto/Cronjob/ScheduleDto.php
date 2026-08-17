@@ -102,7 +102,6 @@ class ScheduleDto
             if (true === \str_contains($rangeOnly, '-')) {
                 $rangeParts = \explode('-', $rangeOnly);
 
-                /** @info after `str_contains('-')` + `explode('-')` we always have at least 2 parts, but individual parts may be empty strings (e.g. `5-` → ['5', '']) or non-numeric (e.g. `-5` → ['', '5']); both are invalid */
                 if (
                     2 !== \count($rangeParts)
                     || '' === $rangeParts[0]

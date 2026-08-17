@@ -29,12 +29,12 @@ class ConfFileWriter
             return [];
         }
 
-        /** @info stage the temp tree next to the destination (same parent dir) so the activation rename is a true atomic same-filesystem swap; staging under sys_get_temp_dir() would degrade to Symfony's non-atomic mirror() copy whenever /tmp is on a different filesystem (common in containers) */
+        /* staged next to the destination so the activation rename is a same-filesystem atomic swap */
         $temporaryDirectory = \rtrim(\dirname($destinationDir), '/') . '/.conf_' . \bin2hex(\random_bytes(8));
 
         $this->filesystem->mkdir($temporaryDirectory, 0755);
 
-        /** @info guard a TOCTOU race where an attacker could pre-create a symlink at our chosen path; `Filesystem::mkdir` is a no-op when the path already exists (as a directory or a symlink pointing at one), so we explicitly verify the path we just created is a real directory */
+        /* `Filesystem::mkdir` is a no-op on an existing path, so a pre-created symlink would pass unnoticed */
         if (true === \is_link($temporaryDirectory) || false === \is_dir($temporaryDirectory)) {
             throw new ConfGenerateException(\sprintf('temporary directory `%s` is not a real directory', $temporaryDirectory));
         }
@@ -66,12 +66,17 @@ class ConfFileWriter
                     \sprintf('%s — backup preserved at `%s`', $throwable->getMessage(), $backupDirectory),
                     (int)$throwable->getCode(),
                     true === $throwable instanceof ConfGenerateException ? $throwable->getPrevious() : $throwable,
+                    [
+                        'destinationDir' => $destinationDir,
+                        'backupDirectory' => $backupDirectory,
+                        'backupRestored' => false,
+                    ],
                 );
             }
 
             throw true === $throwable instanceof ConfGenerateException
                 ? $throwable
-                : new ConfGenerateException($throwable->getMessage(), (int)$throwable->getCode(), $throwable);
+                : ConfGenerateException::from($throwable, ['destinationDir' => $destinationDir]);
         }
     }
 
@@ -85,6 +90,7 @@ class ConfFileWriter
                 \sprintf('logs directory `%s` could not be created — %s', $logsDir, $throwable->getMessage()),
                 (int)$throwable->getCode(),
                 $throwable,
+                ['logsDir' => $logsDir],
             );
         }
     }
@@ -97,7 +103,7 @@ class ConfFileWriter
     {
         $configurationFiles = [];
 
-        /** @info enforce a trailing separator so `/tmp/conf` does not match `/tmp/confAAAA/...` via prefix alone */
+        /* the trailing separator is what stops `/tmp/conf` matching `/tmp/confAAAA/...` by prefix */
         $destinationDirPrefix = \rtrim($destinationDir, '/') . '/';
 
         $canonicalTemporaryDirectory = \realpath($temporaryDirectory);
@@ -121,7 +127,7 @@ class ConfFileWriter
 
             $this->filesystem->dumpFile($tempPath, $content);
 
-            /** @info after writing, canonicalize the resulting file path and verify it stays within the (already canonicalized) temporary directory — guards against symlink-based escapes that passed the textual checks above */
+            /* the textual checks above pass for a symlink, so the written path is re-checked canonicalized */
             $canonicalTempPath = \realpath($tempPath);
 
             if (
@@ -158,7 +164,7 @@ class ConfFileWriter
 
             return true;
         } catch (Throwable) {
-            /** @info backup restore failed, original error is rethrown by caller */
+            /* the caller rethrows the original failure */
             return false;
         }
     }
@@ -169,7 +175,7 @@ class ConfFileWriter
             try {
                 $this->filesystem->remove($path);
             } catch (Throwable) {
-                /** @info cleanup is non-critical */
+                /* cleanup is non-critical */
             }
         }
     }

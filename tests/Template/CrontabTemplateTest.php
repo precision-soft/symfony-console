@@ -13,6 +13,7 @@ use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
+use PrecisionSoft\Symfony\Console\Test\Utility\ConfFiles;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 
@@ -28,7 +29,7 @@ final class CrontabTemplateTest extends AbstractTestCase
 
     public function testGenerate(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -66,7 +67,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);
 
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('* * * * * test', $content);
         static::assertStringContainsString('GENERATED FILE', $content);
         static::assertStringContainsString(">> 'test/test.log' 2>&1", $content);
@@ -75,7 +76,7 @@ final class CrontabTemplateTest extends AbstractTestCase
 
     public function testHeartbeatDisabled(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -114,7 +115,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);
 
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('0 6 * * * bin/console app:test', $content);
         static::assertStringNotContainsString('/bin/touch', $content);
         static::assertStringNotContainsString('heartbeat', $content);
@@ -122,7 +123,7 @@ final class CrontabTemplateTest extends AbstractTestCase
 
     public function testLogDisabledOmitsLogRedirect(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -159,14 +160,14 @@ final class CrontabTemplateTest extends AbstractTestCase
         $confFilesDto = $crontabTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringNotContainsString('>>', $content);
         static::assertStringNotContainsString('2>&1', $content);
     }
 
     public function testUserFromConfigSettings(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -204,13 +205,13 @@ final class CrontabTemplateTest extends AbstractTestCase
         $confFilesDto = $crontabTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('www-data bin/console app:test', $content);
     }
 
     public function testMultipleCommandsAcrossFiles(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -271,7 +272,7 @@ final class CrontabTemplateTest extends AbstractTestCase
 
     public function testEmptyCommandsGeneratesNoFiles(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -293,7 +294,7 @@ final class CrontabTemplateTest extends AbstractTestCase
 
     public function testHeartbeatOnlyConfigGeneratesFile(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -332,14 +333,14 @@ final class CrontabTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);
 
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('/bin/touch', $content);
         static::assertStringContainsString('/tmp/heartbeat.test', $content);
     }
 
     public function testHeartbeatOnlyWithDefaultHeartbeatGeneratesFile(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -359,14 +360,14 @@ final class CrontabTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         static::assertCount(1, $files);
 
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('/bin/touch', $content);
         static::assertStringContainsString('heartbeat', $content);
     }
 
     public function testCustomLogFileName(): void
     {
-        /** @var CrontabTemplate|MockInterface $crontabTemplate */
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
         $crontabTemplate = $this->get(CrontabTemplate::class);
 
         $configDto = new ConfigDto(
@@ -404,7 +405,7 @@ final class CrontabTemplateTest extends AbstractTestCase
         $confFilesDto = $crontabTemplate->generate($configDto, $commands);
 
         $files = $confFilesDto->getFiles();
-        $content = \reset($files);
+        $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString(">> '/var/log/custom.log' 2>&1", $content);
     }
 }

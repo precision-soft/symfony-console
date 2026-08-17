@@ -18,10 +18,6 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
-/**
- * Command parts are rendered verbatim into the generated Kubernetes worker YAML.
- * Sanitizing command input (shell metacharacters, newlines) is the caller's responsibility.
- */
 class KubernetesWorkerTemplate implements TemplateInterface
 {
     use KubernetesJobTrait;

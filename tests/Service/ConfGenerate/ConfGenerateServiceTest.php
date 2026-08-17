@@ -20,6 +20,7 @@ use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use ReflectionClass;
 use Symfony\Component\Filesystem\Filesystem;
+use TypeError;
 
 /**
  * @internal
@@ -121,6 +122,43 @@ final class ConfGenerateServiceTest extends AbstractTestCase
         } catch (ConfGenerateException $confGenerateException) {
             static::assertSame('the file path is in use `worker.blue.conf`', $confGenerateException->getMessage());
             static::assertSame($invalidValueException, $confGenerateException->getPrevious());
+
+            static::assertSame(
+                [
+                    'templateClass' => $templateInterfaceMock::class,
+                    'confFilesDir' => $temporaryDirectory,
+                ],
+                $confGenerateException->getContext(),
+            );
+        } finally {
+            $filesystem = new Filesystem();
+            $filesystem->remove([$temporaryDirectory, $logsDirectory]);
+        }
+    }
+
+    public function testGenerateDoesNotWrapProgrammingErrors(): void
+    {
+        $temporaryDirectory = \sys_get_temp_dir() . '/test_conf_generate_error_' . \uniqid('', true);
+        $logsDirectory = \sys_get_temp_dir() . '/test_logs_error_' . \uniqid('', true);
+
+        $typeError = new TypeError('argument #1 must be of type string, int given');
+
+        $templateInterfaceMock = Mockery::mock(TemplateInterface::class);
+        $templateInterfaceMock->shouldReceive('generate')->once()->andThrow($typeError);
+
+        $confGenerateService = new ConfGenerateService([$templateInterfaceMock], new ConfFileWriter(new Filesystem()));
+
+        $configInterfaceMock = Mockery::mock(ConfigInterface::class);
+        $configInterfaceMock->shouldReceive('getTemplateClass')->andReturn($templateInterfaceMock::class);
+        $configInterfaceMock->shouldReceive('getLogsDir')->andReturn($logsDirectory);
+        $configInterfaceMock->shouldReceive('getConfFilesDir')->andReturn($temporaryDirectory);
+
+        try {
+            $confGenerateService->generate($configInterfaceMock, []);
+
+            static::fail(\sprintf('expected a %s', TypeError::class));
+        } catch (TypeError $caughtTypeError) {
+            static::assertSame($typeError, $caughtTypeError);
         } finally {
             $filesystem = new Filesystem();
             $filesystem->remove([$temporaryDirectory, $logsDirectory]);

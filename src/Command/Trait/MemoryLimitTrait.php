@@ -18,7 +18,6 @@ trait MemoryLimitTrait
 
     protected ?string $memoryLimit = null;
 
-    /** @info cached byte value parsed from `$memoryLimit`, populated lazily on first `getMemoryLimitReached()` call so the hot loop does not re-parse on each iteration */
     protected ?int $memoryLimitBytes = null;
 
     /** @throws InvalidValueException */

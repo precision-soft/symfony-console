@@ -17,10 +17,6 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
-/**
- * Command parts are rendered verbatim into the generated Supervisor `.conf` file.
- * Sanitizing command input (shell metacharacters, newlines) is the caller's responsibility.
- */
 class SupervisorTemplate implements TemplateInterface
 {
     use WorkerNumberOfProcessesTrait;
@@ -63,9 +59,6 @@ class SupervisorTemplate implements TemplateInterface
 
         $pathParts = [\rtrim($configDto->getConfFilesDir(), '/')];
 
-        /** @info collapse the sub dir into its meaningful segments, dropping empty ones (leading, trailing and repeated
-         * separators) and `.`, so the returned path is the one actually written — `ConfFileWriter` reports these paths
-         * back to the user and `ConfFilesDto` detects collisions by comparing them verbatim */
         foreach (\explode('/', $destinationSubDir ?? '') as $destinationSubDirPart) {
             if ('' === $destinationSubDirPart || '.' === $destinationSubDirPart) {
                 continue;
@@ -99,7 +92,6 @@ class SupervisorTemplate implements TemplateInterface
             '%numberOfProcesses%' => (string)$this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
             '%autoRestart%' => true === $this->getAutoRestart($configDto, $commandDto) ? 'true' : 'false',
-            /** @info custom logFile values from settings are used as-is (absolute paths); validation is the caller's responsibility */
             '%logFile%' => $commandDto->getSettings()->getLogFile() ?? \sprintf('%s/%s.log', \rtrim($configDto->getLogsDir(), '/'), $commandDto->getName()),
         ];
 

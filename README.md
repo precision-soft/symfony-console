@@ -1,5 +1,6 @@
 # Symfony Console
 
+[![ci](https://github.com/precision-soft/symfony-console/actions/workflows/ci.yml/badge.svg)](https://github.com/precision-soft/symfony-console/actions/workflows/ci.yml)
 [![PHP >= 8.2](https://img.shields.io/badge/php-%3E%3D8.2-8892BF)](https://www.php.net/)
 [![PHPStan Level 8](https://img.shields.io/badge/phpstan-level%208-brightgreen)](https://phpstan.org/)
 [![Code Style PER-CS2.0](https://img.shields.io/badge/code%20style-PER--CS2.0-blue)](https://www.php-fig.org/per/coding-style/)
@@ -56,6 +57,10 @@ precision_soft_symfony_console:
 Both `cronjob.config.logs_dir` and `worker.config.logs_dir` have defaults, so `%kernel.logs_dir%/cron` and `%kernel.logs_dir%/worker` are created even by an application that declares no cron job and no worker.
 
 The resulting list is deduplicated and exposed as the `precision_soft_symfony_console.logs_dirs` container parameter. Deduplication compares the configured values before the container expands them, so `logs_dirs: ['var/log/cron']` is kept alongside `%kernel.logs_dir%/cron` even when both resolve to the same path — harmless, since the directories are created idempotently.
+
+Entries must be strings, and this is enforced at container build time: a bare `logs_dirs: [123]` is rejected with the node named, rather than reaching the filesystem as a directory name.
+
+`logs_dirs` does not deep-merge. When the node is declared in more than one configuration file — a bundle default and an environment override, say — the last declaration **replaces** the list instead of appending to it, so an environment can drop directories as well as add them. The two derived directories (`cronjob.config.logs_dir` and `worker.config.logs_dir`) are unaffected and always present.
 
 ### Cron job configuration
 
@@ -200,6 +205,19 @@ precision_soft_symfony_console:
 ```
 
 The `destination_file` setting is mandatory for both Kubernetes templates. The Kubernetes Worker template has no default. The Kubernetes CronJob template defaults to `crontab` from the cronjob config settings if not overridden per command.
+
+Both templates write a values file whose collection is a **YAML sequence**:
+
+```yaml
+CronJobs:
+    jobs:
+        -
+            name: cleanup
+            command: '/app/bin/console app:cleanup'
+            schedule: '0 3 * * *'
+```
+
+Up to and including v4.4.0 the collection was emitted as a mapping keyed `0:`, `1:` instead. Both forms parse into the same structure in most consumers, but they do not merge the same way — Helm merges two values files key by key for a mapping and replaces the whole value for a sequence. A chart that indexes an entry directly (`.Values.CronJobs.jobs.0`) must be updated to use `index` or a `range`.
 
 ## Available templates
 
@@ -369,12 +387,13 @@ class MyCommand extends AbstractCommand
 
 The bundle defines the following interfaces in the `PrecisionSoft\Symfony\Console\Contract` namespace:
 
-| Interface           | Purpose                                                                                                                                                                                             |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `TemplateInterface` | Implemented by all templates — `generate(ConfigInterface, array): ConfFilesDto`                                                                                                                     |
-| `ConfigInterface`   | Provides template class, logs dir, conf files dir, and settings                                                                                                                                     |
-| `SettingsInterface` | Provides access to the settings object via `getSettings(): SettingInterface`                                                                                                                        |
-| `SettingInterface`  | Retrieves a single setting value via `getSetting(string): ?string` — boolean values are returned as the literal strings `'true'` / `'false'`, `null` stays `null`, other scalars are cast to string |
+| Interface            | Purpose                                                                                                                                                                                             |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `TemplateInterface`  | Implemented by all templates — `generate(ConfigInterface, array): ConfFilesDto`                                                                                                                     |
+| `ConfigInterface`    | Provides template class, logs dir, conf files dir, and settings                                                                                                                                     |
+| `SettingsInterface`  | Provides access to the settings object via `getSettings(): SettingInterface`                                                                                                                        |
+| `SettingInterface`   | Retrieves a single setting value via `getSetting(string): ?string` — boolean values are returned as the literal strings `'true'` / `'false'`, `null` stays `null`, other scalars are cast to string |
+| `ExceptionInterface` | Implemented by every exception in the bundle — `getContext(): array` and `setContext(?array): static`                                                                                               |
 
 ## Services
 
@@ -408,6 +427,30 @@ All exceptions extend `PrecisionSoft\Symfony\Console\Exception\Exception`:
 | `InvalidValueException`         | A value (e.g. memory limit) cannot be parsed                  |
 | `LimitExceededException`        | Memory or time limit is exceeded (`MemoryAndTimeLimitsTrait`) |
 | `SettingNotFoundException`      | A requested setting does not exist on the DTO                 |
+
+### Exception context
+
+Every exception carries a structured `context` array next to its message, so the facts describing a failure do not have to be parsed back out of a string:
+
+```php
+try {
+    $confGenerateService->generate($configDto, $commands);
+} catch (ConfGenerateException $confGenerateException) {
+    $logger->error($confGenerateException->getMessage(), $confGenerateException->getContext());
+}
+```
+
+`getContext()` returns `[]` when nothing was attached. Context values are expected to be scalars — `SymfonyStyleTrait::formatThrowable()` renders them as JSON. The bundle attaches `templateClass` and `confFilesDir` when a template fails, `logsDir` when a logs directory cannot be created, and `destinationDir`, `backupDirectory` and `backupRestored` when an activation failure leaves a backup behind — that last one being the case where an operator most needs to know where the previous configuration went.
+
+`ConfGenerateException::from($throwable, $context)` re-wraps a throwable while keeping it as the previous one. It is declared on `ConfGenerateException` rather than on the shared base class because `SettingNotFoundException` takes a different constructor signature, which the `new static()` inside `from()` could not honour.
+
+`Error` and its subclasses are deliberately never wrapped: a `TypeError` raised inside a custom template is a bug in that template, and turning it into a `ConfGenerateException` would send the operator looking for a bad configuration value that does not exist. Exceptions thrown by a custom template *are* wrapped, so the `@throws ConfGenerateException` on `generate()` still holds for anything a caller is expected to handle.
+
+When a command prints a throwable it prints the whole `previous` chain, each link as `class::file::line` plus its context, joined by ` <- `:
+
+```
+[ERROR] generate failed / ConfGenerateException::…/ConfFileWriter.php:66::{"destinationDir":"/etc/supervisor/conf.d"} <- TypeError::…/MyTemplate.php:97
+```
 
 ## AbstractCommand
 
@@ -458,11 +501,15 @@ When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>
 
 ### Path traversal protection
 
+`destination_file`, `destination_sub_dir` and `destination_suffix` are the three configuration values appended to `conf_files_dir` to form a generated path, and all three reject `..` and backslashes at container build time, naming the offending node. That check runs on the configuration as written, so a value supplied through a container parameter is still a literal placeholder at that point and cannot be checked — which is why the writer remains the backstop.
+
 `ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Each written file is additionally canonicalized via `realpath` and re-checked against the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks; the temp directory itself is verified to be a real directory (not a pre-existing symlink) to close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking the destination to a sensitive location.
 
 ### Configuration values in generated files
 
-Command parts (the `command` array) are rendered verbatim into generated config files (crontab, Supervisor `.conf`, Kubernetes YAML). The templates do not shell-escape command parts, so sanitizing command input (shell metacharacters, newlines) is the caller's responsibility. YAML special characters in Kubernetes templates are escaped via `escapeYamlValue()`, and log file paths in crontab are escaped via `\escapeshellarg()`. Do not pass untrusted user input as command strings or settings.
+Command parts (the `command` array) are rendered verbatim into generated config files (crontab, Supervisor `.conf`, Kubernetes YAML). The templates do not shell-escape command parts, so sanitizing command input (shell metacharacters, newlines) is the caller's responsibility. Kubernetes manifests are written by `Symfony\Component\Yaml\Yaml::dump()`, which quotes whatever needs quoting, and log file paths in crontab are escaped via `\escapeshellarg()`. Do not pass untrusted user input as command strings or settings.
+
+**A `;` in a Supervisor command is a known limitation.** `SupervisorTemplate` writes `command = <parts>` verbatim, and `;` opens an inline comment in the INI dialect — so a command such as `sh -c 'a; b'` produces a file whose `command` directive reads back as `sh -c a`, silently dropping the rest. The bundle neither quotes nor rejects it; keep `;` out of the command parts, or wrap the composite command in a script and point the worker at that instead.
 
 ## Dev
 
@@ -474,3 +521,35 @@ cd symfony-console
 
 ./dc build && ./dc up -d
 ```
+
+Run the full gate the way the pre-commit hook runs it - the CI workflow in
+`.github/workflows/ci.yml` calls the same composer scripts, so the two cannot drift:
+
+```shell
+.dev/validate/all.sh
+.dev/validate/all.sh --audit    # also audits the locked dependencies ( needs the network )
+.dev/validate/all.sh --staged   # what the pre-commit hook runs: nothing unless the index carries php
+```
+
+Mutation testing is opt-in for the same reason, plus cost - it runs the suite once per mutant:
+
+```shell
+.dev/validate/all.sh --mutation
+```
+
+Infection is a pinned phar in the image, not a composer dependency, and `infection.json5` carries a
+`minMsi` floor equal to the last measured score, so the section fails when a change makes the suite weaker rather than only reporting a number. Raise the floor when the score improves.
+
+Build against another PHP version with the `PHP_VERSION` build argument - each version is tagged as its own image, so switching back and forth costs nothing:
+
+```shell
+PHP_VERSION=8.4 ./dc build && PHP_VERSION=8.4 ./dc up -d
+```
+
+Coverage is available through pcov, which is installed but disabled by default:
+
+```shell
+./dc exec dev php -d pcov.enabled=1 vendor/bin/simple-phpunit --coverage-text
+```
+
+After editing a file, `./dc restart dev` (a few seconds) is enough to be sure the container is not serving a stale copy - the bind mount can keep the old inode after an atomic rewrite.

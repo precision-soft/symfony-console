@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Command\Trait;
 
+use Closure;
 use Mockery;
 use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\Trait\MemoryLimitTrait;
@@ -25,6 +26,16 @@ class MemoryLimitTraitTestObject
     use SymfonyStyleTrait;
 
     public InputInterface $input;
+
+    /* mirrors AbstractCommand by hand: extending Command breaks the partial mocks, its constructor calls its own setters */
+    /**
+     * @param string|array<int, string>|null $shortcut
+     * @param array<int, string>|Closure $suggestedValues
+     */
+    public function addOption(string $name, string|array|null $shortcut = null, ?int $mode = null, string $description = '', mixed $default = null, array|Closure $suggestedValues = []): static
+    {
+        return $this;
+    }
 }
 
 /**
@@ -39,7 +50,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testInitializeMemoryLimitSetsNull(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -61,7 +72,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
         $originalLimit = \ini_get('memory_limit');
 
         try {
-            /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+            /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
             $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
             $inputInterface = Mockery::mock(InputInterface::class);
@@ -84,7 +95,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testInitializeMemoryLimitWithNullOption(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -104,7 +115,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testInitializeMemoryLimitWithEmptyString(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -124,7 +135,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testIsMemoryLimitReachedReturnsFalseWhenNoLimit(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -138,7 +149,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testIsMemoryLimitReachedReturnsFalseWhenUnderLimit(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -158,7 +169,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testGetMemoryLimitReachedReturnsFalseWhenUnlimited(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');
@@ -178,7 +189,7 @@ final class MemoryLimitTraitTest extends AbstractTestCase
 
     public function testIsMemoryLimitReachedReturnsTrueWhenOverLimit(): void
     {
-        /** @var MemoryLimitTraitTestObject|MockInterface $traitObject */
+        /** @var MemoryLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(MemoryLimitTraitTestObject::class);
 
         $memoryLimitProperty = new ReflectionProperty($traitObject, 'memoryLimit');

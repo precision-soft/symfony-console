@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template\Trait;
 
-use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
+use PrecisionSoft\Symfony\Console\Test\Utility\KubernetesJobTraitObject;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
-use ReflectionMethod;
 use stdClass;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @internal
@@ -21,102 +21,66 @@ final class KubernetesJobTraitTest extends AbstractTestCase
 {
     public static function getMockDto(): MockDto
     {
-        return new MockDto(stdClass::class);
+        return new MockDto(KubernetesJobTraitObject::class, [], true);
     }
 
     public function testConvertArrayToStringFlat(): void
     {
-        $kubernetesJobTraitObject = $this->createTraitObject();
+        $dumpedYaml = (new KubernetesJobTraitObject())->dump(['key1' => 'value1', 'key2' => 'value2']);
 
-        $convertedString = $this->callMethod($kubernetesJobTraitObject, 'convertArrayToString', [
-            ['key1' => 'value1', 'key2' => 'value2'],
-        ]);
-
-        static::assertStringContainsString('key1: value1', $convertedString);
-        static::assertStringContainsString('key2: value2', $convertedString);
+        static::assertSame(['key1' => 'value1', 'key2' => 'value2'], Yaml::parse($dumpedYaml));
     }
 
     public function testConvertArrayToStringNested(): void
     {
-        $kubernetesJobTraitObject = $this->createTraitObject();
+        $dumpedYaml = (new KubernetesJobTraitObject())->dump(['parent' => ['child' => 'value']]);
 
-        $convertedString = $this->callMethod($kubernetesJobTraitObject, 'convertArrayToString', [
-            ['parent' => ['child' => 'value']],
-        ]);
-
-        static::assertStringContainsString('parent:', $convertedString);
-        static::assertStringContainsString('    child: value', $convertedString);
+        static::assertSame(['parent' => ['child' => 'value']], Yaml::parse($dumpedYaml));
+        static::assertStringContainsString('    child: value', $dumpedYaml);
     }
 
-    public function testConvertArrayToStringWithCustomIndent(): void
+    public function testConvertArrayToStringEmitsAListAsAYamlSequence(): void
     {
-        $kubernetesJobTraitObject = $this->createTraitObject();
-
-        $convertedString = $this->callMethod($kubernetesJobTraitObject, 'convertArrayToString', [
-            ['key' => 'value'],
-            1,
-            2,
+        $dumpedYaml = (new KubernetesJobTraitObject())->dump([
+            'collection' => [
+                ['name' => 'first'],
+                ['name' => 'second'],
+            ],
         ]);
 
-        static::assertStringContainsString('  key: value', $convertedString);
+        $parsedYaml = Yaml::parse($dumpedYaml, Yaml::PARSE_OBJECT_FOR_MAP);
+
+        static::assertInstanceOf(stdClass::class, $parsedYaml);
+        static::assertIsArray($parsedYaml->collection);
+        static::assertCount(2, $parsedYaml->collection);
+    }
+
+    public function testConvertArrayToStringQuotesValuesThatWouldOtherwiseChangeMeaning(): void
+    {
+        $values = [
+            'schedule' => '*/5 * * * *',
+            'command' => 'bin/console app:run --tag=#one',
+            'reserved' => 'true',
+            'numeric' => '42',
+            'empty' => '',
+            'multiline' => "first\nsecond",
+        ];
+
+        static::assertSame($values, Yaml::parse((new KubernetesJobTraitObject())->dump($values)));
     }
 
     public function testSanitizeReplacesSpecialCharacters(): void
     {
-        $kubernetesJobTraitObject = $this->createTraitObject();
+        $kubernetesJobTraitObject = new KubernetesJobTraitObject();
 
-        static::assertSame('app-test-command', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['app:test:command']));
-        static::assertSame('simple', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['simple']));
-        static::assertSame('with-spaces', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['with spaces']));
-        static::assertSame('test-123', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['test_123']));
+        static::assertSame('app-test-command', $kubernetesJobTraitObject->sanitizeInput('app:test:command'));
+        static::assertSame('simple', $kubernetesJobTraitObject->sanitizeInput('simple'));
+        static::assertSame('with-spaces', $kubernetesJobTraitObject->sanitizeInput('with spaces'));
+        static::assertSame('test-123', $kubernetesJobTraitObject->sanitizeInput('test_123'));
     }
 
     public function testSanitizePreservesAlphanumericAndDash(): void
     {
-        $kubernetesJobTraitObject = $this->createTraitObject();
-
-        static::assertSame('already-valid-123', $this->callMethod($kubernetesJobTraitObject, 'sanitize', ['already-valid-123']));
-    }
-
-    public function testEscapeYamlValueWithNewlines(): void
-    {
-        $kubernetesJobTraitObject = $this->createTraitObject();
-
-        $escapedValue = $this->callMethod($kubernetesJobTraitObject, 'escapeYamlValue', ["line1\nline2"]);
-
-        static::assertSame('"line1\\nline2"', $escapedValue);
-    }
-
-    public function testEscapeYamlValueWithTab(): void
-    {
-        $kubernetesJobTraitObject = $this->createTraitObject();
-
-        $escapedValue = $this->callMethod($kubernetesJobTraitObject, 'escapeYamlValue', ["value\twith\ttabs"]);
-
-        static::assertSame('"value\\twith\\ttabs"', $escapedValue);
-    }
-
-    public function testGetIndent(): void
-    {
-        $kubernetesJobTraitObject = $this->createTraitObject();
-
-        static::assertSame('    ', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [1, 4]));
-        static::assertSame('        ', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [2, 4]));
-        static::assertSame('', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [0, 4]));
-        static::assertSame('  ', $this->callMethod($kubernetesJobTraitObject, 'getIndent', [1, 2]));
-    }
-
-    private function createTraitObject(): object
-    {
-        return new class {
-            use KubernetesJobTrait;
-        };
-    }
-
-    private function callMethod(object $kubernetesJobTraitObject, string $method, array $args = []): mixed
-    {
-        $reflection = new ReflectionMethod($kubernetesJobTraitObject, $method);
-
-        return $reflection->invokeArgs($kubernetesJobTraitObject, $args);
+        static::assertSame('already-valid-123', (new KubernetesJobTraitObject())->sanitizeInput('already-valid-123'));
     }
 }

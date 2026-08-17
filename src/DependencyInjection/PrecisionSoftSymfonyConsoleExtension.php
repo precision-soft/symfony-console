@@ -31,9 +31,6 @@ class PrecisionSoftSymfonyConsoleExtension extends Extension
     }
 
     /**
-     * @info derived rather than defaulted, so overriding `cronjob.config.logs_dir` also moves the directory that
-     * `logs-dir-create` creates, instead of silently drifting away from it
-     *
      * @param array<string, mixed> $processedConfiguration
      * @return array<int, string>
      */

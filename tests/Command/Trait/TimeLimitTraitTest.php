@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Command\Trait;
 
+use Closure;
 use Mockery;
 use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\Trait\TimeLimitTrait;
@@ -26,6 +27,16 @@ class TimeLimitTraitTestObject
     use SymfonyStyleTrait;
 
     public InputInterface $input;
+
+    /* mirrors AbstractCommand by hand: extending Command breaks the partial mocks, its constructor calls its own setters */
+    /**
+     * @param string|array<int, string>|null $shortcut
+     * @param array<int, string>|Closure $suggestedValues
+     */
+    public function addOption(string $name, string|array|null $shortcut = null, ?int $mode = null, string $description = '', mixed $default = null, array|Closure $suggestedValues = []): static
+    {
+        return $this;
+    }
 }
 
 /**
@@ -40,7 +51,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitSetsStartTimeAndNull(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -61,7 +72,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitSetsValueFromOption(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -81,7 +92,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitWithNullOption(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -101,7 +112,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitWithEmptyString(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -121,7 +132,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitThrowsOnNonNumericValue(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -140,7 +151,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitThrowsOnZeroValue(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -159,7 +170,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testInitializeTimeLimitThrowsOnNegativeValue(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -178,7 +189,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testIsTimeLimitReachedReturnsFalseWhenNoLimit(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
@@ -192,7 +203,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testIsTimeLimitReachedReturnsFalseWhenUnderLimit(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
@@ -209,7 +220,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testIsTimeLimitReachedReturnsTrueWhenOverLimit(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');
@@ -232,7 +243,7 @@ final class TimeLimitTraitTest extends AbstractTestCase
 
     public function testIsTimeLimitReachedReturnsTrueWhenExactlyAtLimit(): void
     {
-        /** @var TimeLimitTraitTestObject|MockInterface $traitObject */
+        /** @var TimeLimitTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(TimeLimitTraitTestObject::class);
 
         $timeLimitProperty = new ReflectionProperty($traitObject, 'timeLimit');

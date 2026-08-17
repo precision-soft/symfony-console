@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Command\Trait;
 
+use Closure;
 use Mockery;
 use Mockery\MockInterface;
 use PrecisionSoft\Symfony\Console\Command\Trait\InstancesTrait;
@@ -26,12 +27,24 @@ class InstancesTraitTestObject
     use InstancesTrait;
 
     public InputInterface $input;
+
+    /* mirrors AbstractCommand by hand: extending Command breaks the partial mocks, its constructor calls its own setters */
+    /**
+     * @param string|array<int, string>|null $shortcut
+     * @param array<int, string>|Closure $suggestedValues
+     */
+    public function addOption(string $name, string|array|null $shortcut = null, ?int $mode = null, string $description = '', mixed $default = null, array|Closure $suggestedValues = []): static
+    {
+        return $this;
+    }
 }
 
 #[AsCommand(name: 'test:instances-trait')]
 class InstancesTraitConfigureTestCommand extends Command
 {
     use InstancesTrait;
+
+    public InputInterface $input;
 
     protected function configure(): void
     {
@@ -56,7 +69,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesReturnsValidValues(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -76,7 +89,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesThrowsExceptionWhenMaxInstancesIsZero(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -97,7 +110,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesThrowsExceptionWhenInstanceIndexIsZero(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -118,7 +131,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesThrowsExceptionWhenIndexExceedsMax(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -139,7 +152,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesThrowsExceptionWhenNegativeMaxInstances(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -159,7 +172,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testFormatMessageWithInstances(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -179,7 +192,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesWithIndexEqualToMax(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -212,7 +225,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesSingleInstance(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -232,7 +245,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesThrowsWhenMaxInstancesOptionNotRegistered(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);
@@ -252,7 +265,7 @@ final class InstancesTraitTest extends AbstractTestCase
 
     public function testComputeInstancesThrowsWhenInstanceIndexOptionNotRegistered(): void
     {
-        /** @var InstancesTraitTestObject|MockInterface $traitObject */
+        /** @var InstancesTraitTestObject&MockInterface $traitObject */
         $traitObject = $this->get(InstancesTraitTestObject::class);
 
         $inputInterface = Mockery::mock(InputInterface::class);

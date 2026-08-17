@@ -17,10 +17,6 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 use PrecisionSoft\Symfony\Console\Template\Trait\KubernetesJobTrait;
 
-/**
- * Command parts are rendered verbatim into the generated Kubernetes cronjob YAML.
- * Sanitizing command input (shell metacharacters, newlines) is the caller's responsibility.
- */
 class KubernetesCronjobTemplate implements TemplateInterface
 {
     use KubernetesJobTrait;
@@ -86,7 +82,7 @@ class KubernetesCronjobTemplate implements TemplateInterface
         return [
             'name' => $name,
             'command' => \implode(' ', $commandDto->getCommand()),
-            /** @info do not pre-wrap in quotes — `escapeYamlValue()` triggers on the `*` characters and handles YAML quoting itself, otherwise we would double-quote */
+            /* not pre-quoted: the dumper quotes what needs it, and pre-quoting would double-quote */
             'schedule' => $commandDto->getSchedule()->toCronExpression(),
         ];
     }

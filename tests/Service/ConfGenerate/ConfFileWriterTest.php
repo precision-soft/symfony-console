@@ -155,6 +155,23 @@ final class ConfFileWriterTest extends AbstractTestCase
         }
     }
 
+    public function testSaveRejectsAFileInASiblingDirectorySharingTheDestinationPrefix(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_sibling_' . \uniqid('', true);
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . 'AAAA/worker.conf', 'content');
+
+        $this->expectException(ConfGenerateException::class);
+        $this->expectExceptionMessage('is outside destination directory');
+
+        try {
+            $this->confFileWriter->save($confFilesDto, $destinationDirectory);
+        } finally {
+            $this->filesystem->remove([$destinationDirectory, $destinationDirectory . 'AAAA']);
+        }
+    }
+
     public function testSaveThrowsOnPathTraversal(): void
     {
         $destinationDirectory = \sys_get_temp_dir() . '/cfw_traversal_' . \uniqid('', true);
@@ -224,19 +241,64 @@ final class ConfFileWriterTest extends AbstractTestCase
     {
         $blockedParent = \sys_get_temp_dir() . '/cfw_logs_blocked_' . \uniqid('', true);
 
-        /** @info a regular file where the parent dir is expected, so the underlying `mkdir` cannot succeed */
         $this->filesystem->dumpFile($blockedParent, '');
 
         $logsDirectory = $blockedParent . '/cron';
 
-        try {
-            $this->expectException(ConfGenerateException::class);
-            $this->expectExceptionMessage(\sprintf('logs directory `%s` could not be created', $logsDirectory));
+        $confGenerateException = null;
 
+        try {
             $this->confFileWriter->initLogsDir($logsDirectory);
+        } catch (ConfGenerateException $confGenerateException) {
+            static::assertStringContainsString(
+                \sprintf('logs directory `%s` could not be created', $logsDirectory),
+                $confGenerateException->getMessage(),
+            );
+
+            static::assertSame(['logsDir' => $logsDirectory], $confGenerateException->getContext());
         } finally {
             $this->filesystem->remove($blockedParent);
         }
+
+        static::assertInstanceOf(ConfGenerateException::class, $confGenerateException);
+    }
+
+    public function testSaveWrapsAForeignThrowableKeepingItAsPreviousAndNamingTheDestination(): void
+    {
+        $destinationDirectory = \sys_get_temp_dir() . '/cfw_wrap_' . \uniqid('', true);
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($destinationDirectory . '/new.conf', 'new content');
+
+        $ioException = new IOException('disk is full');
+
+        $filesystemMock = Mockery::mock(Filesystem::class);
+        $filesystemMock->shouldReceive('mkdir')->andReturnUsing(function (string $dir, int $mode): void {
+            (new Filesystem())->mkdir($dir, $mode);
+        });
+        $filesystemMock->shouldReceive('dumpFile')->andThrow($ioException);
+        $filesystemMock->shouldReceive('exists')->andReturnUsing(function (string $path): bool {
+            return (new Filesystem())->exists($path);
+        });
+        $filesystemMock->shouldReceive('remove')->andReturnUsing(function ($paths): void {
+            (new Filesystem())->remove($paths);
+        });
+
+        $confFileWriter = new ConfFileWriter($filesystemMock);
+
+        $confGenerateException = null;
+
+        try {
+            $confFileWriter->save($confFilesDto, $destinationDirectory);
+        } catch (ConfGenerateException $confGenerateException) {
+            static::assertSame('disk is full', $confGenerateException->getMessage());
+            static::assertSame($ioException, $confGenerateException->getPrevious());
+            static::assertSame(['destinationDir' => $destinationDirectory], $confGenerateException->getContext());
+        } finally {
+            $this->filesystem->remove($destinationDirectory);
+        }
+
+        static::assertInstanceOf(ConfGenerateException::class, $confGenerateException);
     }
 
     public function testSavePreservesBackupWhenRestoreFails(): void
@@ -263,19 +325,19 @@ final class ConfFileWriterTest extends AbstractTestCase
         $filesystemMock->shouldReceive('rename')->andReturnUsing(function (string $origin, string $target) use (&$renameCallCount): void {
             $renameCallCount++;
 
-            /** @info first rename: destinationDir → backupDir (succeeds) */
+            /* 1: destinationDir → backupDir (succeeds) */
             if (1 === $renameCallCount) {
                 (new Filesystem())->rename($origin, $target);
 
                 return;
             }
 
-            /** @info second rename: tempDir → destinationDir (fails) */
+            /* 2: tempDir → destinationDir (fails) */
             if (2 === $renameCallCount) {
                 throw new IOException('deploy rename failed');
             }
 
-            /** @info third rename: backupDir → destinationDir (restore also fails) */
+            /* 3: backupDir → destinationDir (restore also fails) */
             throw new IOException('restore rename failed');
         });
         $filesystemMock->shouldReceive('remove')->andReturnUsing(function ($paths): void {
@@ -290,12 +352,22 @@ final class ConfFileWriterTest extends AbstractTestCase
             $confFileWriter->save($confFilesDto, $destinationDirectory);
         } catch (ConfGenerateException $confGenerateException) {
             static::assertStringContainsString('backup preserved at', $confGenerateException->getMessage());
+
+            $context = $confGenerateException->getContext();
+
+            static::assertSame($destinationDirectory, $context['destinationDir'] ?? null);
+            static::assertMatchesRegularExpression(
+                \sprintf('#^%s\.bak_[0-9a-f]{16}$#', \preg_quote($destinationDirectory, '#')),
+                (string)($context['backupDirectory'] ?? ''),
+            );
+            static::assertFalse($context['backupRestored'] ?? null);
         }
 
         static::assertInstanceOf(ConfGenerateException::class, $confGenerateException);
 
-        /** @info verify backup was NOT deleted */
         $backupDirectories = \glob($destinationDirectory . '.bak_*');
+
+        static::assertIsArray($backupDirectories);
         static::assertCount(1, $backupDirectories);
         static::assertFileExists($backupDirectories[0] . '/original.conf');
         static::assertSame('original content', \file_get_contents($backupDirectories[0] . '/original.conf'));
@@ -395,10 +467,10 @@ final class ConfFileWriterTest extends AbstractTestCase
             $confFileWriter->save($confFilesDto, $destinationDirectory);
 
             static::assertNotNull($capturedTemporaryDirectory);
-            /** @info staging next to the destination keeps the activation rename on the same filesystem (true atomic swap) */
-            static::assertSame(
-                \dirname($destinationDirectory),
-                \dirname($capturedTemporaryDirectory),
+
+            static::assertMatchesRegularExpression(
+                \sprintf('#^%s/\.conf_[0-9a-f]{16}$#', \preg_quote(\dirname($destinationDirectory), '#')),
+                $capturedTemporaryDirectory,
             );
         } finally {
             $this->filesystem->remove($destinationDirectory);

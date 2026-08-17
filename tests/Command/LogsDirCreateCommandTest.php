@@ -88,7 +88,6 @@ final class LogsDirCreateCommandTest extends AbstractTestCase
 
     public function testExecuteReturnsFailureWhenLogsDirCannotBeCreated(): void
     {
-        /** @info a regular file where the parent dir is expected, so the underlying `mkdir` cannot succeed */
         (new Filesystem())->dumpFile($this->baseDir, '');
 
         $logsDir = $this->baseDir . '/cron';

@@ -63,11 +63,6 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    /**
-     * @info additional directories for `logs-dir-create` to create, on top of `cronjob.config.logs_dir` and
-     * `worker.config.logs_dir`, which the extension derives on its own. Kept outside `cronjob`/`worker` so it stays
-     * meaningful for applications that declare neither.
-     */
     protected function buildLogsDirs(): NodeDefinition
     {
         $logsDirsTree = (new TreeBuilder(static::LOGS_DIRS, 'array'))->getRootNode();
@@ -77,7 +72,13 @@ class Configuration implements ConfigurationInterface
 
         return $logsDirsTree
             ->performNoDeepMerging()
-            ->scalarPrototype()->cannotBeEmpty()->end()
+            ->scalarPrototype()
+            ->cannotBeEmpty()
+            ->validate()
+            ->ifTrue(static fn($logsDir): bool => false === \is_string($logsDir))
+            ->thenInvalid(\sprintf('the `%s` entries must be strings, got %%s', static::LOGS_DIRS))
+            ->end()
+            ->end()
             ->defaultValue([]);
     }
 
@@ -94,14 +95,16 @@ class Configuration implements ConfigurationInterface
             ->scalarNode(static::CONF_FILES_DIR)->defaultValue(static::DESTINATION_DIR . 'cron')->end()
             ->scalarNode(static::LOGS_DIR)->defaultValue('%kernel.logs_dir%/cron')->end();
 
-        $configTree->children()->arrayNode(static::SETTINGS)
+        $settingsNodeBuilder = $configTree->children()->arrayNode(static::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet()
-            ->children()
-            ->booleanNode(static::LOG)->defaultTrue()->end()
-            ->scalarNode(static::DESTINATION_FILE)->defaultValue('crontab')->end()
+            ->children();
+
+        $settingsNodeBuilder->booleanNode(static::LOG)->defaultTrue()->end()
             ->booleanNode(static::HEARTBEAT)->defaultTrue()->end()
             ->scalarNode(static::USER)->defaultNull()->end();
+
+        $this->appendDestinationFileConfig($settingsNodeBuilder, 'crontab');
 
         $commandsTreeDefinition = $cronjobTree->children()->arrayNode(static::COMMANDS)
             ->isRequired()
@@ -115,8 +118,9 @@ class Configuration implements ConfigurationInterface
 
         $commandsTree->scalarNode(static::NAME)->end()
             ->scalarNode(static::LOG_FILE_NAME)->defaultNull()->end()
-            ->scalarNode(static::USER)->defaultNull()->end()
-            ->scalarNode(static::DESTINATION_FILE)->defaultNull()->end();
+            ->scalarNode(static::USER)->defaultNull()->end();
+
+        $this->appendDestinationFileConfig($commandsTree, null);
 
         $commandsTree->arrayNode(static::COMMAND)
             ->isRequired()
@@ -159,7 +163,7 @@ class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet();
         $settingsNodeBuilder = $settingsTree->children();
         $this->appendSupervisorConfig($settingsNodeBuilder);
-        $settingsNodeBuilder->scalarNode(static::DESTINATION_FILE)->defaultNull()->end();
+        $this->appendDestinationFileConfig($settingsNodeBuilder, null);
         $this->appendDestinationConfig($settingsNodeBuilder);
 
         $commandsTree = $workerTree->children()->arrayNode(static::COMMANDS)
@@ -189,11 +193,6 @@ class Configuration implements ConfigurationInterface
         return $workerTree;
     }
 
-    /**
-     * @info both values are appended to `conf_files_dir` by the template, so they must not be able to walk out of it.
-     * `ConfFileWriter` rejects such paths as a last line of defence, but validating here fails at container build time
-     * with the offending node named in the message, instead of at generation time with a raw path in the error
-     */
     protected function appendDestinationConfig(NodeBuilder $nodeBuilder): void
     {
         $nodeBuilder->scalarNode(static::DESTINATION_SUB_DIR)
@@ -209,6 +208,22 @@ class Configuration implements ConfigurationInterface
             ->validate()
             ->ifTrue(fn($destinationSuffix) => null !== $destinationSuffix && 1 === \preg_match('#[/\\\\]|\.\.#', (string)$destinationSuffix))
             ->thenInvalid(\sprintf('the `%s` must not contain `/`, a backslash or `..`, got %%s', static::DESTINATION_SUFFIX))
+            ->end()
+            ->end();
+    }
+
+    protected function appendDestinationFileConfig(NodeBuilder $nodeBuilder, ?string $defaultValue): void
+    {
+        $destinationFileNode = $nodeBuilder->scalarNode(static::DESTINATION_FILE);
+
+        $destinationFileNode = null === $defaultValue
+            ? $destinationFileNode->defaultNull()
+            : $destinationFileNode->defaultValue($defaultValue);
+
+        $destinationFileNode
+            ->validate()
+            ->ifTrue(fn($destinationFile) => null !== $destinationFile && 1 === \preg_match('#\.\.|\\\\#', (string)$destinationFile))
+            ->thenInvalid(\sprintf('the `%s` must not contain `..` or a backslash, got %%s', static::DESTINATION_FILE))
             ->end()
             ->end();
     }

@@ -1,10 +1,15 @@
 includes:
-    - phpstan-baseline.neon
+    - vendor/phpstan/phpstan-mockery/extension.neon
 
 parameters:
     level: 8
     paths:
         - src/
         - tests/
-    bootstrapFiles:
-        - vendor/bin/.phpunit/phpunit-11.5-0/vendor/autoload.php
+    ignoreErrors:
+        -
+            # `ini_get()` is declared as returning `string` for a known directive, but it returns `false` on a build
+            # where `memory_limit` is not registered. The guard is deliberate: without it `returnBytes(false)` raises a
+            # TypeError instead of the method returning without action. No `count`, so the guard can move.
+            identifier: identical.alwaysFalse
+            path: src/Service/MemoryService.php
