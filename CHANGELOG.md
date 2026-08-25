@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [v4.6.0] - 2026-08-25 - Per-file heartbeat and declared destination files
+
+### Added
+
+- `CrontabTemplate::DESTINATION_FILE_PLACEHOLDER` (`{destination_file}`) — an overridden `heartbeat` command is emitted into every generated crontab file, and until now the same command string reached all of them: `$destinationFile` was passed only to the `/bin/touch` fallback. A heartbeat that has to name the file it proves alive — one that records it in a shared database rather than touching a local one — could therefore not go through the override mechanism at all, and the only way to get per-file arguments was one ordinary cron row per file, with the fleet hardcoded at the call site. The placeholder is replaced with the destination path relative to `conf_files_dir`, flattened by replacing `/` with `.` (`machine-a/crontab` becomes `machine-a.crontab`) so that two files sharing a base name in different sub directories stay distinguishable, in the command parts and in `log_file_name` alike — before the line is assembled, so the log path is escaped around the substituted value rather
+  than the other way round. Substitution applies to the heartbeat command only, and an override that does not contain the placeholder is returned untouched and emitted byte for byte as before, so nothing that works today changes. An override that does use the placeholder is resolved into a fresh `CommandDto` carrying every key the original declared, unmodelled `settings` entries included, so `getSetting()` returns the same value whether or not the placeholder was present
+- `cronjob.config.settings.destination_files` — a list of crontab files that are generated even when no command targets them, unconditionally, so with `heartbeat` off a declared file nothing targets is written with no cron rows in it, validated for `..`, backslashes and paths that normalize away to nothing like every other path fragment, non-deep-merging so an environment can replace the list rather than append to it, and re-indexed before validation so a mapping written where a list was meant still yields a list. A crontab file only comes into existence because some command names it in `destination_file`, which means a machine that is supposed to run **nothing but the heartbeat** ends up with no crontab, and therefore no heartbeat either — the one case the feature above cannot cover on its own. Declared files are added to the ones the commands already produce, never instead of them: the default file is still materialised for a configuration whose only command is the heartbeat. The
+  precedent was already in the template, which materialises the default file when the configuration carries no commands at all
+- `ConfigSettingsDto::getDestinationFiles()` on the cron job settings DTO
+
+### Changed
+
+- `Template\Trait\DestinationPathTrait` — the `.`-and-empty path segment filtering that `SupervisorTemplate::buildPath()` already performed inline is extracted and shared with `CrontabTemplate`, which needs the same rule for the fixes below. Supervisor paths are unchanged, byte for byte. Both templates gain `splitDestinationPath()`, `normalizeDestinationPath()` and `buildDestinationPathLabel()` as protected methods, so a subclass that already declares any of those names will collide
+- `Dto\Trait\SettingsTrait::toArray()` — the inverse of `loadProperties()`, returning modelled properties and the unmodelled `stdClass` bag under the snake case keys they were loaded from, so a settings array can be round-tripped back through the constructor. Added on the trait rather than on `Contract\SettingInterface`, which would have broken every implementation outside this package
+- `Configuration::appendStringListPrototype()` — the node shape that `logs_dirs` and `destination_files` share (replaced rather than merged, no empty entry, entries validated as strings with the node named in the message) is declared once. `logs_dirs` is unchanged; `destination_files` keeps its own re-indexing and path validations on top
+
+### Fixed
+
+- `CrontabTemplate::generate()` — a destination file named with a decimal integer (`2026`, `123`) aborted the whole generation with a `TypeError` instead of producing a crontab. PHP casts numeric-string array keys to `int`, and the destination file name is the key of the per-file command list, so `getHeartbeatCommand()` was handed an `int` where its signature declares `string`. The defect is present in v4.5.0 and reachable there through a command-level `destination_file`; `destination_files` would have widened it to the config level. The key is now cast once, at the top of the loop, before anything derives a heartbeat label from it
+- `CrontabTemplate` — every generated crontab file received a heartbeat naming only the **base name** of its destination, so `machine-a/crontab` and `machine-b/crontab` both emitted `/bin/touch <logs_dir>/heartbeat.crontab` and, through the placeholder above, both received the substituted value `crontab`. Two machines then touched the same heartbeat file and the heartbeat could no longer say which crontab it proved alive — precisely what the feature exists to do. The value is now the flattened relative path. Flat destination files, which is every file in this repository's tests and documentation, are unchanged: `crontab` still yields `heartbeat.crontab`. A configuration that already used nested destination files moves from `heartbeat.crontab` to `heartbeat.machine-a.crontab`, so a monitor watching the old path has to follow
+- `CrontabTemplate::generate()` — a destination file built only from `.` and `/` segments (`.`, `./`, `/`) normalized away to an empty string, which made the generated path `conf_files_dir` itself with a trailing separator. That path passed `ConfFileWriter`'s prefix check because it *equals* the prefix, and the failure surfaced only as an `IOException` about `dumpFile` on a directory. Such values — `''` included, which `destination_file` accepted because it never carried a `cannotBeEmpty()` — are now rejected at container build time by `destination_file` and `destination_files` alike, with the node named. A configuration that literally declares one of them stops booting instead of failing at generation time; one that arrives at the same value through a container parameter still reaches the template, since the node sees an unexpanded placeholder at configuration time; `CrontabTemplate` keeps a matching `InvalidConfigurationException` as the backstop for a value that arrives through a
+  container parameter and so cannot be checked at configuration time
+- `CrontabTemplate::generate()` — two destination files spelled differently but resolving to the same path (`crontab` and `./crontab`) were treated as two files, so both were written to the same place and the second silently overwrote the first: the command rows of the losing spelling disappeared, with a success exit code and a `generated \`2\` conf files` message that counted a file nobody could find. The name is now normalized — `.` and empty path segments are dropped — before it becomes the key of the per-file command list, so the two spellings merge into one file that carries both. Nothing that already worked changes place: the filesystem was resolving `conf_files_dir/./crontab` to `conf_files_dir/crontab` all along, and a spelling with no colliding sibling still lands exactly where it did. A trailing slash (`crontab/`), which used to abort the whole generation, now normalizes and generates. `..` remains rejected at configuration time
+
 ## [v4.5.0] - 2026-08-17 - Exceptions carry structured context
 
 ### Added
@@ -545,7 +569,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.5.0...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.6.0...HEAD
+
+[v4.6.0]: https://github.com/precision-soft/symfony-console/compare/v4.5.0...v4.6.0
 
 [v4.5.0]: https://github.com/precision-soft/symfony-console/compare/v4.4.0...v4.5.0
 

@@ -18,6 +18,8 @@ class ConfigSettingsDto implements SettingInterface
 
     protected bool $log = false;
     protected string $destinationFile = '';
+    /** @var array<int, string> */
+    protected array $destinationFiles = [];
     protected bool $heartbeat = false;
     protected ?string $user = null;
 
@@ -38,6 +40,12 @@ class ConfigSettingsDto implements SettingInterface
     public function getDestinationFile(): string
     {
         return $this->destinationFile;
+    }
+
+    /** @return array<int, string> */
+    public function getDestinationFiles(): array
+    {
+        return $this->destinationFiles;
     }
 
     public function getHeartbeat(): bool

@@ -35,6 +35,31 @@ trait SettingsTrait
     }
 
     /**
+     * The inverse of `loadProperties()`: modelled properties and the unmodelled bag are returned under the same
+     * snake case keys they were loaded from, so the result can be fed straight back into the constructor.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $data = [];
+
+        foreach (\get_object_vars($this) as $propertyName => $propertyValue) {
+            if ('settings' === $propertyName) {
+                continue;
+            }
+
+            $data[$this->toSnakeCase($propertyName)] = $propertyValue;
+        }
+
+        foreach (\get_object_vars($this->settings) as $settingName => $settingValue) {
+            $data[$this->toSnakeCase($settingName)] = $settingValue;
+        }
+
+        return $data;
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @throws InvalidValueException
      */
@@ -76,5 +101,10 @@ trait SettingsTrait
         $camelCaseString = \str_replace(' ', '', \ucwords(\str_replace(['_', '-'], ' ', $input)));
 
         return \lcfirst($camelCaseString);
+    }
+
+    protected function toSnakeCase(string $input): string
+    {
+        return \strtolower((string)\preg_replace('/(?<!^)[A-Z]/', '_$0', $input));
     }
 }

@@ -29,14 +29,27 @@ final class ConfigSettingsDtoTest extends AbstractTestCase
         $configSettingsDto = new ConfigSettingsDto([
             Configuration::LOG => true,
             Configuration::DESTINATION_FILE => 'my-crontab',
+            Configuration::DESTINATION_FILES => ['crontab.m3'],
             Configuration::HEARTBEAT => false,
             Configuration::USER => 'www-data',
         ]);
 
         static::assertTrue($configSettingsDto->getLog());
         static::assertSame('my-crontab', $configSettingsDto->getDestinationFile());
+        static::assertSame(['crontab.m3'], $configSettingsDto->getDestinationFiles());
         static::assertFalse($configSettingsDto->getHeartbeat());
         static::assertSame('www-data', $configSettingsDto->getUser());
+    }
+
+    public function testDestinationFilesDefaultsToAnEmptyList(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto([
+            Configuration::LOG => true,
+            Configuration::DESTINATION_FILE => 'crontab',
+            Configuration::HEARTBEAT => true,
+        ]);
+
+        static::assertSame([], $configSettingsDto->getDestinationFiles());
     }
 
     public function testUserDefaultsToNull(): void

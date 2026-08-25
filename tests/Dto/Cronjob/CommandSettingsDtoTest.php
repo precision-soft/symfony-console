@@ -57,4 +57,35 @@ final class CommandSettingsDtoTest extends AbstractTestCase
 
         static::assertSame('value', $commandSettingsDto->getSetting('customSetting'));
     }
+
+    public function testToArrayReturnsSnakeCaseKeysForModelledAndExtraSettingsAlike(): void
+    {
+        $commandSettingsDto = new CommandSettingsDto([
+            Configuration::LOG => true,
+            'custom_setting' => 'value',
+        ]);
+
+        static::assertSame(
+            [
+                Configuration::LOG => true,
+                'custom_setting' => 'value',
+            ],
+            $commandSettingsDto->toArray(),
+        );
+    }
+
+    public function testToArrayRoundTripsThroughTheConstructor(): void
+    {
+        $settings = [
+            Configuration::LOG => false,
+            'custom_setting' => 'value',
+            'another_one' => 7,
+        ];
+
+        $commandSettingsDto = new CommandSettingsDto((new CommandSettingsDto($settings))->toArray());
+
+        static::assertFalse($commandSettingsDto->getLog());
+        static::assertSame('value', $commandSettingsDto->getSetting('customSetting'));
+        static::assertSame('7', $commandSettingsDto->getSetting('anotherOne'));
+    }
 }

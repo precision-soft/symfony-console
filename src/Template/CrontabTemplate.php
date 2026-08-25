@@ -16,9 +16,14 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
+use PrecisionSoft\Symfony\Console\Template\Trait\DestinationPathTrait;
 
 class CrontabTemplate implements TemplateInterface
 {
+    use DestinationPathTrait;
+
+    public const DESTINATION_FILE_PLACEHOLDER = '{destination_file}';
+
     /**
      * @param CommandDto[] $commands
      *
@@ -37,7 +42,7 @@ class CrontabTemplate implements TemplateInterface
 
         $cronjobs = [];
 
-        $defaultDestinationFile = $configInterface->getSettings()->getDestinationFile();
+        $defaultDestinationFile = $this->resolveDestinationFile($configInterface->getSettings()->getDestinationFile());
         $heartbeatEnabled = true === $configInterface->getSettings()->getHeartbeat();
 
         $heartbeat = null;
@@ -48,7 +53,7 @@ class CrontabTemplate implements TemplateInterface
                 continue;
             }
 
-            $destinationFile = $commandDto->getDestinationFile() ?? $defaultDestinationFile;
+            $destinationFile = $this->resolveDestinationFile($commandDto->getDestinationFile() ?? $defaultDestinationFile);
             $cronjobs[$destinationFile] ??= [];
 
             $cronjobs[$destinationFile][] = $this->buildCommand($commandDto, $configInterface);
@@ -58,12 +63,23 @@ class CrontabTemplate implements TemplateInterface
             $cronjobs[$defaultDestinationFile] = [];
         }
 
+        foreach ($configInterface->getSettings()->getDestinationFiles() as $declaredDestinationFile) {
+            $cronjobs[$this->resolveDestinationFile($declaredDestinationFile)] ??= [];
+        }
+
         $confFilesDto = new ConfFilesDto();
 
-        foreach ($cronjobs as $destinationFile => $cronjobCommands) {
+        foreach ($cronjobs as $cronjobDestinationFile => $cronjobCommands) {
+            $destinationFile = (string)$cronjobDestinationFile;
+
             if (true === $heartbeatEnabled) {
+                $destinationFileLabel = $this->buildDestinationPathLabel($destinationFile);
+
                 $cronjobCommands[] = $this->buildCommand(
-                    $heartbeat ?? $this->getHeartbeatCommand($configInterface, $destinationFile),
+                    $this->resolveHeartbeat(
+                        $heartbeat ?? $this->getHeartbeatCommand($configInterface, $destinationFileLabel),
+                        $destinationFileLabel,
+                    ),
                     $configInterface,
                 );
             }
@@ -122,14 +138,68 @@ class CrontabTemplate implements TemplateInterface
         return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', \rtrim($configDto->getLogsDir(), '/'), $logFileName)));
     }
 
+    /** @throws InvalidConfigurationException */
+    protected function resolveDestinationFile(string $destinationFile): string
+    {
+        $normalizedDestinationFile = $this->normalizeDestinationPath($destinationFile);
+
+        if ('' === $normalizedDestinationFile) {
+            throw new InvalidConfigurationException(
+                \sprintf('the `destination file` `%s` resolves to an empty path', $destinationFile),
+            );
+        }
+
+        return $normalizedDestinationFile;
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     * @throws InvalidValueException
+     */
+    protected function resolveHeartbeat(
+        CommandDto $commandDto,
+        string $destinationFileLabel,
+    ): CommandDto {
+        $command = $commandDto->getCommand();
+        $logFileName = $commandDto->getLogFileName();
+
+        $resolvedCommand = \str_replace(static::DESTINATION_FILE_PLACEHOLDER, $destinationFileLabel, $command);
+        $resolvedLogFileName = null === $logFileName
+            ? null
+            : \str_replace(static::DESTINATION_FILE_PLACEHOLDER, $destinationFileLabel, $logFileName);
+
+        if ($resolvedCommand === $command && $resolvedLogFileName === $logFileName) {
+            return $commandDto;
+        }
+
+        $scheduleDto = $commandDto->getSchedule();
+
+        $parameters = [
+            Configuration::COMMAND => $resolvedCommand,
+            Configuration::LOG_FILE_NAME => $resolvedLogFileName,
+            Configuration::USER => $commandDto->getUser(),
+            Configuration::DESTINATION_FILE => $commandDto->getDestinationFile(),
+            Configuration::SCHEDULE => [
+                Configuration::MINUTE => $scheduleDto->getMinute(),
+                Configuration::HOUR => $scheduleDto->getHour(),
+                Configuration::DAY_OF_MONTH => $scheduleDto->getDayOfMonth(),
+                Configuration::MONTH => $scheduleDto->getMonth(),
+                Configuration::DAY_OF_WEEK => $scheduleDto->getDayOfWeek(),
+            ],
+            Configuration::SETTINGS => $commandDto->getSettings()->toArray(),
+        ];
+
+        return new CommandDto($commandDto->getName(), $parameters);
+    }
+
     protected function getHeartbeatCommand(
         ConfigDto $configDto,
-        string $destinationFile,
+        string $destinationFileLabel,
     ): CommandDto {
         return new CommandDto(
             Configuration::HEARTBEAT,
             [
-                Configuration::COMMAND => ['/bin/touch', \rtrim($configDto->getLogsDir(), '/') . '/heartbeat.' . \basename($destinationFile)],
+                Configuration::COMMAND => ['/bin/touch', \rtrim($configDto->getLogsDir(), '/') . '/heartbeat.' . $destinationFileLabel],
                 Configuration::SCHEDULE => [
                     Configuration::MINUTE => '*',
                     Configuration::HOUR => '*',

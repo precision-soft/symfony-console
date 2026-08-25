@@ -29,6 +29,7 @@ class Configuration implements ConfigurationInterface
     public const LOGS_DIRS = 'logs_dirs';
     public const HEARTBEAT = 'heartbeat';
     public const DESTINATION_FILE = 'destination_file';
+    public const DESTINATION_FILES = 'destination_files';
     public const DESTINATION_SUB_DIR = 'destination_sub_dir';
     public const DESTINATION_SUFFIX = 'destination_suffix';
     public const CONFIG = 'config';
@@ -70,16 +71,22 @@ class Configuration implements ConfigurationInterface
         /** @phpstan-ignore function.alreadyNarrowedType, instanceof.alwaysTrue */
         \assert($logsDirsTree instanceof ArrayNodeDefinition);
 
-        return $logsDirsTree
-            ->performNoDeepMerging()
-            ->scalarPrototype()
+        $this->appendStringListPrototype($logsDirsTree, static::LOGS_DIRS);
+
+        return $logsDirsTree->defaultValue([]);
+    }
+
+    /* the shared shape of every string list node: replaced rather than merged, no empty entry, entries are strings */
+    protected function appendStringListPrototype(ArrayNodeDefinition $arrayNodeDefinition, string $nodeName): NodeDefinition
+    {
+        $arrayNodeDefinition->performNoDeepMerging();
+
+        return $arrayNodeDefinition->scalarPrototype()
             ->cannotBeEmpty()
             ->validate()
-            ->ifTrue(static fn($logsDir): bool => false === \is_string($logsDir))
-            ->thenInvalid(\sprintf('the `%s` entries must be strings, got %%s', static::LOGS_DIRS))
-            ->end()
-            ->end()
-            ->defaultValue([]);
+            ->ifTrue(static fn($entry): bool => false === \is_string($entry))
+            ->thenInvalid(\sprintf('the `%s` entries must be strings, got %%s', $nodeName))
+            ->end();
     }
 
     protected function buildCronjob(): NodeDefinition
@@ -105,6 +112,7 @@ class Configuration implements ConfigurationInterface
             ->scalarNode(static::USER)->defaultNull()->end();
 
         $this->appendDestinationFileConfig($settingsNodeBuilder, 'crontab');
+        $this->appendDestinationFilesConfig($settingsNodeBuilder);
 
         $commandsTreeDefinition = $cronjobTree->children()->arrayNode(static::COMMANDS)
             ->isRequired()
@@ -225,7 +233,33 @@ class Configuration implements ConfigurationInterface
             ->ifTrue(fn($destinationFile) => null !== $destinationFile && 1 === \preg_match('#\.\.|\\\\#', (string)$destinationFile))
             ->thenInvalid(\sprintf('the `%s` must not contain `..` or a backslash, got %%s', static::DESTINATION_FILE))
             ->end()
+            ->validate()
+            ->ifTrue(fn($destinationFile) => null !== $destinationFile && 1 === \preg_match('#^[./]*$#', (string)$destinationFile))
+            ->thenInvalid(\sprintf('the `%s` must not resolve to an empty path, got %%s', static::DESTINATION_FILE))
+            ->end()
             ->end();
+    }
+
+    protected function appendDestinationFilesConfig(NodeBuilder $nodeBuilder): void
+    {
+        $destinationFilesNode = $nodeBuilder->arrayNode(static::DESTINATION_FILES);
+
+        $destinationFilesNode->beforeNormalization()
+            ->ifArray()
+            ->then(static fn(array $destinationFiles): array => \array_values($destinationFiles))
+            ->end();
+
+        $this->appendStringListPrototype($destinationFilesNode, static::DESTINATION_FILES)
+            ->validate()
+            ->ifTrue(static fn($destinationFile): bool => 1 === \preg_match('#\.\.|\\\\#', (string)$destinationFile))
+            ->thenInvalid(\sprintf('the `%s` entries must not contain `..` or a backslash, got %%s', static::DESTINATION_FILES))
+            ->end()
+            ->validate()
+            ->ifTrue(static fn($destinationFile): bool => 1 === \preg_match('#^[./]*$#', (string)$destinationFile))
+            ->thenInvalid(\sprintf('the `%s` entries must not resolve to an empty path, got %%s', static::DESTINATION_FILES))
+            ->end();
+
+        $destinationFilesNode->defaultValue([])->end();
     }
 
     protected function appendSupervisorConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void

@@ -12,8 +12,10 @@ use PHPUnit\Framework\Attributes\Group;
 use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\DependencyInjection\PrecisionSoftSymfonyConsoleExtension;
+use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Filesystem\Filesystem;
@@ -102,6 +104,127 @@ final class CronjobCreateEndToEndTest extends AbstractTestCase
             \sprintf('/bin/touch %s/cron/heartbeat.crontab-reports', $this->baseDir),
             $reportEntries[1]['command'],
         );
+    }
+
+    public function testCompiledCommandInterpolatesTheHeartbeatPlaceholderAndHonoursDeclaredDestinationFiles(): void
+    {
+        $commandTester = $this->runCronjobCreate(
+            [
+                'cleanup' => [
+                    Configuration::COMMAND => 'bin/console app:cleanup',
+                    Configuration::SCHEDULE => [Configuration::MINUTE => '0'],
+                ],
+                'report' => [
+                    Configuration::COMMAND => 'bin/console app:report',
+                    Configuration::SCHEDULE => [Configuration::MINUTE => '30'],
+                    Configuration::DESTINATION_FILE => 'crontab.m2',
+                ],
+                Configuration::HEARTBEAT => [
+                    Configuration::COMMAND => \sprintf(
+                        'bin/console app:heartbeat %s',
+                        CrontabTemplate::DESTINATION_FILE_PLACEHOLDER,
+                    ),
+                    Configuration::SCHEDULE => [Configuration::MINUTE => '*'],
+                    Configuration::SETTINGS => [Configuration::LOG => false],
+                ],
+            ],
+            [Configuration::DESTINATION_FILES => ['crontab.m3']],
+        );
+
+        static::assertStringContainsString('generated `3` conf files', $commandTester->getDisplay());
+
+        $expectedHeartbeats = [
+            'crontab' => 'bin/console app:heartbeat crontab',
+            'crontab.m2' => 'bin/console app:heartbeat crontab.m2',
+            'crontab.m3' => 'bin/console app:heartbeat crontab.m3',
+        ];
+
+        foreach ($expectedHeartbeats as $destinationFile => $expectedCommand) {
+            $entries = $this->parseCrontab($this->baseDir . '/generated_conf/cron/' . $destinationFile);
+            $heartbeatEntry = \end($entries);
+
+            static::assertIsArray($heartbeatEntry);
+            static::assertSame('* * * * *', $heartbeatEntry['schedule']);
+            static::assertSame($expectedCommand, $heartbeatEntry['command'], $destinationFile);
+        }
+
+        $declaredEntries = $this->parseCrontab($this->baseDir . '/generated_conf/cron/crontab.m3');
+
+        static::assertCount(1, $declaredEntries);
+    }
+
+    public function testCompiledCommandWritesDeclaredFilesIntoTheirSubDirectoriesWithDistinctHeartbeats(): void
+    {
+        $commandTester = $this->runCronjobCreate(
+            [
+                Configuration::HEARTBEAT => [
+                    Configuration::COMMAND => \sprintf(
+                        'bin/console app:heartbeat %s',
+                        CrontabTemplate::DESTINATION_FILE_PLACEHOLDER,
+                    ),
+                    Configuration::SCHEDULE => [Configuration::MINUTE => '*'],
+                    Configuration::SETTINGS => [Configuration::LOG => false],
+                ],
+            ],
+            [Configuration::DESTINATION_FILES => ['machine-a/crontab', 'machine-b/crontab']],
+        );
+
+        static::assertSame(CronjobCreateCommand::SUCCESS, $commandTester->getStatusCode());
+        static::assertStringContainsString('generated `3` conf files', $commandTester->getDisplay());
+
+        static::assertDirectoryExists($this->baseDir . '/generated_conf/cron/machine-a');
+        static::assertDirectoryExists($this->baseDir . '/generated_conf/cron/machine-b');
+
+        $expectedHeartbeats = [
+            'crontab' => 'bin/console app:heartbeat crontab',
+            'machine-a/crontab' => 'bin/console app:heartbeat machine-a.crontab',
+            'machine-b/crontab' => 'bin/console app:heartbeat machine-b.crontab',
+        ];
+
+        foreach ($expectedHeartbeats as $destinationFile => $expectedCommand) {
+            $entries = $this->parseCrontab($this->baseDir . '/generated_conf/cron/' . $destinationFile);
+
+            static::assertCount(1, $entries, $destinationFile);
+            static::assertSame($expectedCommand, $entries[0]['command'], $destinationFile);
+        }
+    }
+
+    public function testCompiledCommandWritesADeclaredFileWithNoRowsWhenTheHeartbeatIsDisabled(): void
+    {
+        $this->runCronjobCreate(
+            [
+                'cleanup' => [
+                    Configuration::COMMAND => 'bin/console app:cleanup',
+                    Configuration::SCHEDULE => [Configuration::MINUTE => '0'],
+                ],
+            ],
+            [Configuration::HEARTBEAT => false, Configuration::DESTINATION_FILES => ['crontab.m3']],
+        );
+
+        $declaredPath = $this->baseDir . '/generated_conf/cron/crontab.m3';
+
+        static::assertFileExists($declaredPath);
+        static::assertCount(0, $this->parseCrontab($declaredPath));
+    }
+
+    public function testADestinationFileThatResolvesToAnEmptyPathIsRejectedBeforeAnythingIsWritten(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_file#');
+
+        try {
+            $this->runCronjobCreate(
+                [
+                    'cleanup' => [
+                        Configuration::COMMAND => 'bin/console app:cleanup',
+                        Configuration::SCHEDULE => [Configuration::MINUTE => '0'],
+                        Configuration::DESTINATION_FILE => '.',
+                    ],
+                ],
+            );
+        } finally {
+            static::assertDirectoryDoesNotExist($this->baseDir . '/generated_conf/cron');
+        }
     }
 
     public function testCompiledCommandSplitsCommandsOntoTheirOwnDestinationFiles(): void

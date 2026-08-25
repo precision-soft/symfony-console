@@ -15,10 +15,12 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
+use PrecisionSoft\Symfony\Console\Template\Trait\DestinationPathTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 
 class SupervisorTemplate implements TemplateInterface
 {
+    use DestinationPathTrait;
     use WorkerNumberOfProcessesTrait;
 
     /**
@@ -59,13 +61,7 @@ class SupervisorTemplate implements TemplateInterface
 
         $pathParts = [\rtrim($configDto->getConfFilesDir(), '/')];
 
-        foreach (\explode('/', $destinationSubDir ?? '') as $destinationSubDirPart) {
-            if ('' === $destinationSubDirPart || '.' === $destinationSubDirPart) {
-                continue;
-            }
-
-            $pathParts[] = $destinationSubDirPart;
-        }
+        $pathParts = \array_merge($pathParts, $this->splitDestinationPath($destinationSubDir));
 
         $fileNameParts = [$commandDto->getName()];
 

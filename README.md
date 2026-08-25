@@ -76,6 +76,7 @@ precision_soft_symfony_console:
             settings:
                 log: true
                 destination_file: 'crontab'
+                destination_files: ['crontab.m3']
                 heartbeat: true
         commands:
             list:
@@ -93,7 +94,24 @@ precision_soft_symfony_console:
                     log: false
 ```
 
-If **precision_soft_symfony_console.cronjob.config.settings.heartbeat** is set to `true`, a heartbeat command will automatically be added to each generated crontab file. The auto-generated heartbeat command runs `/bin/touch <logs_dir>/heartbeat.<destination_file>` every minute. You may override the heartbeat by defining a command named `heartbeat` in the commands list.
+If **precision_soft_symfony_console.cronjob.config.settings.heartbeat** is set to `true`, a heartbeat command will automatically be added to each generated crontab file. The auto-generated heartbeat command runs `/bin/touch <logs_dir>/heartbeat.<destination_file>` every minute, where `<destination_file>` is the destination path with its `/` separators replaced by `.`, so two files with the same base name in different sub directories keep distinct heartbeat files. You may override the heartbeat by defining a command named `heartbeat` in the commands list.
+
+An overridden heartbeat is emitted into every generated crontab file, and the same command string reaches all of them. Where the heartbeat has to know *which* file it is proving alive — a heartbeat that records the file in a shared database rather than touching a local one — put the `{destination_file}` placeholder (`CrontabTemplate::DESTINATION_FILE_PLACEHOLDER`) in the command or in `log_file_name`; it is replaced with the path of the file being generated relative to `conf_files_dir`, flattened by replacing `/` with `.` (`machine-a/crontab` becomes `machine-a.crontab`), so the value is unique per file and safe to use as a log file name or as an argument. The placeholder is substituted in the heartbeat command only, and an override that does not contain it is emitted byte for byte as before:
+
+```yaml
+precision_soft_symfony_console:
+    cronjob:
+        commands:
+            heartbeat:
+                command: '%kernel.project_dir%/bin/console app:heartbeat {destination_file}'
+                log_file_name: 'heartbeat.{destination_file}.log'
+                schedule:
+                    minute: '*'
+```
+
+**destination_files** lists crontab files that must be generated even when no command targets them. A file only comes into existence because some command names it in `destination_file`, so a machine that runs nothing but the heartbeat has no crontab at all — this node is how it gets one. Declared files are added to the ones the commands already produce, never instead of them, and the default `destination_file` is still materialised for a configuration whose only command is the heartbeat. They are generated unconditionally, so with `heartbeat` off a declared file that no command targets is written with no cron rows in it.
+
+A command named `heartbeat` is always taken as the heartbeat override rather than as an ordinary cron row. When `settings.heartbeat` is `false` there is no heartbeat to override, so that command is not emitted into any file — turning the heartbeat off removes the override along with it.
 
 The **user** setting at config level prepends the user to each crontab command line. It can be overridden per command via the command-level `user` option. Each command also supports `log_file_name` (custom log file name, defaults to `<command-name>.log`) and `destination_file` (override the config-level destination file to generate separate crontab files per command).
 
@@ -501,7 +519,7 @@ When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>
 
 ### Path traversal protection
 
-`destination_file`, `destination_sub_dir` and `destination_suffix` are the three configuration values appended to `conf_files_dir` to form a generated path, and all three reject `..` and backslashes at container build time, naming the offending node. That check runs on the configuration as written, so a value supplied through a container parameter is still a literal placeholder at that point and cannot be checked — which is why the writer remains the backstop.
+`destination_file`, `destination_files`, `destination_sub_dir` and `destination_suffix` are the four configuration values appended to `conf_files_dir` to form a generated path, and all four reject `..` and backslashes at container build time, naming the offending node. `destination_file` and `destination_files` additionally reject a value built only from `.` and `/` segments, which would otherwise normalize away to nothing and resolve to `conf_files_dir` itself. That check runs on the configuration as written, so a value supplied through a container parameter is still a literal placeholder at that point and cannot be checked — which is why the writer remains the backstop.
 
 `ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Each written file is additionally canonicalized via `realpath` and re-checked against the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks; the temp directory itself is verified to be a real directory (not a pre-existing symlink) to close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking the destination to a sensitive location.
 

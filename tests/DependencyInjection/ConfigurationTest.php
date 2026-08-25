@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\DependencyInjection;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
@@ -488,6 +489,187 @@ final class ConfigurationTest extends AbstractTestCase
             'workers.conf',
             $workerConfiguration[Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILE],
         );
+    }
+
+    public function testDestinationFilesDefaultsToAnEmptyList(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+
+        static::assertSame(
+            [],
+            $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILES],
+        );
+    }
+
+    public function testDestinationFilesAcceptsAnExplicitList(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILES => ['crontab.m2', 'crontab.m3'],
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+
+        static::assertSame(
+            ['crontab.m2', 'crontab.m3'],
+            $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILES],
+        );
+    }
+
+    public function testDestinationFilesIsReindexedWhenDeclaredAsAMap(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $processedConfiguration = $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILES => ['alpha' => 'crontab.m2', 'beta' => 'crontab.m3'],
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+
+        static::assertSame(
+            ['crontab.m2', 'crontab.m3'],
+            $processedConfiguration[Configuration::CRONJOB][Configuration::CONFIG][Configuration::SETTINGS][Configuration::DESTINATION_FILES],
+        );
+    }
+
+    public function testDestinationFilesRejectsTraversal(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_files#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILES => ['../../etc/cron.d/escaped'],
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testDestinationFilesRejectsANonStringEntry(): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_files#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILES => [123],
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /** @return array<string, array<int, string>> */
+    public static function emptyPathProvider(): array
+    {
+        return [
+            'a dot' => ['.'],
+            'a dot and a slash' => ['./'],
+            'a slash' => ['/'],
+        ];
+    }
+
+    #[DataProvider('emptyPathProvider')]
+    public function testDestinationFilesRejectsAnEntryThatResolvesToAnEmptyPath(string $destinationFile): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_files#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILES => [$destinationFile],
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[DataProvider('emptyPathProvider')]
+    public function testCronjobConfigDestinationFileRejectsAValueThatResolvesToAnEmptyPath(string $destinationFile): void
+    {
+        $configuration = new Configuration();
+        $processor = new Processor();
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches('#destination_file#');
+
+        $processor->processConfiguration($configuration, [
+            'precision_soft_symfony_console' => [
+                Configuration::CRONJOB => [
+                    Configuration::CONFIG => [
+                        Configuration::SETTINGS => [
+                            Configuration::DESTINATION_FILE => $destinationFile,
+                        ],
+                    ],
+                    Configuration::COMMANDS => [
+                        'test' => [Configuration::COMMAND => ['test']],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function testCronjobConfigDestinationFileRejectsTraversal(): void
