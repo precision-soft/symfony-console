@@ -16,3 +16,4 @@
 .dev/docker/docker-compose.override.yml
 /.temp/
 /diff*.txt
+/AGENTS.md

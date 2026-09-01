@@ -375,6 +375,27 @@ final class ConfFileWriterTest extends AbstractTestCase
         $this->filesystem->remove($backupDirectories[0]);
     }
 
+    /* the rename replaces the destination path, so a symlink there would be destroyed rather than written through */
+    public function testSaveThrowsOnASymlinkedDestination(): void
+    {
+        $baseDirectory = \sys_get_temp_dir() . '/cfw_symlink_destination_' . \uniqid('', true);
+
+        $this->filesystem->dumpFile($baseDirectory . '/target/existing.conf', 'existing');
+        \symlink($baseDirectory . '/target', $baseDirectory . '/linked');
+
+        $confFilesDto = new ConfFilesDto();
+        $confFilesDto->addFile($baseDirectory . '/linked/test.conf', 'test content');
+
+        try {
+            $this->expectException(ConfGenerateException::class);
+            $this->expectExceptionMessage('is a symlink, and the atomic activation would replace it');
+
+            $this->confFileWriter->save($confFilesDto, $baseDirectory . '/linked');
+        } finally {
+            $this->filesystem->remove($baseDirectory);
+        }
+    }
+
     public function testSaveThrowsWhenTemporaryDirectoryIsSymlink(): void
     {
         $destinationDirectory = \sys_get_temp_dir() . '/cfw_toctou_' . \uniqid('', true);

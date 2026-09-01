@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
+use PrecisionSoft\Symfony\Console\Template\SystemdServiceTemplate;
 use PrecisionSoft\Symfony\Phpunit\MockDto;
 use PrecisionSoft\Symfony\Phpunit\TestCase\AbstractTestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -155,6 +156,103 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertNull($settings[Configuration::DESTINATION_FILE]);
         static::assertNull($settings[Configuration::DESTINATION_SUB_DIR]);
         static::assertNull($settings[Configuration::DESTINATION_SUFFIX]);
+    }
+
+    public function testWorkerSystemdSettingsDefaults(): void
+    {
+        $settings = $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+            ],
+        ])[Configuration::WORKER][Configuration::CONFIG][Configuration::SETTINGS];
+
+        static::assertSame('%kernel.project_dir%', $settings[Configuration::WORKING_DIRECTORY]);
+        static::assertSame(SystemdServiceTemplate::DEFAULT_RESTART_POLICY, $settings[Configuration::RESTART_POLICY]);
+        static::assertNull($settings[Configuration::ENVIRONMENT_FILE]);
+        static::assertNull($settings[Configuration::STANDARD_OUTPUT]);
+        static::assertNull($settings[Configuration::STANDARD_ERROR]);
+    }
+
+    public function testWorkerSystemdSettingsDefaultToNullPerCommand(): void
+    {
+        $settings = $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+            ],
+        ])[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::SETTINGS];
+
+        static::assertNull($settings[Configuration::WORKING_DIRECTORY]);
+        static::assertNull($settings[Configuration::RESTART_POLICY]);
+        static::assertNull($settings[Configuration::ENVIRONMENT_FILE]);
+        static::assertNull($settings[Configuration::STANDARD_OUTPUT]);
+        static::assertNull($settings[Configuration::STANDARD_ERROR]);
+    }
+
+    public function testWorkerSystemdSettingsAreReadPerCommandAndAtConfigLevel(): void
+    {
+        $processedConfiguration = $this->processWorkerConfiguration(
+            [
+                'test' => [
+                    Configuration::COMMAND => ['test'],
+                    Configuration::SETTINGS => [
+                        Configuration::WORKING_DIRECTORY => '/command',
+                        Configuration::RESTART_POLICY => 'on-failure',
+                        Configuration::ENVIRONMENT_FILE => '/command/.env',
+                        Configuration::STANDARD_OUTPUT => 'journal',
+                        Configuration::STANDARD_ERROR => 'inherit',
+                    ],
+                ],
+            ],
+            [
+                Configuration::WORKING_DIRECTORY => '/config',
+                Configuration::RESTART_POLICY => 'on-abort',
+            ],
+        );
+
+        $settings = $processedConfiguration[Configuration::WORKER][Configuration::CONFIG][Configuration::SETTINGS];
+        static::assertSame('/config', $settings[Configuration::WORKING_DIRECTORY]);
+        static::assertSame('on-abort', $settings[Configuration::RESTART_POLICY]);
+
+        $commandSettings = $processedConfiguration[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::SETTINGS];
+        static::assertSame('/command', $commandSettings[Configuration::WORKING_DIRECTORY]);
+        static::assertSame('on-failure', $commandSettings[Configuration::RESTART_POLICY]);
+        static::assertSame('/command/.env', $commandSettings[Configuration::ENVIRONMENT_FILE]);
+        static::assertSame('journal', $commandSettings[Configuration::STANDARD_OUTPUT]);
+        static::assertSame('inherit', $commandSettings[Configuration::STANDARD_ERROR]);
+    }
+
+    public function testWorkerRestartPolicyRejectsAnUnknownValue(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('invalid systemd restart policy `"sometimes"`');
+
+        $this->processWorkerConfiguration(
+            [
+                'test' => [
+                    Configuration::COMMAND => ['test'],
+                ],
+            ],
+            [
+                Configuration::RESTART_POLICY => 'sometimes',
+            ],
+        );
+    }
+
+    /* an explicit null is how a command opts out of the config level value, exactly like every other nullable setting */
+    public function testWorkerSystemdSettingsAcceptAnExplicitNull(): void
+    {
+        $settings = $this->processWorkerConfiguration([
+            'test' => [
+                Configuration::COMMAND => ['test'],
+                Configuration::SETTINGS => [
+                    Configuration::WORKING_DIRECTORY => null,
+                    Configuration::RESTART_POLICY => null,
+                ],
+            ],
+        ])[Configuration::WORKER][Configuration::COMMANDS]['test'][Configuration::SETTINGS];
+
+        static::assertNull($settings[Configuration::WORKING_DIRECTORY]);
+        static::assertNull($settings[Configuration::RESTART_POLICY]);
     }
 
     public function testWorkerDestinationDefaultsToNullPerCommand(): void
@@ -777,6 +875,11 @@ final class ConfigurationTest extends AbstractTestCase
         static::assertSame('log', Configuration::LOG);
         static::assertSame('log_file_name', Configuration::LOG_FILE_NAME);
         static::assertSame('log_file', Configuration::LOG_FILE);
+        static::assertSame('working_directory', Configuration::WORKING_DIRECTORY);
+        static::assertSame('environment_file', Configuration::ENVIRONMENT_FILE);
+        static::assertSame('restart_policy', Configuration::RESTART_POLICY);
+        static::assertSame('standard_output', Configuration::STANDARD_OUTPUT);
+        static::assertSame('standard_error', Configuration::STANDARD_ERROR);
         static::assertSame('template_class', Configuration::TEMPLATE_CLASS);
         static::assertSame('conf_files_dir', Configuration::CONF_FILES_DIR);
         static::assertSame('logs_dir', Configuration::LOGS_DIR);

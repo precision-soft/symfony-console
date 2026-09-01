@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [v4.7.0] - 2026-09-01 - Systemd service generation and read-only preview modes
+
+### Added
+
+- `Template\SystemdServiceTemplate` — a worker template that emits one concrete systemd `.service` unit per configured instance, so nothing has to be templated at install time: `number_of_processes: 4` writes four units named `-1` through `-4`, and a count of one drops the numeric suffix entirely. The unit name is `<prefix>-<command-name>` sanitized down to what systemd accepts — everything outside `A-Za-z0-9_.-` collapses to `-`, `..` collapses to `.`, surrounding `-` and `.` are stripped — and a name that sanitizes down to nothing is rejected rather than written. `@` is deliberately not preserved: a unit named `foo@.service` is a *template unit* systemd refuses to start without an instance name, so a command named `@mail` would otherwise produce a file that installs cleanly and never runs. Unlike Supervisor, `prefix` is optional. `ExecStart` is validated to start from an absolute path, because systemd rejects a unit whose executable is not absolute and the failure would otherwise
+  surface at `systemctl start`, long after generation reported success. `destination_sub_dir` and `destination_suffix` behave exactly as they do for Supervisor, the suffix landing before the `.service` extension
+- `worker.config.settings` and `worker.commands.*.settings` gain `working_directory` (defaulting to `%kernel.project_dir%`), `environment_file`, `restart_policy` (defaulting to `always`, validated against the seven systemd values at container build time), `standard_output` and `standard_error`, each resolved per command first and falling back to the config level. They are modelled as typed properties on the worker settings DTOs through `Dto\Trait\SystemdSettingsTrait`, so they are reachable as `getWorkingDirectory()` and friends rather than through the unmodelled `getSetting()` bag. Both streams default to `append:<log_file>`, and the `EnvironmentFile=` line is omitted entirely when no file is configured
+- Config-generation commands expose three read-only modes: `--dry-run` lists the destination paths that would be added, changed or removed; `--diff` follows each pending path with a unified diff of its content, three lines of context per hunk, rendered by `Service\ConfGenerate\ConfFileDiffRenderer`; `--check` exits with failure when anything is pending, which is what makes it usable as a CI drift check. `--check` and `--diff` combine, so a failing check can show what drifted. Diff lines are escaped before they reach the console, or a generated `<` would be read as a formatter tag and swallowed, and they bypass the `[time][memory]` line prefix that would otherwise break every line of a diff
+- `Service\ConfGenerate\ConfFileWriter::diff()` and `Service\ConfGenerate\ConfGenerateService::preview()` — the read-only counterpart of `save()`, returning a `Dto\ConfFileChangesDto` of `Dto\ConfFileChangeDto`, each carrying its `Dto\ConfFileStatus` and both sides of the content, sorted by path
+- `Template\Trait\WorkerDestinationPathTrait` and `Template\Trait\WorkerSettingsTrait` — the destination path composition and the `user` / `log_file` resolution that `SupervisorTemplate` performed inline, extracted and shared with `SystemdServiceTemplate`. Supervisor paths and rendered programs are unchanged, byte for byte, apart from the `log_file` fix below
+
+### Changed
+
+- Symfony component constraints now accept 7.x and 8.x. Symfony 8 itself requires PHP 8.4+, so a PHP 8.2 or 8.3 install still resolves Symfony 7. CI covers PHP 8.5 in the locked matrix and gains a `symfony-latest` lane that resolves the highest allowed dependency set; that lane passes `--fail-on-skipped` to both suites, being the only one whose dependencies are not pinned and therefore the only one where a suite could degrade to skips unnoticed
+- `Service\ConfGenerate\ConfGenerateService` takes a `ConfFileDiffRenderer` as a third constructor argument. It defaults to a fresh instance, so existing manual instantiations keep working; the container injects the registered service
+
+### Fixed
+
+- `ConfFileWriter::diff()` reported every file in the destination directory as `removed` when the configuration declared no file at all, while `save()` returns early on an empty set and never touches the directory. `--check` therefore reported drift that no generation run could ever clear, leaving a consumer's CI permanently red with no way out. The guard now mirrors `save()`: a writer that would touch nothing reports nothing
+- `worker.commands.*.settings.restart_policy` rejected an explicit `null` — the very value it defaults to — because the validation ran `ifNotInArray` against the seven systemd policies, and `null` is in none of them. A command could therefore not opt out of the config-level policy the way it opts out of every other nullable setting. `working_directory` had the mirror-image problem: `cannotBeEmpty()` on a node whose per-command default is `null` rejected `working_directory: ~` as an empty value
+- `SupervisorTemplate` read `log_file` only from the command level, so `worker.config.settings.log_file` was a dead node for the only template that consumed it. It is now resolved command level first, then config level, then the derived `<logs_dir>/<command-name>.log` — the same chain the systemd template uses
+- `ConfFileWriter::diff()` iterated the destination directory exactly as configured while matching against the normalized prefix, so an unnormalized `conf_files_dir` ending in `//` spelled the same file two ways: the declared path came back `unchanged` and the iterated one came back `removed`, at the same time, for the same file. `--check` therefore failed forever on a trailing double separator. Iteration now starts from the normalized prefix, so both sides agree
+- A symlinked `conf_files_dir` was mishandled from both ends: `save()` silently replaced the link with a real directory, because activation renames the destination path itself rather than writing through it, and nothing said so; `diff()` skipped removal detection entirely and answered "current" for a tree that write would have flattened. Both now refuse a symlinked destination with a named `ConfGenerateException`, so a preview cannot pass what a write would break and the link is never destroyed without a word
+- `SystemdServiceTemplate` emitted every value verbatim, and systemd expands specifiers in all of them: a literal `%` in a command argument, a working directory or a log path was read as a specifier — silently substituted when it happened to be a known one (`--format=%s`), and a fatal "unit will not be started" when it was not (`--format=%Q`), which `systemd-analyze verify` confirms. Literal `%` is now emitted as `%%`
+- `SystemdServiceTemplate` joined the command parts with a single space, and systemd splits `ExecStart` on whitespace, so an argument carrying any became several arguments without a word of warning. A part carrying whitespace, a quote or a backslash is now emitted double-quoted with the inner characters escaped; ordinary parts are unchanged
+
 ## [v4.6.0] - 2026-08-25 - Per-file heartbeat and declared destination files
 
 ### Added
@@ -569,7 +595,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.6.0...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.7.0...HEAD
+
+[v4.7.0]: https://github.com/precision-soft/symfony-console/compare/v4.6.0...v4.7.0
 
 [v4.6.0]: https://github.com/precision-soft/symfony-console/compare/v4.5.0...v4.6.0
 

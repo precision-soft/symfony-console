@@ -8,8 +8,14 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Service\ConfGenerate;
 
+use PrecisionSoft\Symfony\Console\Dto\ConfFileChangeDto;
+use PrecisionSoft\Symfony\Console\Dto\ConfFileChangesDto;
 use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
+use PrecisionSoft\Symfony\Console\Dto\ConfFileStatus;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Throwable;
 
@@ -28,6 +34,8 @@ class ConfFileWriter
         if (0 === \count($confFilesDto->getFiles())) {
             return [];
         }
+
+        $this->assertRealDestinationDir($destinationDir);
 
         /* staged next to the destination so the activation rename is a same-filesystem atomic swap */
         $temporaryDirectory = \rtrim(\dirname($destinationDir), '/') . '/.conf_' . \bin2hex(\random_bytes(8));
@@ -80,6 +88,67 @@ class ConfFileWriter
         }
     }
 
+    /**
+     * The status of every generated file against what the destination directory currently holds, indexed by path.
+     *
+     * @throws ConfGenerateException
+     */
+    public function diff(ConfFilesDto $confFilesDto, string $destinationDir): ConfFileChangesDto
+    {
+        $confFileChangesDto = new ConfFileChangesDto();
+
+        /* symmetric with `save()`: a writer that would touch nothing must not report a change either */
+        if (0 === \count($confFilesDto->getFiles())) {
+            return $confFileChangesDto;
+        }
+
+        $this->assertRealDestinationDir($destinationDir);
+
+        /* the normalized prefix is also the iteration root below, so an unnormalized `//` cannot spell the same
+           file two ways and report it as both current and removed */
+        $destinationDirPrefix = \rtrim($destinationDir, '/') . '/';
+        $expectedRelativePaths = [];
+
+        foreach ($confFilesDto->getFiles() as $path => $content) {
+            if (false === \str_starts_with($path, $destinationDirPrefix)) {
+                throw new ConfGenerateException(\sprintf('path `%s` is outside destination directory `%s`', $path, $destinationDir));
+            }
+
+            $relativePath = \substr($path, \strlen($destinationDirPrefix));
+
+            if ('' === $relativePath || true === \str_contains($relativePath, '..')) {
+                throw new ConfGenerateException(\sprintf('invalid generated path `%s`', $path));
+            }
+
+            $expectedRelativePaths[$relativePath] = true;
+
+            if (false === \is_file($path) || true === \is_link($path)) {
+                $confFileChangesDto->addChange(new ConfFileChangeDto($path, ConfFileStatus::Added, $content, null));
+
+                continue;
+            }
+
+            $currentContent = $this->readFile($path);
+
+            if (false === $currentContent) {
+                throw new ConfGenerateException(\sprintf('file `%s` could not be read', $path));
+            }
+
+            $confFileChangesDto->addChange(
+                new ConfFileChangeDto(
+                    $path,
+                    $currentContent === $content ? ConfFileStatus::Unchanged : ConfFileStatus::Changed,
+                    $content,
+                    $currentContent,
+                ),
+            );
+        }
+
+        $this->addRemovedChanges($confFileChangesDto, $destinationDirPrefix, $expectedRelativePaths);
+
+        return $confFileChangesDto->sort();
+    }
+
     /** @throws ConfGenerateException */
     public function initLogsDir(string $logsDir): void
     {
@@ -92,6 +161,57 @@ class ConfFileWriter
                 $throwable,
                 ['logsDir' => $logsDir],
             );
+        }
+    }
+
+    protected function readFile(string $path): string|false
+    {
+        return \file_get_contents($path);
+    }
+
+    /**
+     * Activation renames the destination path itself, so a symlink there would be replaced by a real directory
+     * rather than followed. Both `save()` and `diff()` refuse it, so a preview cannot pass what a write would break.
+     *
+     * @throws ConfGenerateException
+     */
+    protected function assertRealDestinationDir(string $destinationDir): void
+    {
+        if (true === \is_link($destinationDir)) {
+            throw new ConfGenerateException(
+                \sprintf('destination directory `%s` is a symlink, and the atomic activation would replace it', $destinationDir),
+            );
+        }
+    }
+
+    /**
+     * @param array<string, bool> $expectedRelativePaths
+     * @throws ConfGenerateException
+     */
+    protected function addRemovedChanges(
+        ConfFileChangesDto $confFileChangesDto,
+        string $destinationDirPrefix,
+        array $expectedRelativePaths,
+    ): void {
+        if (false === \is_dir($destinationDirPrefix)) {
+            return;
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($destinationDirPrefix, RecursiveDirectoryIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $fileInfo) {
+            if (false === $fileInfo instanceof SplFileInfo || (false === $fileInfo->isFile() && false === $fileInfo->isLink())) {
+                continue;
+            }
+
+            $path = $fileInfo->getPathname();
+            $relativePath = \substr($path, \strlen($destinationDirPrefix));
+
+            if (false === isset($expectedRelativePaths[$relativePath])) {
+                $confFileChangesDto->addChange(new ConfFileChangeDto($path, ConfFileStatus::Removed, null, null));
+            }
         }
     }
 

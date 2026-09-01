@@ -54,6 +54,34 @@ final class CommandSettingsDtoTest extends AbstractTestCase
         static::assertSame('/var/log/worker.log', $commandSettingsDto->getLogFile());
     }
 
+    public function testSystemdDefaultsAreNull(): void
+    {
+        $commandSettingsDto = new CommandSettingsDto([]);
+
+        static::assertNull($commandSettingsDto->getWorkingDirectory());
+        static::assertNull($commandSettingsDto->getEnvironmentFile());
+        static::assertNull($commandSettingsDto->getRestartPolicy());
+        static::assertNull($commandSettingsDto->getStandardOutput());
+        static::assertNull($commandSettingsDto->getStandardError());
+    }
+
+    public function testAllSystemdSettingsAreSet(): void
+    {
+        $commandSettingsDto = new CommandSettingsDto([
+            Configuration::WORKING_DIRECTORY => '/srv/app',
+            Configuration::ENVIRONMENT_FILE => '/srv/app/.env',
+            Configuration::RESTART_POLICY => 'on-failure',
+            Configuration::STANDARD_OUTPUT => 'journal',
+            Configuration::STANDARD_ERROR => 'inherit',
+        ]);
+
+        static::assertSame('/srv/app', $commandSettingsDto->getWorkingDirectory());
+        static::assertSame('/srv/app/.env', $commandSettingsDto->getEnvironmentFile());
+        static::assertSame('on-failure', $commandSettingsDto->getRestartPolicy());
+        static::assertSame('journal', $commandSettingsDto->getStandardOutput());
+        static::assertSame('inherit', $commandSettingsDto->getStandardError());
+    }
+
     public function testExtraSettingsAreAccessibleViaSetting(): void
     {
         $commandSettingsDto = new CommandSettingsDto([

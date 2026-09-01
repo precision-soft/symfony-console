@@ -11,6 +11,9 @@ namespace PrecisionSoft\Symfony\Console\Service\ConfGenerate;
 use Exception;
 use PrecisionSoft\Symfony\Console\Contract\ConfigInterface;
 use PrecisionSoft\Symfony\Console\Contract\TemplateInterface;
+use PrecisionSoft\Symfony\Console\Dto\ConfFileChangeDto;
+use PrecisionSoft\Symfony\Console\Dto\ConfFileChangesDto;
+use PrecisionSoft\Symfony\Console\Dto\ConfFilesDto;
 use PrecisionSoft\Symfony\Console\Exception\ConfGenerateException;
 
 class ConfGenerateService
@@ -22,6 +25,7 @@ class ConfGenerateService
     public function __construct(
         iterable $templates,
         protected readonly ConfFileWriter $confFileWriter,
+        protected readonly ConfFileDiffRenderer $confFileDiffRenderer = new ConfFileDiffRenderer(),
     ) {
         $this->templates = [];
         foreach ($templates as $templateInterface) {
@@ -40,10 +44,40 @@ class ConfGenerateService
     ): array {
         $this->confFileWriter->initLogsDir($configInterface->getLogsDir());
 
+        return $this->confFileWriter->save(
+            $this->render($configInterface, $commands),
+            $configInterface->getConfFilesDir(),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $commands
+     * @throws ConfGenerateException
+     */
+    public function preview(ConfigInterface $configInterface, array $commands): ConfFileChangesDto
+    {
+        return $this->confFileWriter->diff(
+            $this->render($configInterface, $commands),
+            $configInterface->getConfFilesDir(),
+        );
+    }
+
+    /** @return array<int, string> */
+    public function renderChangeDiff(ConfFileChangeDto $confFileChangeDto): array
+    {
+        return $this->confFileDiffRenderer->render($confFileChangeDto);
+    }
+
+    /**
+     * @param array<string, mixed> $commands
+     * @throws ConfGenerateException
+     */
+    protected function render(ConfigInterface $configInterface, array $commands): ConfFilesDto
+    {
         $templateInterface = $this->getTemplate($configInterface);
 
         try {
-            $confFilesDto = $templateInterface->generate($configInterface, $commands);
+            return $templateInterface->generate($configInterface, $commands);
         } catch (Exception $exception) {
             throw true === $exception instanceof ConfGenerateException
                 ? $exception
@@ -55,8 +89,6 @@ class ConfGenerateService
                     ],
                 );
         }
-
-        return $this->confFileWriter->save($confFilesDto, $configInterface->getConfFilesDir());
     }
 
     /** @throws ConfGenerateException */

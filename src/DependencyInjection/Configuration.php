@@ -10,6 +10,7 @@ namespace PrecisionSoft\Symfony\Console\DependencyInjection;
 
 use PrecisionSoft\Symfony\Console\Template\CrontabTemplate;
 use PrecisionSoft\Symfony\Console\Template\SupervisorTemplate;
+use PrecisionSoft\Symfony\Console\Template\SystemdServiceTemplate;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
@@ -47,6 +48,11 @@ class Configuration implements ConfigurationInterface
     public const CRONJOB = 'cronjob';
     public const WORKER = 'worker';
     public const SETTINGS = 'settings';
+    public const WORKING_DIRECTORY = 'working_directory';
+    public const ENVIRONMENT_FILE = 'environment_file';
+    public const RESTART_POLICY = 'restart_policy';
+    public const STANDARD_OUTPUT = 'standard_output';
+    public const STANDARD_ERROR = 'standard_error';
 
     protected const DESTINATION_DIR = '%kernel.project_dir%/generated_conf/';
     protected const NAME = 'name';
@@ -171,6 +177,7 @@ class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet();
         $settingsNodeBuilder = $settingsTree->children();
         $this->appendSupervisorConfig($settingsNodeBuilder);
+        $this->appendSystemdConfig($settingsNodeBuilder);
         $this->appendDestinationFileConfig($settingsNodeBuilder, null);
         $this->appendDestinationConfig($settingsNodeBuilder);
 
@@ -196,7 +203,9 @@ class Configuration implements ConfigurationInterface
         $settingsTree = $commandsTree->children()->arrayNode(static::SETTINGS)
             ->ignoreExtraKeys(false)
             ->addDefaultsIfNotSet();
-        $this->appendSupervisorConfig($settingsTree->children(), false);
+        $commandSettingsNodeBuilder = $settingsTree->children();
+        $this->appendSupervisorConfig($commandSettingsNodeBuilder, false);
+        $this->appendSystemdConfig($commandSettingsNodeBuilder, false);
 
         return $workerTree;
     }
@@ -260,6 +269,30 @@ class Configuration implements ConfigurationInterface
             ->end();
 
         $destinationFilesNode->defaultValue([])->end();
+    }
+
+    protected function appendSystemdConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void
+    {
+        $workingDirectoryNode = $nodeBuilder->scalarNode(static::WORKING_DIRECTORY);
+        $workingDirectoryNode = true === $withDefaults ? $workingDirectoryNode->defaultValue('%kernel.project_dir%') : $workingDirectoryNode->defaultNull();
+        $workingDirectoryNode->end();
+
+        foreach ([static::ENVIRONMENT_FILE, static::STANDARD_OUTPUT, static::STANDARD_ERROR] as $nodeName) {
+            $nodeBuilder->scalarNode($nodeName)->defaultNull()->end();
+        }
+
+        $restartPolicyNode = $nodeBuilder->scalarNode(static::RESTART_POLICY);
+        $restartPolicyNode = true === $withDefaults
+            ? $restartPolicyNode->defaultValue(SystemdServiceTemplate::DEFAULT_RESTART_POLICY)
+            : $restartPolicyNode->defaultNull();
+
+        /* an explicit null is how a command opts out of the config level value, so only a set value is validated */
+        $restartPolicyNode
+            ->validate()
+            ->ifTrue(static fn($restartPolicy): bool => null !== $restartPolicy && false === \in_array($restartPolicy, SystemdServiceTemplate::RESTART_POLICIES, true))
+            ->thenInvalid('invalid systemd restart policy `%s`')
+            ->end()
+            ->end();
     }
 
     protected function appendSupervisorConfig(NodeBuilder $nodeBuilder, bool $withDefaults = true): void

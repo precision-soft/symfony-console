@@ -15,13 +15,17 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
-use PrecisionSoft\Symfony\Console\Template\Trait\DestinationPathTrait;
+use PrecisionSoft\Symfony\Console\Template\Trait\WorkerDestinationPathTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
+use PrecisionSoft\Symfony\Console\Template\Trait\WorkerSettingsTrait;
 
 class SupervisorTemplate implements TemplateInterface
 {
-    use DestinationPathTrait;
+    use WorkerDestinationPathTrait;
     use WorkerNumberOfProcessesTrait;
+    use WorkerSettingsTrait;
+
+    protected const EXTENSION = 'conf';
 
     /**
      * @param CommandDto[] $commands
@@ -56,24 +60,7 @@ class SupervisorTemplate implements TemplateInterface
         ConfigDto $configDto,
         CommandDto $commandDto,
     ): string {
-        $destinationSubDir = $commandDto->getDestinationSubDir() ?? $configDto->getSettings()->getDestinationSubDir();
-        $destinationSuffix = $commandDto->getDestinationSuffix() ?? $configDto->getSettings()->getDestinationSuffix();
-
-        $pathParts = [\rtrim($configDto->getConfFilesDir(), '/')];
-
-        $pathParts = \array_merge($pathParts, $this->splitDestinationPath($destinationSubDir));
-
-        $fileNameParts = [$commandDto->getName()];
-
-        if (null !== $destinationSuffix && '' !== \trim($destinationSuffix, '.')) {
-            $fileNameParts[] = \trim($destinationSuffix, '.');
-        }
-
-        $fileNameParts[] = 'conf';
-
-        $pathParts[] = \implode('.', $fileNameParts);
-
-        return \implode('/', $pathParts);
+        return $this->buildWorkerPath($configDto, $commandDto, $commandDto->getName(), static::EXTENSION);
     }
 
     /** @throws InvalidConfigurationException */
@@ -88,7 +75,7 @@ class SupervisorTemplate implements TemplateInterface
             '%numberOfProcesses%' => (string)$this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
             '%autoRestart%' => true === $this->getAutoRestart($configDto, $commandDto) ? 'true' : 'false',
-            '%logFile%' => $commandDto->getSettings()->getLogFile() ?? \sprintf('%s/%s.log', \rtrim($configDto->getLogsDir(), '/'), $commandDto->getName()),
+            '%logFile%' => $this->getLogFile($configDto, $commandDto),
         ];
 
         return \str_replace(
@@ -138,20 +125,6 @@ class SupervisorTemplate implements TemplateInterface
         }
 
         return $prefix;
-    }
-
-    /** @throws InvalidConfigurationException */
-    protected function getUser(
-        ConfigDto $configDto,
-        CommandDto $commandDto,
-    ): string {
-        $user = $commandDto->getSettings()->getUser() ?? $configDto->getSettings()->getUser();
-
-        if (null === $user || '' === $user) {
-            throw new InvalidConfigurationException('the `user` is mandatory');
-        }
-
-        return $user;
     }
 
     protected function getTemplate(): string

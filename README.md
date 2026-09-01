@@ -16,6 +16,7 @@ Any suggestions are welcomed.
 
 - Generate crontab configuration files from Symfony bundle config
 - Generate Supervisor worker configuration files
+- Generate systemd service units, one per worker instance
 - Generate Kubernetes CronJob and Worker manifests
 - Automatic heartbeat command injection for cron jobs
 - Memory and time limit traits for long-running commands
@@ -24,7 +25,7 @@ Any suggestions are welcomed.
 ## Requirements
 
 - PHP 8.2+
-- Symfony 7
+- Symfony 7 or 8 (Symfony 8 itself requires PHP 8.4+, so a PHP 8.2 or 8.3 install resolves Symfony 7)
 
 ## Installation
 
@@ -39,6 +40,18 @@ composer require precision-soft/symfony-console
 | `precision-soft:symfony:console:cronjob-create`  | Generates cron job configuration files based on the bundle config |
 | `precision-soft:symfony:console:worker-create`   | Generates worker configuration files based on the bundle config   |
 | `precision-soft:symfony:console:logs-dir-create` | Creates the configured logs directories, idempotently             |
+
+Both generation commands accept three read-only modes, none of which writes anything:
+
+| Option      | Behaviour                                                                              |
+|-------------|----------------------------------------------------------------------------------------|
+| `--dry-run` | Lists the destination paths that would be added, changed or removed, with their status |
+| `--diff`    | The same list, each pending path followed by a unified diff of its content             |
+| `--check`   | The same list, exiting with failure when anything is pending — a CI drift check        |
+
+A path is `added` when it does not exist yet, `changed` when its content differs, and `removed` when it sits in `conf_files_dir` and no command declares it any more. Paths whose content already matches are not reported. `--check` and `--diff` combine, so a failing drift check can show what drifted.
+
+A configuration that declares no file at all reports nothing: generation returns early on an empty set and never clears a destination directory, so reporting its content as `removed` would be drift no run could ever fix.
 
 ## Configuration
 
@@ -181,6 +194,68 @@ That validation runs on the configuration as written, so a value supplied throug
 
 Both options are honoured only by `SupervisorTemplate`. `KubernetesWorkerTemplate` writes a single manifest whose name comes from `destination_file`, and ignores them.
 
+### Worker configuration (systemd)
+
+```yaml
+precision_soft_symfony_console:
+    worker:
+        config:
+            template_class: PrecisionSoft\Symfony\Console\Template\SystemdServiceTemplate
+            conf_files_dir: '%kernel.project_dir%/generated_conf/systemd'
+            logs_dir: '%kernel.logs_dir%/worker'
+            settings:
+                number_of_processes: 2
+                prefix: 'app-name'
+                user: 'www-data'
+                working_directory: '%kernel.project_dir%'
+                environment_file: '%kernel.project_dir%/.env.local'
+                restart_policy: 'always'
+        commands:
+            messenger-consume:
+                command: [ '/usr/bin/php', '%kernel.project_dir%/bin/console', 'messenger:consume', 'async' ]
+                settings:
+                    number_of_processes: 4
+                    restart_policy: 'on-failure'
+```
+
+Generates one concrete unit per instance, so nothing has to be templated at install time:
+
+```
+generated_conf/systemd/app-name-messenger_consume-1.service
+generated_conf/systemd/app-name-messenger_consume-2.service
+generated_conf/systemd/app-name-messenger_consume-3.service
+generated_conf/systemd/app-name-messenger_consume-4.service
+```
+
+A `number_of_processes` of `1` drops the numeric suffix and writes `app-name-messenger_consume.service`. The `-` of the command key became `_`: Symfony normalizes the keys of a configuration array, so a command declared as `messenger-consume` reaches every template as `messenger_consume`.
+
+Settings, each resolved per command first and falling back to the config level:
+
+| Setting             | Default                         | Emitted as                           |
+|---------------------|---------------------------------|--------------------------------------|
+| `user`              | none, mandatory                 | `User=`                              |
+| `working_directory` | `%kernel.project_dir%`          | `WorkingDirectory=`                  |
+| `restart_policy`    | `always`                        | `Restart=`                           |
+| `environment_file`  | none, line omitted when unset   | `EnvironmentFile=`                   |
+| `standard_output`   | `append:<log_file>`             | `StandardOutput=`                    |
+| `standard_error`    | `append:<log_file>`             | `StandardError=`                     |
+| `log_file`          | `<logs_dir>/<command-name>.log` | the `append:` target of both streams |
+
+`restart_policy` accepts the systemd values `no`, `on-success`, `on-failure`, `on-abnormal`, `on-watchdog`, `on-abort` and `always`, validated at container build time. `prefix` is optional here, unlike for Supervisor, and the unit name is `<prefix>-<command-name>` sanitized down to what systemd accepts: everything outside `A-Za-z0-9_.-` collapses to `-`, `..` collapses to `.`, and surrounding `-` and `.` are stripped. `@` is deliberately not preserved, because a unit named `foo@.service` is a template systemd refuses to start without an instance name. A name that sanitizes down to nothing is rejected, and so are two commands whose names sanitize to the same unit.
+
+`command` must start with an absolute executable path — systemd rejects a unit whose `ExecStart` is not absolute, so generation fails loudly instead of writing a unit that cannot start. Use `/usr/bin/php` rather than `php`.
+
+Two systemd syntax rules are handled for you, because both fail silently or fatally at `systemctl start` rather than at generation time:
+
+- **Command arguments are quoted when they need it.** systemd splits `ExecStart` on whitespace, so `--file=/tmp/my file.csv` would arrive as two arguments. Any part carrying whitespace, a quote or a backslash is emitted double-quoted with the inner characters escaped; ordinary parts stay bare.
+- **A literal `%` is emitted as `%%`.** systemd expands specifiers in every value it reads, and an unknown one (`--format=%Q`) is a fatal error that keeps the unit from starting, while a known one (`--format=%s`) is silently substituted. `working_directory`, `environment_file`, `standard_output`, `standard_error` and the command parts are all escaped. The consequence is that systemd's own specifiers cannot be passed through — write the resolved value instead.
+
+`standard_output` and `standard_error` are emitted verbatim, so they must be a form systemd accepts: `inherit`, `null`, `tty`, `journal`, `kmsg`, `socket`, or a `file:`, `append:`, `truncate:` or `fd:` prefix. They are not validated at container build time, since the accepted set grows with systemd versions.
+
+`destination_sub_dir` and `destination_suffix` work exactly as they do for Supervisor, the suffix landing before the `.service` extension.
+
+> **Do not point `conf_files_dir` at `/etc/systemd/system`.** Generation is atomic at directory level: the whole destination directory is replaced, so every unrelated unit in it would be deleted. Generate into a directory this bundle owns, then copy or symlink the units from there and run `systemctl daemon-reload`.
+
 ### Kubernetes CronJob template
 
 ```yaml
@@ -239,12 +314,13 @@ Up to and including v4.4.0 the collection was emitted as a mapping keyed `0:`, `
 
 ## Available templates
 
-| Template class              | Output format                              |
-|-----------------------------|--------------------------------------------|
-| `CrontabTemplate`           | Standard crontab file                      |
-| `SupervisorTemplate`        | Supervisor `.conf` files (one per command) |
-| `KubernetesCronjobTemplate` | Kubernetes CronJob manifest                |
-| `KubernetesWorkerTemplate`  | Kubernetes Worker manifest                 |
+| Template class              | Output format                               |
+|-----------------------------|---------------------------------------------|
+| `CrontabTemplate`           | Standard crontab file                       |
+| `SupervisorTemplate`        | Supervisor `.conf` files (one per command)  |
+| `SystemdServiceTemplate`    | systemd `.service` units (one per instance) |
+| `KubernetesCronjobTemplate` | Kubernetes CronJob manifest                 |
+| `KubernetesWorkerTemplate`  | Kubernetes Worker manifest                  |
 
 ## Command traits
 
@@ -520,6 +596,8 @@ When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>
 ### Path traversal protection
 
 `destination_file`, `destination_files`, `destination_sub_dir` and `destination_suffix` are the four configuration values appended to `conf_files_dir` to form a generated path, and all four reject `..` and backslashes at container build time, naming the offending node. `destination_file` and `destination_files` additionally reject a value built only from `.` and `/` segments, which would otherwise normalize away to nothing and resolve to `conf_files_dir` itself. That check runs on the configuration as written, so a value supplied through a container parameter is still a literal placeholder at that point and cannot be checked — which is why the writer remains the backstop.
+
+`conf_files_dir` itself must be a real directory. Activation renames the destination path, so a symlink there would be replaced by a real directory rather than written through — silently destroying the link. Both generation and the read-only preview modes refuse it with `ConfGenerateException`, so `--check` cannot pass what a write would break.
 
 `ConfFileWriter` validates that all generated file paths stay within the configured `conf_files_dir`. Paths containing `..` or resolving outside the destination directory are rejected with `ConfGenerateException`. Each written file is additionally canonicalized via `realpath` and re-checked against the (also canonicalized) temporary directory, blocking symlink-based escapes that pass textual checks; the temp directory itself is verified to be a real directory (not a pre-existing symlink) to close a TOCTOU window after `mkdir`. Do not bypass these checks by symlinking the destination to a sensitive location.
 

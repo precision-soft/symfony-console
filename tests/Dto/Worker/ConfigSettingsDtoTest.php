@@ -79,4 +79,32 @@ final class ConfigSettingsDtoTest extends AbstractTestCase
         static::assertSame('machine-a', $configSettingsDto->getDestinationSubDir());
         static::assertSame('blue', $configSettingsDto->getDestinationSuffix());
     }
+
+    public function testSystemdDefaultsAreNull(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto([]);
+
+        static::assertNull($configSettingsDto->getWorkingDirectory());
+        static::assertNull($configSettingsDto->getEnvironmentFile());
+        static::assertNull($configSettingsDto->getRestartPolicy());
+        static::assertNull($configSettingsDto->getStandardOutput());
+        static::assertNull($configSettingsDto->getStandardError());
+    }
+
+    public function testAllSystemdSettingsAreSet(): void
+    {
+        $configSettingsDto = new ConfigSettingsDto([
+            Configuration::WORKING_DIRECTORY => '/srv/app',
+            Configuration::ENVIRONMENT_FILE => '/srv/app/.env',
+            Configuration::RESTART_POLICY => 'on-failure',
+            Configuration::STANDARD_OUTPUT => 'journal',
+            Configuration::STANDARD_ERROR => 'inherit',
+        ]);
+
+        static::assertSame('/srv/app', $configSettingsDto->getWorkingDirectory());
+        static::assertSame('/srv/app/.env', $configSettingsDto->getEnvironmentFile());
+        static::assertSame('on-failure', $configSettingsDto->getRestartPolicy());
+        static::assertSame('journal', $configSettingsDto->getStandardOutput());
+        static::assertSame('inherit', $configSettingsDto->getStandardError());
+    }
 }

@@ -30,6 +30,12 @@ trait SymfonyStyleTrait
         $this->style->writeln($this->format($text));
     }
 
+    /* the timestamp and memory prefix would break every line of a diff or of any other verbatim block */
+    protected function writelnUnformatted(string $text): void
+    {
+        $this->style->writeln($text);
+    }
+
     protected function error(
         string $text,
         ?Throwable $throwable = null,

@@ -51,7 +51,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php: [ '8.2', '8.3', '8.4' ]
+                php: [ '8.2', '8.3', '8.4', '8.5' ]
         steps:
             -   uses: actions/checkout@v4
             -   uses: shivammathur/setup-php@v2
@@ -78,6 +78,26 @@ jobs:
                 run: composer phpstan
             -   name: test
                 run: composer test
+            -   name: integration suite
+                run: composer test-integration -- --fail-on-skipped
+
+    # composer.lock stays reproducible on the baseline dependency set; this job proves the upper bound.
+    # --fail-on-skipped on both suites: this is the one lane whose dependencies are not pinned, so a
+    # suite that silently degrades to skips is exactly the failure it exists to catch
+    symfony-latest:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.5'
+                    coverage: none
+            -   name: resolve the latest allowed dependencies
+                run: composer update --no-progress --no-interaction --prefer-dist
+            -   name: phpstan
+                run: composer phpstan
+            -   name: test
+                run: composer test -- --fail-on-skipped
             -   name: integration suite
                 run: composer test-integration -- --fail-on-skipped
 

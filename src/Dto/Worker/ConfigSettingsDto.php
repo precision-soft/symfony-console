@@ -11,12 +11,14 @@ namespace PrecisionSoft\Symfony\Console\Dto\Worker;
 use PrecisionSoft\Symfony\Console\Contract\SettingInterface;
 use PrecisionSoft\Symfony\Console\Dto\Trait\SettingsTrait;
 use PrecisionSoft\Symfony\Console\Dto\Trait\SupervisorSettingsTrait;
+use PrecisionSoft\Symfony\Console\Dto\Trait\SystemdSettingsTrait;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class ConfigSettingsDto implements SettingInterface
 {
     use SettingsTrait;
     use SupervisorSettingsTrait;
+    use SystemdSettingsTrait;
 
     protected ?string $destinationFile = null;
 
