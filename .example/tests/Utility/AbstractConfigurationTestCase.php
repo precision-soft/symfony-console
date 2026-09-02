@@ -16,6 +16,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /* boots the catalogue kernel in the environment that selects the templates, and runs the bundle's commands through it */
+
 abstract class AbstractConfigurationTestCase extends AbstractKernelTestCase
 {
     protected const ENVIRONMENT = 'test';

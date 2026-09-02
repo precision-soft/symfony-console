@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /* a cron job: refreshes the euro rate of every currency the catalogue prices in, within its time limit */
+
 class ExchangeRateRefreshCommand extends AbstractCommand
 {
     use TimeLimitTrait;

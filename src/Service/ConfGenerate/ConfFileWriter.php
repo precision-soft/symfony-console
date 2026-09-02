@@ -227,7 +227,6 @@ class ConfFileWriter
 
             $confFileChangesDto->addChange(new ConfFileChangeDto($path, ConfFileStatus::Removed, null, $currentContent));
         }
-
     }
 
     /**

@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /* a worker: every instance imports its own shard of the catalogue and stops cleanly at the memory or time limit */
+
 class PriceListImportCommand extends AbstractCommand
 {
     use InstancesTrait;

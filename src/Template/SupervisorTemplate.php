@@ -90,6 +90,7 @@ class SupervisorTemplate implements TemplateInterface
         ];
 
         /* one pass, so a value that happens to spell a placeholder is data and not a second round of substitution */
+
         return \strtr($this->getTemplate(), $configurationParameters);
     }
 

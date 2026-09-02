@@ -30,7 +30,6 @@ final class SupervisorTemplateTest extends AbstractTestCase
         return new MockDto(SupervisorTemplate::class, [], true);
     }
 
-
     /** @return iterable<string, array{array<string, mixed>, array<int, string>}> */
     public static function provideValuesCarryingControlCharacters(): iterable
     {
@@ -810,6 +809,7 @@ final class SupervisorTemplateTest extends AbstractTestCase
         $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('command = bin/console messenger:consume --limit=100', $content);
     }
+
     /* supervisor `%`-interpolates `command` and the log paths, so a literal `%` has to be doubled */
     public function testGenerateEscapesPercentSignsForSupervisorInterpolation(): void
     {

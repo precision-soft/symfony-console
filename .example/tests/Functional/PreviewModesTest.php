@@ -12,6 +12,7 @@ use PrecisionSoft\Symfony\Console\Command\CronjobCreateCommand;
 use PrecisionSoft\Symfony\Console\Example\Test\Utility\AbstractConfigurationTestCase;
 
 /* `--dry-run`, `--diff` and `--check` on the crontab: what a deployment pipeline runs before and after a generation */
+
 /** @internal */
 final class PreviewModesTest extends AbstractConfigurationTestCase
 {

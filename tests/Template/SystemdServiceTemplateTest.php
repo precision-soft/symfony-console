@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace PrecisionSoft\Symfony\Console\Test\Template;
 
-use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto as CronjobConfigDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;

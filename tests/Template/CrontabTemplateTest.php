@@ -30,7 +30,6 @@ final class CrontabTemplateTest extends AbstractTestCase
         return new MockDto(CrontabTemplate::class, [], true);
     }
 
-
     /** @return iterable<string, array{array<string, mixed>, array<string, mixed>}> */
     public static function provideValuesCarryingControlCharacters(): iterable
     {
