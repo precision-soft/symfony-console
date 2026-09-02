@@ -615,6 +615,10 @@ Command parts (the `command` array) are rendered into generated config files wit
 
 **A `;` in a Supervisor command is a known limitation.** `SupervisorTemplate` writes `command = <parts>` verbatim, and `;` opens an inline comment in the INI dialect — so a command such as `sh -c 'a; b'` produces a file whose `command` directive reads back as `sh -c a`, silently dropping the rest. The bundle neither quotes nor rejects it; keep `;` out of the command parts, or wrap the composite command in a script and point the worker at that instead.
 
+## Example application
+
+A runnable slice of a product catalogue's operations lives under [`.example/`](./.example/README.md): two commands built on `AbstractCommand` and its traits (a sharded, limit-aware price-list import worker and a time-limited exchange-rate refresh cron job), one bundle configuration, and a test suite that generates and asserts the crontab rows, the Supervisor programs, the systemd units (verified with `systemd-analyze` wherever it is available) and the Kubernetes values files, plus the three preview modes. It installs the package from the working tree through a path repository, so it always tests the code as it stands; run it with `.dev/validate/all.sh --example` or `cd .example && composer install && composer check`. The directory is `export-ignore`d and never reaches a consumer's `vendor/`.
+
 ## Dev
 
 The development environment uses Docker. The `./dc` script is a Docker Compose wrapper located in `.dev/`.

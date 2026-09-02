@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [v4.8.0] - 2026-09-02 - Escaped systemd, crontab and Supervisor values, control-character rejection and complete previews
+
 ### Changed
 
 - `Template\SystemdServiceTemplate`, `Template\CrontabTemplate` and `Template\SupervisorTemplate` reject a value carrying a control character — `user`, `working_directory`, `environment_file`, `standard_output`, `standard_error`, `log_file`, `logs_dir`, `log_file_name`, `prefix` and every command part — with `InvalidConfigurationException` at generation time. All three write line-oriented text, so a newline inside a value ended the directive and started another one: `working_directory: "/srv\nExecStartPre=/bin/rm -rf /"` produced a unit that `systemd-analyze verify` accepts with both directives in it. Such a configuration never generated a working file, but it was accepted before and is refused now
@@ -18,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Template\CrontabTemplate` escapes `%` as `\%` in the command parts, the log directory and the log file name: cron cuts the command field at an unescaped `%` and feeds the remainder to the command's standard input, so `--date=%Y-%m-%d` ran as `--date=` with `Y-` on stdin. The log redirection path is quoted with POSIX single quotes instead of `escapeshellarg()`, which follows `LC_CTYPE` and, under the `C` locale php runs with by default on glibc, drops every byte above `0x7f` — `logs_dir: /srv/données` was written as `/srv/donnes`
 - `Template\SupervisorTemplate` doubles `%` in `command` and in the log paths, which Supervisor `%`-interpolates (`%(program_name)s`), so a bare `%` was a fatal format error when the file was loaded; and it substitutes the program template's placeholders in one pass, so a command part spelling `%user%` is no longer replaced by the user name
 - `Service\ConfGenerate\ConfFileWriter::diff()` reads the content of a file no command declares any more, so `--diff` shows its lines under `+++ /dev/null` instead of an empty `@@ -0,0 +0,0 @@` hunk; and it no longer reports a directory reachable through a symlink as a removed file that `save()` would then delete — a dangling symlink is still reported as removed
+
+### Added
+
+- `.example/` — a runnable slice of a product catalogue's operations whose test suite exercises every public capability of the package: two commands on `AbstractCommand` with `InstancesTrait`, `MemoryAndTimeLimitsTrait` and `TimeLimitTrait`, one bundle configuration whose environment selects the templates, and the generated crontab rows, Supervisor programs, systemd units (run through `systemd-analyze verify` wherever it is on the `PATH`) and Kubernetes values files asserted the way a deployment pipeline reads them, with the three preview modes. It installs the package from the working tree through a path repository and is gated by `.dev/validate/all.sh --example` and the `example` CI job; the directory is `export-ignore`d, so nothing reaches a consumer's `vendor/`
 
 ## [v4.7.0] - 2026-09-01 - Systemd service generation and read-only preview modes
 
@@ -608,7 +614,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial public release of `precision-soft/symfony-console`
 
-[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.7.0...HEAD
+[Unreleased]: https://github.com/precision-soft/symfony-console/compare/v4.8.0...HEAD
+
+[v4.8.0]: https://github.com/precision-soft/symfony-console/compare/v4.7.0...v4.8.0
 
 [v4.7.0]: https://github.com/precision-soft/symfony-console/compare/v4.6.0...v4.7.0
 

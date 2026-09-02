@@ -1,0 +1,10 @@
+# crontab rows and Supervisor programs
+precision_soft_symfony_console:
+    worker:
+        config:
+            template_class: PrecisionSoft\Symfony\Console\Template\SupervisorTemplate
+            settings:
+                prefix: catalogue
+                user: www-data
+                auto_start: true
+                auto_restart: true
