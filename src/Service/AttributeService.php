@@ -14,7 +14,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 
 class AttributeService
 {
-    private function __construct() {}
+    protected function __construct() {}
 
     /**
      * @param class-string $commandClass

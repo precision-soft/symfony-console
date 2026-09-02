@@ -12,7 +12,7 @@ use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
 
 class MemoryService
 {
-    private function __construct() {}
+    protected function __construct() {}
 
     /** @throws InvalidValueException */
     public static function setMemoryLimitIfNotHigher(string $newLimit): void

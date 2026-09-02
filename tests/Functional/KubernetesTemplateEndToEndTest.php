@@ -35,20 +35,6 @@ final class KubernetesTemplateEndToEndTest extends AbstractTestCase
         return new MockDto(CronjobCreateCommand::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->baseDir = \sys_get_temp_dir() . '/kubernetes_template_e2e_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     public function testCompiledCronjobCommandWritesAParsableManifest(): void
     {
         $commandTester = $this->runCronjobCreate($this->getCronjobCommands());
@@ -175,6 +161,20 @@ final class KubernetesTemplateEndToEndTest extends AbstractTestCase
             ],
             $jobs[0],
         );
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->baseDir = \sys_get_temp_dir() . '/kubernetes_template_e2e_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->baseDir);
+
+        parent::tearDown();
     }
 
     /** @return array<string, mixed> */

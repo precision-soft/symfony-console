@@ -34,14 +34,6 @@ final class ConfFileWriterTest extends AbstractTestCase
         );
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->filesystem = new Filesystem();
-        $this->confFileWriter = new ConfFileWriter($this->filesystem);
-    }
-
     public function testSaveCreatesFilesInDestinationDir(): void
     {
         $destinationDirectory = \sys_get_temp_dir() . '/cfw_save_' . \uniqid('', true);
@@ -496,5 +488,13 @@ final class ConfFileWriterTest extends AbstractTestCase
         } finally {
             $this->filesystem->remove($destinationDirectory);
         }
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filesystem = new Filesystem();
+        $this->confFileWriter = new ConfFileWriter($this->filesystem);
     }
 }

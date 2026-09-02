@@ -33,21 +33,6 @@ final class CreateConfigPreviewEndToEndTest extends AbstractTestCase
         return new MockDto(WorkerCreateCommand::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->filesystem = new Filesystem();
-        $this->baseDir = \sys_get_temp_dir() . '/preview_e2e_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        $this->filesystem->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     public function testCheckFailsAndWritesNothingWhenTheDestinationIsMissing(): void
     {
         $commandTester = $this->runWorkerCreate(static::COMMANDS, ['--check' => true]);
@@ -141,6 +126,55 @@ final class CreateConfigPreviewEndToEndTest extends AbstractTestCase
 
         static::assertSame(WorkerCreateCommand::SUCCESS, $commandTester->getStatusCode());
         static::assertStringContainsString('generated conf files are current', $commandTester->getDisplay());
+    }
+
+    public function testDiffShowsTheLinesOfAFileNoCommandDeclaresAnyMore(): void
+    {
+        $this->runWorkerCreate(static::COMMANDS, []);
+        $this->filesystem->dumpFile($this->getConfFilesDir() . '/retired.conf', "left behind\nsecond line");
+
+        $commandTester = $this->runWorkerCreate(static::COMMANDS, ['--diff' => true]);
+        $display = $commandTester->getDisplay();
+
+        static::assertSame(WorkerCreateCommand::SUCCESS, $commandTester->getStatusCode());
+        static::assertStringContainsString('--- ' . $this->getConfFilesDir() . '/retired.conf', $display);
+        static::assertStringContainsString('+++ /dev/null', $display);
+        static::assertStringContainsString('@@ -1,2 +0,0 @@', $display);
+        static::assertStringContainsString('-left behind', $display);
+        static::assertStringContainsString('-second line', $display);
+    }
+
+    public function testCheckAndDiffAgreeOnAFileThatDiffersOnlyInLineEndings(): void
+    {
+        $this->runWorkerCreate(static::COMMANDS, []);
+
+        $contents = \file_get_contents($this->getConfFilesDir() . '/orders.conf');
+
+        static::assertIsString($contents);
+
+        $this->filesystem->dumpFile($this->getConfFilesDir() . '/orders.conf', \str_replace("\n", "\r\n", $contents));
+
+        $commandTester = $this->runWorkerCreate(static::COMMANDS, ['--check' => true, '--diff' => true]);
+        $display = $commandTester->getDisplay();
+
+        static::assertSame(WorkerCreateCommand::FAILURE, $commandTester->getStatusCode());
+        static::assertStringContainsString('[changed] ' . $this->getConfFilesDir() . '/orders.conf', $display);
+        static::assertStringContainsString('\ line endings differ', $display);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filesystem = new Filesystem();
+        $this->baseDir = \sys_get_temp_dir() . '/preview_e2e_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        $this->filesystem->remove($this->baseDir);
+
+        parent::tearDown();
     }
 
     private function getConfFilesDir(): string

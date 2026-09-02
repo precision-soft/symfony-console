@@ -49,7 +49,7 @@ Both generation commands accept three read-only modes, none of which writes anyt
 | `--diff`    | The same list, each pending path followed by a unified diff of its content             |
 | `--check`   | The same list, exiting with failure when anything is pending — a CI drift check        |
 
-A path is `added` when it does not exist yet, `changed` when its content differs, and `removed` when it sits in `conf_files_dir` and no command declares it any more. Paths whose content already matches are not reported. `--check` and `--diff` combine, so a failing drift check can show what drifted.
+A path is `added` when it does not exist yet, `changed` when its content differs, and `removed` when it sits in `conf_files_dir` and no command declares it any more. Paths whose content already matches are not reported. `--check` and `--diff` combine, so a failing drift check can show what drifted. A removed path's diff lists the lines being deleted under `+++ /dev/null`, and a file whose bytes differ only in their line endings (CRLF on disk, LF generated) is reported as `changed` with a diff that reads `\ line endings differ`.
 
 A configuration that declares no file at all reports nothing: generation returns early on an empty set and never clears a destination directory, so reporting its content as `removed` would be drift no run could ever fix.
 
@@ -128,6 +128,8 @@ A command named `heartbeat` is always taken as the heartbeat override rather tha
 
 The **user** setting at config level prepends the user to each crontab command line. It can be overridden per command via the command-level `user` option. Each command also supports `log_file_name` (custom log file name, defaults to `<command-name>.log`) and `destination_file` (override the config-level destination file to generate separate crontab files per command).
 
+Two crontab syntax rules are handled for you. A `%` in a command part, in `logs_dir` or in `log_file_name` is emitted as `\%`, because cron cuts the command field at an unescaped `%` and feeds what follows to the command's standard input — `--date=%Y-%m-%d` ran as `--date=` with `Y-` on stdin. The log redirection path is single-quoted with POSIX quoting rather than `escapeshellarg()`, which follows `LC_CTYPE` and, under the `C` locale php runs with by default on glibc, drops every byte above `0x7f` (`/srv/données` became `/srv/donnes`). The command parts themselves are shell text joined by a space: the row is run by cron's shell, so a `>>`, a `$(…)` or a quoted argument you write is passed through as written. A value carrying a newline or another control character — a command part, `user`, `logs_dir` or `log_file_name` — is rejected at generation time with `InvalidConfigurationException`, since it would end the row and start another one.
+
 ### Worker configuration (Supervisor)
 
 ```yaml
@@ -151,6 +153,8 @@ precision_soft_symfony_console:
 ```
 
 Each command generates a separate `.conf` file for Supervisor. The `prefix`, `user`, `auto_start`, `auto_restart`, `log_file`, and `number_of_processes` are available settings with defaults (can be set at the config level and overridden per command). If `log_file` is not specified, it defaults to `<logs_dir>/<command-name>.log`.
+
+A literal `%` in a command part or in `log_file` is emitted as `%%`, because Supervisor `%`-interpolates `command` and the log paths (`%(program_name)s`, `%(ENV_HOME)s`) and a bare `%` is a fatal format error when the file is loaded. The placeholders of the program template are substituted in one pass, so a command part that happens to read `%user%` is data, not a second template. A value carrying a newline or another control character — a command part, `prefix`, `user` or `log_file` — is rejected at generation time with `InvalidConfigurationException`.
 
 #### Splitting worker files into sub directories
 
@@ -245,10 +249,14 @@ Settings, each resolved per command first and falling back to the config level:
 
 `command` must start with an absolute executable path — systemd rejects a unit whose `ExecStart` is not absolute, so generation fails loudly instead of writing a unit that cannot start. Use `/usr/bin/php` rather than `php`.
 
-Two systemd syntax rules are handled for you, because both fail silently or fatally at `systemctl start` rather than at generation time:
+Four systemd syntax rules are handled for you, because each fails silently or fatally at `systemctl start` rather than at generation time:
 
 - **Command arguments are quoted when they need it.** systemd splits `ExecStart` on whitespace, so `--file=/tmp/my file.csv` would arrive as two arguments. Any part carrying whitespace, a quote or a backslash is emitted double-quoted with the inner characters escaped; ordinary parts stay bare.
+- **A literal `$` is emitted as `$$`.** systemd expands `$VAR` and `${VAR}` in every `ExecStart` argument, quoted or not, so `--secret=pa$word` would reach the command with `$word` replaced by an environment variable, empty or not.
+- **A `;` standing alone is emitted as `\;`.** Bare, it separates two `ExecStart` commands, and a `Type=simple` unit with two of them is refused (`Service has more than one ExecStart= setting`); a `;` inside an argument (`a;b`) is left alone.
 - **A literal `%` is emitted as `%%`.** systemd expands specifiers in every value it reads, and an unknown one (`--format=%Q`) is a fatal error that keeps the unit from starting, while a known one (`--format=%s`) is silently substituted. `working_directory`, `environment_file`, `standard_output`, `standard_error` and the command parts are all escaped. The consequence is that systemd's own specifiers cannot be passed through — write the resolved value instead.
+
+A value carrying a newline or another control character — `user`, `working_directory`, `environment_file`, `standard_output`, `standard_error`, `log_file` or a command part — is rejected at generation time with `InvalidConfigurationException`: systemd would read the text after the newline as a second directive, and `systemd-analyze verify` accepts such a unit without a word.
 
 `standard_output` and `standard_error` are emitted verbatim, so they must be a form systemd accepts: `inherit`, `null`, `tty`, `journal`, `kmsg`, `socket`, or a `file:`, `append:`, `truncate:` or `fd:` prefix. They are not validated at container build time, since the accepted set grows with systemd versions.
 
@@ -603,9 +611,13 @@ When `heartbeat` is enabled, the crontab generator adds a `/bin/touch <logs_dir>
 
 ### Configuration values in generated files
 
-Command parts (the `command` array) are rendered verbatim into generated config files (crontab, Supervisor `.conf`, Kubernetes YAML). The templates do not shell-escape command parts, so sanitizing command input (shell metacharacters, newlines) is the caller's responsibility. Kubernetes manifests are written by `Symfony\Component\Yaml\Yaml::dump()`, which quotes whatever needs quoting, and log file paths in crontab are escaped via `\escapeshellarg()`. Do not pass untrusted user input as command strings or settings.
+Command parts (the `command` array) are rendered into generated config files with the escaping each consumer needs and nothing more: systemd's `ExecStart` quoting plus `$$`, `\;` and `%%`; cron's `\%` and a POSIX-quoted log path; Supervisor's `%%`. Crontab and Supervisor command parts remain shell text, so the shell metacharacters you write are run by the shell — do not pass untrusted user input as command strings or settings. Every value written into a crontab row, a Supervisor program or a systemd unit is rejected with `InvalidConfigurationException` when it carries a control character, because a newline would end the directive and start another one. Kubernetes manifests are written by `Symfony\Component\Yaml\Yaml::dump()`, which quotes whatever needs quoting.
 
 **A `;` in a Supervisor command is a known limitation.** `SupervisorTemplate` writes `command = <parts>` verbatim, and `;` opens an inline comment in the INI dialect — so a command such as `sh -c 'a; b'` produces a file whose `command` directive reads back as `sh -c a`, silently dropping the rest. The bundle neither quotes nor rejects it; keep `;` out of the command parts, or wrap the composite command in a script and point the worker at that instead.
+
+## Example application
+
+A runnable slice of a product catalogue's operations lives under [`.example/`](./.example/README.md): two commands built on `AbstractCommand` and its traits (a sharded, limit-aware price-list import worker and a time-limited exchange-rate refresh cron job), one bundle configuration, and a test suite that generates and asserts the crontab rows, the Supervisor programs, the systemd units (verified with `systemd-analyze` wherever it is available) and the Kubernetes values files, plus the three preview modes. It installs the package from the working tree through a path repository, so it always tests the code as it stands; run it with `.dev/validate/all.sh --example` or `cd .example && composer install && composer check`. The directory is `export-ignore`d and never reaches a consumer's `vendor/`.
 
 ## Dev
 

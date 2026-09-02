@@ -1,0 +1,11 @@
+# crontab rows and systemd units, one per instance
+precision_soft_symfony_console:
+    worker:
+        config:
+            template_class: PrecisionSoft\Symfony\Console\Template\SystemdServiceTemplate
+            settings:
+                prefix: catalogue
+                user: www-data
+                working_directory: '%kernel.project_dir%'
+                environment_file: '-%kernel.project_dir%/.env.local'
+                restart_policy: on-failure

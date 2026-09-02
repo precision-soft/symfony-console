@@ -28,20 +28,6 @@ final class LogsDirCreateEndToEndTest extends AbstractTestCase
         return new MockDto(LogsDirCreateCommand::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->baseDir = \sys_get_temp_dir() . '/logs_dir_e2e_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     public function testCompiledContainerResolvesLogsDirsParameter(): void
     {
         $containerBuilder = $this->buildCompiledContainer();
@@ -85,6 +71,20 @@ final class LogsDirCreateEndToEndTest extends AbstractTestCase
 
         static::assertSame(LogsDirCreateCommand::SUCCESS, $commandTester->getStatusCode());
         static::assertDirectoryExists($this->baseDir . '/command');
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->baseDir = \sys_get_temp_dir() . '/logs_dir_e2e_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->baseDir);
+
+        parent::tearDown();
     }
 
     /** @param array<string, mixed> $configuration */

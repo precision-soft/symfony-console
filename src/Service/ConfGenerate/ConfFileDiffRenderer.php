@@ -15,6 +15,8 @@ class ConfFileDiffRenderer
 {
     public const NO_FILE = '/dev/null';
 
+    public const LINE_ENDINGS_MARKER = '\ line endings differ';
+
     protected const CONTEXT_LINES = 3;
 
     /* the longest common subsequence table is quadratic, so a pathologically large file falls back to a whole replacement */
@@ -59,7 +61,17 @@ class ConfFileDiffRenderer
         $hunks = $this->buildHunks($this->buildOperations($currentLines, $expectedLines));
 
         if ([] === $hunks) {
-            return [];
+            /* `\R` reads CRLF and LF alike, so equal lines over different bytes can only be a line-ending rewrite; the
+               status list says `changed` and the diff has to say why */
+            if ($confFileChangeDto->getCurrentContent() === $confFileChangeDto->getExpectedContent()) {
+                return [];
+            }
+
+            return [
+                '--- ' . $confFileChangeDto->getPath(),
+                '+++ ' . $confFileChangeDto->getPath(),
+                static::LINE_ENDINGS_MARKER,
+            ];
         }
 
         return [

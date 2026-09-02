@@ -15,12 +15,14 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
+use PrecisionSoft\Symfony\Console\Template\Trait\ControlCharacterGuardTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerDestinationPathTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerSettingsTrait;
 
 class SupervisorTemplate implements TemplateInterface
 {
+    use ControlCharacterGuardTrait;
     use WorkerDestinationPathTrait;
     use WorkerNumberOfProcessesTrait;
     use WorkerSettingsTrait;
@@ -68,21 +70,33 @@ class SupervisorTemplate implements TemplateInterface
         CommandDto $commandDto,
         ConfigDto $configDto,
     ): string {
+        $command = \implode(' ', \array_map(
+            fn(string $commandPart): string => $this->rejectControlCharacters('command', $commandPart),
+            $commandDto->getCommand(),
+        ));
+
+        /* supervisor `%`-interpolates `command` and the log paths, so a literal `%` there has to be doubled */
         $configurationParameters = [
-            '%programGroupName%' => \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
-            '%command%' => \implode(' ', $commandDto->getCommand()),
-            '%user%' => $this->getUser($configDto, $commandDto),
+            '%programGroupName%' => $this->rejectControlCharacters(
+                'program name',
+                \implode('-', [$this->getPrefix($configDto, $commandDto), $commandDto->getName()]),
+            ),
+            '%command%' => $this->escapePercentSigns($command),
+            '%user%' => $this->rejectControlCharacters('user', $this->getUser($configDto, $commandDto)),
             '%numberOfProcesses%' => (string)$this->getNumberOfProcesses($configDto, $commandDto),
             '%autoStart%' => true === $this->getAutoStart($configDto, $commandDto) ? 'true' : 'false',
             '%autoRestart%' => true === $this->getAutoRestart($configDto, $commandDto) ? 'true' : 'false',
-            '%logFile%' => $this->getLogFile($configDto, $commandDto),
+            '%logFile%' => $this->escapePercentSigns($this->rejectControlCharacters('log file', $this->getLogFile($configDto, $commandDto))),
         ];
 
-        return \str_replace(
-            \array_keys($configurationParameters),
-            \array_values($configurationParameters),
-            $this->getTemplate(),
-        );
+        /* one pass, so a value that happens to spell a placeholder is data and not a second round of substitution */
+
+        return \strtr($this->getTemplate(), $configurationParameters);
+    }
+
+    protected function escapePercentSigns(string $value): string
+    {
+        return \str_replace('%', '%%', $value);
     }
 
     /** @throws InvalidConfigurationException */

@@ -31,20 +31,6 @@ final class CronjobCreateEndToEndTest extends AbstractTestCase
         return new MockDto(CronjobCreateCommand::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->baseDir = \sys_get_temp_dir() . '/cronjob_create_e2e_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     public function testCompiledCommandWritesEveryLineAsAValidCrontabEntry(): void
     {
         $commandTester = $this->runCronjobCreate([
@@ -309,6 +295,20 @@ final class CronjobCreateEndToEndTest extends AbstractTestCase
             \sprintf("bin/console app:cleanup >> '%s/cron/cleanup.log' 2>&1", $this->baseDir),
             $entries[0]['command'],
         );
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->baseDir = \sys_get_temp_dir() . '/cronjob_create_e2e_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->baseDir);
+
+        parent::tearDown();
     }
 
     /**

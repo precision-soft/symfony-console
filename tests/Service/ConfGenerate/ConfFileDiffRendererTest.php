@@ -28,13 +28,6 @@ final class ConfFileDiffRendererTest extends AbstractTestCase
         return new MockDto(ConfFileDiffRenderer::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->confFileDiffRenderer = new ConfFileDiffRenderer();
-    }
-
     public function testRenderReturnsNothingForAnUnchangedFile(): void
     {
         static::assertSame([], $this->confFileDiffRenderer->render($this->getChange(ConfFileStatus::Unchanged, 'same', 'same')));
@@ -313,6 +306,26 @@ final class ConfFileDiffRendererTest extends AbstractTestCase
                 ),
             );
         }
+    }
+
+    /* a byte-level change without a differing line is what a CRLF to LF rewrite looks like; silence would contradict `--check` */
+    public function testRenderExplainsALineEndingOnlyChange(): void
+    {
+        static::assertSame(
+            [
+                '--- ' . static::PATH,
+                '+++ ' . static::PATH,
+                '\ line endings differ',
+            ],
+            $this->confFileDiffRenderer->render($this->getChange(ConfFileStatus::Changed, "one\ntwo", "one\r\ntwo")),
+        );
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->confFileDiffRenderer = new ConfFileDiffRenderer();
     }
 
     /** @return array<int, string> */

@@ -36,13 +36,6 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         );
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->filesystem = new Filesystem();
-    }
-
     public function testGenerateWithNonExistentTemplateThrowsException(): void
     {
         $logsDirectory = \sys_get_temp_dir() . '/error_recovery_logs_' . \uniqid('', true);
@@ -299,5 +292,12 @@ final class ConfGenerateServiceErrorRecoveryTest extends AbstractTestCase
         static::assertSame('third content', \file_get_contents($destinationDirectory . '/third.conf'));
 
         $this->filesystem->remove([$destinationDirectory, $logsDirectory]);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filesystem = new Filesystem();
     }
 }

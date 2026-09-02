@@ -33,7 +33,7 @@ final class CronjobCreateCommandTest extends AbstractTestCase
 
     public function testExecuteGeneratesConfFiles(): void
     {
-        $config = [
+        $configuration = [
             Configuration::CONFIG => [
                 Configuration::TEMPLATE_CLASS => CrontabTemplate::class,
                 Configuration::CONF_FILES_DIR => 'generated_conf/cron',
@@ -68,7 +68,7 @@ final class CronjobCreateCommandTest extends AbstractTestCase
             ->once()
             ->andReturn(['test']);
 
-        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateServiceMock, $config);
+        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateServiceMock, $configuration);
         $commandTester = new CommandTester($cronjobCreateCommand);
 
         $commandTester->execute([]);

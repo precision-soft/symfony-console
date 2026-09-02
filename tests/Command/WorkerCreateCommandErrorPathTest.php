@@ -52,7 +52,7 @@ final class WorkerCreateCommandErrorPathTest extends AbstractTestCase
             ->once()
             ->andThrow(new ConfGenerateException('test error message'));
 
-        $config = [
+        $configuration = [
             Configuration::CONFIG => [
                 Configuration::TEMPLATE_CLASS => 'SomeTemplate',
                 Configuration::CONF_FILES_DIR => 'generated_conf/worker',
@@ -77,7 +77,7 @@ final class WorkerCreateCommandErrorPathTest extends AbstractTestCase
             ],
         ];
 
-        $workerCreateCommand = new WorkerCreateCommand($confGenerateService, $config);
+        $workerCreateCommand = new WorkerCreateCommand($confGenerateService, $configuration);
 
         $commandTester = new CommandTester($workerCreateCommand);
         $commandTester->execute([]);

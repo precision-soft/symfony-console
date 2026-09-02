@@ -1,0 +1,56 @@
+{
+    "name": "precision-soft/symfony-console-example",
+    "description": "The operations of a product catalogue - its cron jobs, its workers and their generated configuration - whose test suite exercises every public capability of precision-soft/symfony-console",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "precision-soft/symfony-console": "*@dev",
+        "symfony/console": "^7.0 || ^8.0",
+        "symfony/framework-bundle": "^7.0 || ^8.0",
+        "symfony/yaml": "^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-mockery": "^2.0",
+        "phpunit/phpunit": "^11.5",
+        "precision-soft/symfony-phpunit": "^3.0",
+        "symfony/phpunit-bridge": "^7.0 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PrecisionSoft\\Symfony\\Console\\Example\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PrecisionSoft\\Dev\\PhpStan\\": "../.dev/phpstan/",
+            "PrecisionSoft\\Symfony\\Console\\Example\\Test\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "scripts": {
+        "test": "simple-phpunit",
+        "phpstan": "phpstan analyse --memory-limit=512M",
+        "check": [
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

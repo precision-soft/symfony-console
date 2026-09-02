@@ -33,7 +33,7 @@ final class WorkerCreateCommandZeroFilesTest extends AbstractTestCase
 
     public function testExecuteWithZeroGeneratedFilesOutputsWarning(): void
     {
-        $config = [
+        $configuration = [
             Configuration::CONFIG => [
                 Configuration::TEMPLATE_CLASS => SupervisorTemplate::class,
                 Configuration::CONF_FILES_DIR => 'generated_conf/worker',
@@ -63,7 +63,7 @@ final class WorkerCreateCommandZeroFilesTest extends AbstractTestCase
             ->once()
             ->andReturn([]);
 
-        $workerCreateCommand = new WorkerCreateCommand($confGenerateServiceMock, $config);
+        $workerCreateCommand = new WorkerCreateCommand($confGenerateServiceMock, $configuration);
         $commandTester = new CommandTester($workerCreateCommand);
 
         $commandTester->execute([]);

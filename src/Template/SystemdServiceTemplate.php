@@ -15,12 +15,14 @@ use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
+use PrecisionSoft\Symfony\Console\Template\Trait\ControlCharacterGuardTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerDestinationPathTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerNumberOfProcessesTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\WorkerSettingsTrait;
 
 class SystemdServiceTemplate implements TemplateInterface
 {
+    use ControlCharacterGuardTrait;
     use WorkerDestinationPathTrait;
     use WorkerNumberOfProcessesTrait;
     use WorkerSettingsTrait;
@@ -86,8 +88,10 @@ class SystemdServiceTemplate implements TemplateInterface
         int $instance,
     ): string {
         $serviceName = $this->getServiceName($configDto, $commandDto);
-        $logFile = $this->getLogFile($configDto, $commandDto);
+        $logFile = $this->rejectControlCharacters('log file', $this->getLogFile($configDto, $commandDto));
         $environmentFile = $commandDto->getSettings()->getEnvironmentFile() ?? $configDto->getSettings()->getEnvironmentFile();
+        $standardOutput = $commandDto->getSettings()->getStandardOutput() ?? $configDto->getSettings()->getStandardOutput() ?? 'append:' . $logFile;
+        $standardError = $commandDto->getSettings()->getStandardError() ?? $configDto->getSettings()->getStandardError() ?? 'append:' . $logFile;
 
         $lines = [
             '[Unit]',
@@ -96,16 +100,16 @@ class SystemdServiceTemplate implements TemplateInterface
             '',
             '[Service]',
             'Type=simple',
-            'User=' . $this->escapeSpecifiers($this->getUser($configDto, $commandDto)),
-            'WorkingDirectory=' . $this->escapeSpecifiers($this->getWorkingDirectory($configDto, $commandDto)),
+            'User=' . $this->escapeSpecifiers($this->rejectControlCharacters('user', $this->getUser($configDto, $commandDto))),
+            'WorkingDirectory=' . $this->escapeSpecifiers($this->rejectControlCharacters('working directory', $this->getWorkingDirectory($configDto, $commandDto))),
             'ExecStart=' . $this->escapeSpecifiers($this->getExecStart($commandDto)),
             'Restart=' . $this->getRestartPolicy($configDto, $commandDto),
-            'StandardOutput=' . $this->escapeSpecifiers($commandDto->getSettings()->getStandardOutput() ?? $configDto->getSettings()->getStandardOutput() ?? 'append:' . $logFile),
-            'StandardError=' . $this->escapeSpecifiers($commandDto->getSettings()->getStandardError() ?? $configDto->getSettings()->getStandardError() ?? 'append:' . $logFile),
+            'StandardOutput=' . $this->escapeSpecifiers($this->rejectControlCharacters('standard output', $standardOutput)),
+            'StandardError=' . $this->escapeSpecifiers($this->rejectControlCharacters('standard error', $standardError)),
         ];
 
         if (null !== $environmentFile && '' !== $environmentFile) {
-            $lines[] = 'EnvironmentFile=' . $this->escapeSpecifiers($environmentFile);
+            $lines[] = 'EnvironmentFile=' . $this->escapeSpecifiers($this->rejectControlCharacters('environment file', $environmentFile));
         }
 
         $lines[] = '';
@@ -182,14 +186,24 @@ class SystemdServiceTemplate implements TemplateInterface
         }
 
         return \implode(' ', \array_map(
-            fn(string $commandPart): string => $this->quoteCommandPart($commandPart),
+            fn(string $commandPart): string => $this->quoteCommandPart($this->rejectControlCharacters('command', $commandPart)),
             $command,
         ));
     }
 
-    /* systemd splits `ExecStart` on whitespace, so an argument carrying any would silently become several */
+    /**
+     * systemd splits `ExecStart` on whitespace, so an argument carrying any would silently become several; it expands
+     * `$VAR` and `${VAR}` in every argument, quoted or not, unless the dollar is doubled; and a `;` standing alone
+     * separates two commands unless it is written `\;`.
+     */
     protected function quoteCommandPart(string $commandPart): string
     {
+        if (';' === $commandPart) {
+            return '\\;';
+        }
+
+        $commandPart = \str_replace('$', '$$', $commandPart);
+
         if ('' !== $commandPart && 0 === \preg_match('/[\s"\'\\\\]/', $commandPart)) {
             return $commandPart;
         }

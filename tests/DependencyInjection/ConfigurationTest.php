@@ -28,6 +28,16 @@ final class ConfigurationTest extends AbstractTestCase
         return new MockDto(Configuration::class);
     }
 
+    /** @return array<string, array<int, string>> */
+    public static function emptyPathProvider(): array
+    {
+        return [
+            'a dot' => ['.'],
+            'a dot and a slash' => ['./'],
+            'a slash' => ['/'],
+        ];
+    }
+
     public function testGetConfigTreeBuilderReturnsTreeBuilder(): void
     {
         $configuration = new Configuration();
@@ -708,16 +718,6 @@ final class ConfigurationTest extends AbstractTestCase
                 ],
             ],
         ]);
-    }
-
-    /** @return array<string, array<int, string>> */
-    public static function emptyPathProvider(): array
-    {
-        return [
-            'a dot' => ['.'],
-            'a dot and a slash' => ['./'],
-            'a slash' => ['/'],
-        ];
     }
 
     #[DataProvider('emptyPathProvider')]

@@ -1,0 +1,43 @@
+# the catalogue's operations, independent of the platform that runs them: config/<environment>/ picks the templates
+precision_soft_symfony_console:
+    logs_dirs:
+        - '%kernel.logs_dir%/cron'
+        - '%kernel.logs_dir%/worker'
+    cronjob:
+        config:
+            template_class: PrecisionSoft\Symfony\Console\Template\CrontabTemplate
+            conf_files_dir: '%kernel.project_dir%/var/generated_conf/%kernel.environment%/cron'
+            logs_dir: '%kernel.logs_dir%/cron'
+            settings:
+                log: true
+                heartbeat: true
+                user: www-data
+                destination_file: catalogue
+                destination_files: [ catalogue.reports ]
+        commands:
+            exchange-rate-refresh:
+                command: [ '/usr/bin/env', 'php', '%kernel.project_dir%/bin/console', 'catalogue:exchange-rate-refresh', '--time-limit=50' ]
+                schedule:
+                    minute: '*/15'
+                    hour: '*'
+                    day_of_month: '*'
+                    month: '*'
+                    day_of_week: '*'
+            price-list-import:
+                command: [ '/usr/bin/env', 'php', '%kernel.project_dir%/bin/console', 'catalogue:price-list-import', '--memory-limit=256M', '--time-limit=300' ]
+                log_file_name: price-list-import.nightly.log
+                schedule:
+                    minute: '30'
+                    hour: '2'
+                    day_of_month: '*'
+                    month: '*'
+                    day_of_week: '1-5'
+    worker:
+        config:
+            conf_files_dir: '%kernel.project_dir%/var/generated_conf/%kernel.environment%/worker'
+            logs_dir: '%kernel.logs_dir%/worker'
+        commands:
+            price-list-import:
+                command: [ '/usr/bin/env', 'php', '%kernel.project_dir%/bin/console', 'catalogue:price-list-import', '--memory-limit=256M', '--time-limit=300' ]
+                settings:
+                    number_of_processes: 2

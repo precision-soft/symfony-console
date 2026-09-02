@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Template;
 
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
@@ -27,6 +28,17 @@ final class SupervisorTemplateTest extends AbstractTestCase
     public static function getMockDto(): MockDto
     {
         return new MockDto(SupervisorTemplate::class, [], true);
+    }
+
+    /** @return iterable<string, array{array<string, mixed>, array<int, string>}> */
+    public static function provideValuesCarryingControlCharacters(): iterable
+    {
+        $command = ['bin/console', 'app:report'];
+
+        yield 'command part' => [[], ['bin/console', "app:report\nuser = root"]];
+        yield 'user' => [[Configuration::USER => "test\nuser = root"], $command];
+        yield 'prefix' => [[Configuration::PREFIX => "test\n[program:evil]"], $command];
+        yield 'log file' => [[Configuration::LOG_FILE => "/var/log/a\nb.log"], $command];
     }
 
     public function testGenerate(): void
@@ -796,5 +808,80 @@ final class SupervisorTemplateTest extends AbstractTestCase
         $files = $confFilesDto->getFiles();
         $content = ConfFiles::getFirstContent($files);
         static::assertStringContainsString('command = bin/console messenger:consume --limit=100', $content);
+    }
+
+    /* supervisor `%`-interpolates `command` and the log paths, so a literal `%` has to be doubled */
+    public function testGenerateEscapesPercentSignsForSupervisorInterpolation(): void
+    {
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto([
+            Configuration::TEMPLATE_CLASS => 'test',
+            Configuration::CONF_FILES_DIR => 'test',
+            Configuration::LOGS_DIR => '/var/log/100%done',
+            Configuration::SETTINGS => [Configuration::AUTO_START => true, Configuration::AUTO_RESTART => true],
+        ]);
+        $commandDto = new CommandDto('report', [
+            Configuration::COMMAND => ['bin/console', 'app:report', '--date=%Y'],
+            Configuration::SETTINGS => [Configuration::PREFIX => 'test', Configuration::USER => 'test', Configuration::NUMBER_OF_PROCESSES => 1],
+        ]);
+
+        $content = ConfFiles::getFirstContent($supervisorTemplate->generate($configDto, ['report' => $commandDto])->getFiles());
+
+        static::assertStringContainsString('command = bin/console app:report --date=%%Y', $content);
+        static::assertStringContainsString('stdout_logfile = /var/log/100%%done/report.log', $content);
+        static::assertStringContainsString('process_name = %(program_name)s_%(process_num)s', $content);
+    }
+
+    /* the placeholders are substituted in one pass: a value spelling another placeholder is data, not a second template */
+    public function testGenerateKeepsPlaceholderTextInValuesLiteral(): void
+    {
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto([
+            Configuration::TEMPLATE_CLASS => 'test',
+            Configuration::CONF_FILES_DIR => 'test',
+            Configuration::LOGS_DIR => 'test',
+            Configuration::SETTINGS => [Configuration::AUTO_START => true, Configuration::AUTO_RESTART => true],
+        ]);
+        $commandDto = new CommandDto('report', [
+            Configuration::COMMAND => ['bin/console', 'app:report', '--label=%user%'],
+            Configuration::SETTINGS => [Configuration::PREFIX => 'test', Configuration::USER => 'worker', Configuration::NUMBER_OF_PROCESSES => 1],
+        ]);
+
+        $content = ConfFiles::getFirstContent($supervisorTemplate->generate($configDto, ['report' => $commandDto])->getFiles());
+
+        static::assertStringContainsString('command = bin/console app:report --label=%%user%%', $content);
+        static::assertStringNotContainsString('--label=worker', $content);
+        static::assertStringContainsString('user = worker', $content);
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     * @param array<int, string> $command
+     */
+    #[DataProvider('provideValuesCarryingControlCharacters')]
+    public function testGenerateRejectsControlCharactersInProgramValues(array $settings, array $command): void
+    {
+        /** @var SupervisorTemplate&MockInterface $supervisorTemplate */
+        $supervisorTemplate = $this->get(SupervisorTemplate::class);
+
+        $configDto = new ConfigDto([
+            Configuration::TEMPLATE_CLASS => 'test',
+            Configuration::CONF_FILES_DIR => 'test',
+            Configuration::LOGS_DIR => 'test',
+            Configuration::SETTINGS => [Configuration::AUTO_START => true, Configuration::AUTO_RESTART => true],
+        ]);
+        $commandDto = new CommandDto('worker', [
+            Configuration::COMMAND => $command,
+            Configuration::SETTINGS => [Configuration::PREFIX => 'test', Configuration::USER => 'test', Configuration::NUMBER_OF_PROCESSES => 1, ...$settings],
+        ]);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('must not contain control characters');
+
+        $supervisorTemplate->generate($configDto, ['worker' => $commandDto]);
     }
 }

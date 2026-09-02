@@ -1,0 +1,12 @@
+# Kubernetes values files for a CronJob chart and a worker chart
+precision_soft_symfony_console:
+    cronjob:
+        config:
+            template_class: PrecisionSoft\Symfony\Console\Template\KubernetesCronjobTemplate
+            settings:
+                destination_file: cronjobs.yaml
+    worker:
+        config:
+            template_class: PrecisionSoft\Symfony\Console\Template\KubernetesWorkerTemplate
+            settings:
+                destination_file: workers.yaml
