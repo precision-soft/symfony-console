@@ -202,17 +202,32 @@ class ConfFileWriter
         );
 
         foreach ($iterator as $fileInfo) {
-            if (false === $fileInfo instanceof SplFileInfo || (false === $fileInfo->isFile() && false === $fileInfo->isLink())) {
+            /* `save()` deletes whatever is reported here, so a directory reached through a symlink must not be; a dangling
+               symlink is kept, it is a leftover like any other */
+            if (
+                false === $fileInfo instanceof SplFileInfo
+                || true === $fileInfo->isDir()
+                || (false === $fileInfo->isFile() && false === $fileInfo->isLink())
+            ) {
                 continue;
             }
 
             $path = $fileInfo->getPathname();
             $relativePath = \substr($path, \strlen($destinationDirPrefix));
 
-            if (false === isset($expectedRelativePaths[$relativePath])) {
-                $confFileChangesDto->addChange(new ConfFileChangeDto($path, ConfFileStatus::Removed, null, null));
+            if (true === isset($expectedRelativePaths[$relativePath])) {
+                continue;
             }
+
+            $currentContent = true === $fileInfo->isFile() ? $this->readFile($path) : null;
+
+            if (false === $currentContent) {
+                throw new ConfGenerateException(\sprintf('file `%s` could not be read', $path));
+            }
+
+            $confFileChangesDto->addChange(new ConfFileChangeDto($path, ConfFileStatus::Removed, null, $currentContent));
         }
+
     }
 
     /**

@@ -28,20 +28,6 @@ final class WorkerCreateEndToEndTest extends AbstractTestCase
         return new MockDto(WorkerCreateCommand::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->baseDir = \sys_get_temp_dir() . '/worker_create_e2e_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     public function testCompiledCommandWritesTheSubDirectoryTreeOnDisk(): void
     {
         $commandTester = $this->runWorkerCreate([
@@ -191,6 +177,20 @@ final class WorkerCreateEndToEndTest extends AbstractTestCase
 
         static::assertSame(WorkerCreateCommand::FAILURE, $commandTester->getStatusCode());
         static::assertStringContainsString('the file path is in use', $commandTester->getDisplay());
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->baseDir = \sys_get_temp_dir() . '/worker_create_e2e_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->baseDir);
+
+        parent::tearDown();
     }
 
     /**

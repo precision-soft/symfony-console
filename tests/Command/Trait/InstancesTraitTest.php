@@ -53,7 +53,7 @@ class InstancesTraitConfigureTestCommand extends Command
 
     protected function execute(InputInterface $inputInterface, OutputInterface $outputInterface): int
     {
-        return self::SUCCESS;
+        return static::SUCCESS;
     }
 }
 

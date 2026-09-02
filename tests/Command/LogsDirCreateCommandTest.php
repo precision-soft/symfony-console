@@ -31,20 +31,6 @@ final class LogsDirCreateCommandTest extends AbstractTestCase
         );
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->baseDir = \sys_get_temp_dir() . '/logs_dir_create_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     public function testExecuteCreatesMissingLogsDirs(): void
     {
         $logsDirs = [$this->baseDir . '/cron', $this->baseDir . '/worker'];
@@ -118,5 +104,19 @@ final class LogsDirCreateCommandTest extends AbstractTestCase
         static::assertSame(LogsDirCreateCommand::FAILURE, $commandTester->getStatusCode());
         static::assertDirectoryExists($createdLogsDir);
         static::assertDirectoryDoesNotExist($blockedLogsDir);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->baseDir = \sys_get_temp_dir() . '/logs_dir_create_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->baseDir);
+
+        parent::tearDown();
     }
 }

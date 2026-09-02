@@ -41,22 +41,6 @@ final class ConfGenerateServicePreviewTest extends AbstractTestCase
         );
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->filesystem = new Filesystem();
-        $this->confFilesDirectory = \sys_get_temp_dir() . '/preview_conf_' . \uniqid('', true);
-        $this->logsDirectory = \sys_get_temp_dir() . '/preview_logs_' . \uniqid('', true);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->filesystem->remove([$this->confFilesDirectory, $this->logsDirectory]);
-
-        parent::tearDown();
-    }
-
     public function testPreviewReportsTheRenderedFilesWithoutWritingThem(): void
     {
         $confFilesDto = (new ConfFilesDto())->addFile($this->confFilesDirectory . '/test.conf', 'test content');
@@ -140,6 +124,22 @@ final class ConfGenerateServicePreviewTest extends AbstractTestCase
                 new ConfFileChangeDto('/units/worker.service', ConfFileStatus::Changed, 'after', 'before'),
             ),
         );
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filesystem = new Filesystem();
+        $this->confFilesDirectory = \sys_get_temp_dir() . '/preview_conf_' . \uniqid('', true);
+        $this->logsDirectory = \sys_get_temp_dir() . '/preview_logs_' . \uniqid('', true);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->filesystem->remove([$this->confFilesDirectory, $this->logsDirectory]);
+
+        parent::tearDown();
     }
 
     private function getTemplateInterfaceMock(ConfFilesDto $confFilesDto): TemplateInterface

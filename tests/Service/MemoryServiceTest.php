@@ -212,16 +212,20 @@ final class MemoryServiceTest extends AbstractTestCase
         }
     }
 
+    /* the limits are relative to what the process already holds: an absolute `64M` is refused once a heavier suite
+       shares the run, and `ini_set()` then warns instead of setting anything */
     public function testSetMemoryLimitIfNotHigherWhenNewLimitIsHigher(): void
     {
         $originalLimit = \ini_get('memory_limit');
+        $lowerLimit = $this->getLimitAboveTheCurrentUsage(64);
+        $higherLimit = $this->getLimitAboveTheCurrentUsage(256);
 
         try {
-            \ini_set('memory_limit', '64M');
+            \ini_set('memory_limit', $lowerLimit);
 
-            MemoryService::setMemoryLimitIfNotHigher('256M');
+            MemoryService::setMemoryLimitIfNotHigher($higherLimit);
 
-            static::assertSame('256M', \ini_get('memory_limit'));
+            static::assertSame($higherLimit, \ini_get('memory_limit'));
         } finally {
             \ini_set('memory_limit', $originalLimit);
         }
@@ -230,13 +234,15 @@ final class MemoryServiceTest extends AbstractTestCase
     public function testSetMemoryLimitIfNotHigherWhenCurrentLimitIsHigher(): void
     {
         $originalLimit = \ini_get('memory_limit');
+        $lowerLimit = $this->getLimitAboveTheCurrentUsage(128);
+        $higherLimit = $this->getLimitAboveTheCurrentUsage(512);
 
         try {
-            \ini_set('memory_limit', '512M');
+            \ini_set('memory_limit', $higherLimit);
 
-            MemoryService::setMemoryLimitIfNotHigher('128M');
+            MemoryService::setMemoryLimitIfNotHigher($lowerLimit);
 
-            static::assertSame('512M', \ini_get('memory_limit'));
+            static::assertSame($higherLimit, \ini_get('memory_limit'));
         } finally {
             \ini_set('memory_limit', $originalLimit);
         }
@@ -245,15 +251,21 @@ final class MemoryServiceTest extends AbstractTestCase
     public function testSetMemoryLimitIfNotHigherWhenEqual(): void
     {
         $originalLimit = \ini_get('memory_limit');
+        $limit = $this->getLimitAboveTheCurrentUsage(256);
 
         try {
-            \ini_set('memory_limit', '256M');
+            \ini_set('memory_limit', $limit);
 
-            MemoryService::setMemoryLimitIfNotHigher('256M');
+            MemoryService::setMemoryLimitIfNotHigher($limit);
 
-            static::assertSame('256M', \ini_get('memory_limit'));
+            static::assertSame($limit, \ini_get('memory_limit'));
         } finally {
             \ini_set('memory_limit', $originalLimit);
         }
+    }
+
+    private function getLimitAboveTheCurrentUsage(int $megabytes): string
+    {
+        return \sprintf('%dM', (int)\ceil(\memory_get_usage(true) / 1024 / 1024) + $megabytes);
     }
 }

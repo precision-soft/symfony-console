@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Template;
 
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto as CronjobConfigDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Worker\ConfigDto;
@@ -30,11 +31,19 @@ final class SystemdServiceTemplateTest extends AbstractTestCase
         return new MockDto(SystemdServiceTemplate::class);
     }
 
-    protected function setUp(): void
+    /** @return iterable<string, array{array<string, mixed>, array<int, string>}> */
+    public static function provideValuesCarryingControlCharacters(): iterable
     {
-        parent::setUp();
+        $command = ['/usr/bin/php', 'bin/console', 'app:consume'];
 
-        $this->systemdServiceTemplate = new SystemdServiceTemplate();
+        yield 'user' => [[Configuration::USER => "worker\nExecStartPre=/bin/rm -rf /"], $command];
+        yield 'working directory' => [[Configuration::WORKING_DIRECTORY => "/srv\nExecStartPre=/bin/rm -rf /"], $command];
+        yield 'environment file' => [[Configuration::ENVIRONMENT_FILE => "/srv/.env\rExecStartPre=/bin/true"], $command];
+        yield 'standard output' => [[Configuration::STANDARD_OUTPUT => "journal\nExecStartPre=/bin/true"], $command];
+        yield 'standard error' => [[Configuration::STANDARD_ERROR => "journal\nExecStartPre=/bin/true"], $command];
+        yield 'log file' => [[Configuration::LOG_FILE => "/logs/mail.log\nExecStartPre=/bin/true"], $command];
+        yield 'command argument' => [[], ['/usr/bin/php', 'bin/console', "app:consume\nExecStartPre=/bin/true"]];
+        yield 'tab in a command argument' => [[], ['/usr/bin/php', 'bin/console', "app:consume\t--quiet"]];
     }
 
     public function testGenerateCreatesOneConcreteUnitPerInstance(): void
@@ -394,6 +403,64 @@ final class SystemdServiceTemplateTest extends AbstractTestCase
         )->getFiles()['/units/mail.service'];
 
         static::assertStringContainsString('ExecStart=/usr/bin/php bin/console app:consume' . \PHP_EOL, $content);
+    }
+
+    /* systemd expands `$VAR` and `${VAR}` in `ExecStart` arguments, quoted or not, unless the dollar is doubled */
+    public function testGenerateEscapesDollarSignsInCommandArguments(): void
+    {
+        $commandDto = new CommandDto('mail', [
+            Configuration::COMMAND => ['/usr/bin/php', 'bin/console', 'app:consume', '--secret=pa$word', '--path=${HOME}/my dir'],
+            Configuration::SETTINGS => [],
+        ]);
+
+        $content = $this->systemdServiceTemplate->generate(
+            $this->getConfigDto([Configuration::USER => 'worker', Configuration::WORKING_DIRECTORY => '/app']),
+            ['mail' => $commandDto],
+        )->getFiles()['/units/mail.service'];
+
+        static::assertStringContainsString(
+            'ExecStart=/usr/bin/php bin/console app:consume --secret=pa$$word "--path=$${HOME}/my dir"' . \PHP_EOL,
+            $content,
+        );
+    }
+
+    /* a `;` standing alone separates two `ExecStart` commands; the literal form systemd documents is `\;` */
+    public function testGenerateEscapesAStandaloneSemicolon(): void
+    {
+        $commandDto = new CommandDto('mail', [
+            Configuration::COMMAND => ['/usr/bin/php', 'bin/console', 'app:consume', ';', '/bin/rm', '-rf', '/', 'a;b'],
+            Configuration::SETTINGS => [],
+        ]);
+
+        $content = $this->systemdServiceTemplate->generate(
+            $this->getConfigDto([Configuration::USER => 'worker', Configuration::WORKING_DIRECTORY => '/app']),
+            ['mail' => $commandDto],
+        )->getFiles()['/units/mail.service'];
+
+        static::assertStringContainsString('ExecStart=/usr/bin/php bin/console app:consume \; /bin/rm -rf / a;b' . \PHP_EOL, $content);
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     * @param array<int, string> $command
+     */
+    #[DataProvider('provideValuesCarryingControlCharacters')]
+    public function testGenerateRejectsControlCharactersInUnitValues(array $settings, array $command): void
+    {
+        $configDto = $this->getConfigDto([Configuration::USER => 'worker', Configuration::WORKING_DIRECTORY => '/app', ...$settings]);
+        $commandDto = new CommandDto('mail', [Configuration::COMMAND => $command, Configuration::SETTINGS => []]);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('must not contain control characters');
+
+        $this->systemdServiceTemplate->generate($configDto, ['mail' => $commandDto]);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->systemdServiceTemplate = new SystemdServiceTemplate();
     }
 
     /** @param array<string, mixed> $settings */

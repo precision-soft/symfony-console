@@ -42,6 +42,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "PrecisionSoft\\Dev\\PhpStan\\": ".dev/phpstan/",
             "PrecisionSoft\\Symfony\\Console\\Test\\": "tests/"
         }
     },

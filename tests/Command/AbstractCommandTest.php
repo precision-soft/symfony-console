@@ -24,7 +24,7 @@ class AbstractCommandTestStub extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        return self::SUCCESS;
+        return static::SUCCESS;
     }
 }
 

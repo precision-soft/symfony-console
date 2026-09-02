@@ -16,10 +16,12 @@ use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
 use PrecisionSoft\Symfony\Console\Exception\InvalidConfigurationException;
 use PrecisionSoft\Symfony\Console\Exception\InvalidValueException;
+use PrecisionSoft\Symfony\Console\Template\Trait\ControlCharacterGuardTrait;
 use PrecisionSoft\Symfony\Console\Template\Trait\DestinationPathTrait;
 
 class CrontabTemplate implements TemplateInterface
 {
+    use ControlCharacterGuardTrait;
     use DestinationPathTrait;
 
     public const DESTINATION_FILE_PLACEHOLDER = '{destination_file}';
@@ -100,6 +102,7 @@ class CrontabTemplate implements TemplateInterface
         return $confFilesDto;
     }
 
+    /** @throws InvalidConfigurationException */
     protected function buildCommand(
         CommandDto $commandDto,
         ConfigDto $configDto,
@@ -110,10 +113,12 @@ class CrontabTemplate implements TemplateInterface
 
         $user = $commandDto->getUser() ?? $configDto->getSettings()->getUser();
         if (null !== $user) {
-            $commandParts[] = $user;
+            $commandParts[] = $this->rejectControlCharacters('user', $user);
         }
 
-        $commandParts = \array_merge($commandParts, $commandDto->getCommand());
+        foreach ($commandDto->getCommand() as $commandPart) {
+            $commandParts[] = $this->escapePercentSigns($this->rejectControlCharacters('command', $commandPart));
+        }
 
         $logPart = $this->buildLog($commandDto, $configDto);
         if (null !== $logPart) {
@@ -123,6 +128,7 @@ class CrontabTemplate implements TemplateInterface
         return \implode(' ', $commandParts);
     }
 
+    /** @throws InvalidConfigurationException */
     protected function buildLog(
         CommandDto $commandDto,
         ConfigDto $configDto,
@@ -133,9 +139,29 @@ class CrontabTemplate implements TemplateInterface
             return null;
         }
 
-        $logFileName = $commandDto->getLogFileName() ?? \sprintf('%s.log', $commandDto->getName());
+        $logsDir = $this->rejectControlCharacters('logs dir', $configDto->getLogsDir());
+        $logFileName = $this->rejectControlCharacters(
+            'log file name',
+            $commandDto->getLogFileName() ?? \sprintf('%s.log', $commandDto->getName()),
+        );
 
-        return \sprintf('>> %s 2>&1', \escapeshellarg(\sprintf('%s/%s', \rtrim($configDto->getLogsDir(), '/'), $logFileName)));
+        return \sprintf(
+            '>> %s 2>&1',
+            $this->escapePercentSigns($this->quoteShellArgument(\sprintf('%s/%s', \rtrim($logsDir, '/'), $logFileName))),
+        );
+    }
+
+    /* cron cuts the command field at an unescaped `%` and feeds the rest to the command's stdin */
+    protected function escapePercentSigns(string $value): string
+    {
+        return \str_replace('%', '\\%', $value);
+    }
+
+    /* `escapeshellarg()` follows `LC_CTYPE` and drops every byte above 0x7f under the `C` locale, which is what a
+       cron host and php's own default run under; POSIX single quoting is locale-free */
+    protected function quoteShellArgument(string $value): string
+    {
+        return "'" . \str_replace("'", "'\\''", $value) . "'";
     }
 
     /** @throws InvalidConfigurationException */

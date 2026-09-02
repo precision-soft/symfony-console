@@ -52,7 +52,7 @@ final class CronjobCreateCommandErrorPathTest extends AbstractTestCase
             ->once()
             ->andThrow(new ConfGenerateException('test error message'));
 
-        $config = [
+        $configuration = [
             Configuration::CONFIG => [
                 Configuration::TEMPLATE_CLASS => 'SomeTemplate',
                 Configuration::CONF_FILES_DIR => 'generated_conf/cron',
@@ -83,7 +83,7 @@ final class CronjobCreateCommandErrorPathTest extends AbstractTestCase
             ],
         ];
 
-        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateService, $config);
+        $cronjobCreateCommand = new CronjobCreateCommand($confGenerateService, $configuration);
 
         $commandTester = new CommandTester($cronjobCreateCommand);
         $commandTester->execute([]);

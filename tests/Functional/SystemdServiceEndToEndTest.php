@@ -29,20 +29,6 @@ final class SystemdServiceEndToEndTest extends AbstractTestCase
         return new MockDto(WorkerCreateCommand::class);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->baseDir = \sys_get_temp_dir() . '/systemd_e2e_' . \bin2hex(\random_bytes(8));
-    }
-
-    protected function tearDown(): void
-    {
-        (new Filesystem())->remove($this->baseDir);
-
-        parent::tearDown();
-    }
-
     /* the template is only reachable through the CONSOLE_TEMPLATE tag, so this proves the wiring, not just the class */
     public function testTheTaggedTemplateIsResolvedFromTheCompiledContainer(): void
     {
@@ -156,6 +142,67 @@ final class SystemdServiceEndToEndTest extends AbstractTestCase
         ]);
 
         static::assertFileExists($this->getUnitsDir() . '/machine-a/eu-west/app-orders.blue.service');
+    }
+
+    public function testTheWrittenUnitsAreAcceptedBySystemd(): void
+    {
+        $commandTester = $this->runWorkerCreate([
+            'orders' => [
+                'command' => ['/bin/echo', 'pa$word', ';', '/bin/true', '--path=${HOME}/my dir'],
+                'settings' => ['number_of_processes' => 2, 'working_directory' => '/srv/100%done'],
+            ],
+        ]);
+
+        static::assertSame(WorkerCreateCommand::SUCCESS, $commandTester->getStatusCode());
+
+        $unitPaths = [$this->getUnitsDir() . '/app-orders-1.service', $this->getUnitsDir() . '/app-orders-2.service'];
+
+        foreach ($unitPaths as $unitPath) {
+            $contents = \file_get_contents($unitPath);
+
+            static::assertIsString($contents);
+            static::assertStringContainsString('ExecStart=/bin/echo pa$$word \; /bin/true "--path=$${HOME}/my dir"' . \PHP_EOL, $contents);
+            static::assertStringContainsString('WorkingDirectory=/srv/100%%done' . \PHP_EOL, $contents);
+        }
+
+        $exportDir = \getenv('SYSTEMD_UNITS_EXPORT_DIR');
+
+        if (false !== $exportDir && '' !== $exportDir) {
+            foreach ($unitPaths as $unitPath) {
+                (new Filesystem())->copy($unitPath, $exportDir . '/' . \basename($unitPath), true);
+            }
+        }
+
+        \exec('command -v systemd-analyze 2>/dev/null', $lookupOutput, $lookupExitCode);
+
+        if (0 !== $lookupExitCode) {
+            return;
+        }
+
+        \exec(
+            'systemd-analyze verify --man=no --generators=no '
+            . \implode(' ', \array_map(static fn(string $unitPath): string => \escapeshellarg($unitPath), $unitPaths))
+            . ' 2>&1',
+            $verifyOutput,
+            $verifyExitCode,
+        );
+
+        static::assertSame(0, $verifyExitCode, \implode(\PHP_EOL, $verifyOutput));
+        static::assertSame([], $verifyOutput);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->baseDir = \sys_get_temp_dir() . '/systemd_e2e_' . \bin2hex(\random_bytes(8));
+    }
+
+    protected function tearDown(): void
+    {
+        (new Filesystem())->remove($this->baseDir);
+
+        parent::tearDown();
     }
 
     private function getUnitsDir(): string

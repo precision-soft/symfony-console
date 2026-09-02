@@ -40,6 +40,13 @@ The gate itself lives in one place — [`.dev/validate/all.sh`](./.dev/validate/
 .dev/validate/all.sh --mutation       # also run mutation testing (slow: the suite runs once per mutant)
 ```
 
+The integration suite writes real systemd units and, wherever `systemd-analyze` is on the `PATH` (every native CI leg), runs `systemd-analyze verify` over them; the Alpine dev container has no systemd, so from the container the units are exported instead and verified on the host:
+
+```bash
+SYSTEMD_UNITS_EXPORT_DIR=/var/www/html/.dev-data/units ./dc exec -T dev composer test-integration
+systemd-analyze verify --man=no --generators=no .dev-data/units/*.service   # on the host: silent and exit 0 when every unit is valid
+```
+
 The three default sections are what `composer check` runs, so they stay fast and offline. The four flagged sections are deliberately outside it: `--audit` is the only section needing the network, `--integration` builds and runs a real end-to-end scenario, and `--mutation` costs a full suite run per mutant. `--example` installs and checks the example application under `.example/` — a standalone `composer.json` that takes this package from the working tree through a path repository, so the section drives the code the way a consumer does; it is skipped with a notice where `.example/` carries no `composer.json` yet, and under `--staged` it runs whenever the index touches `.example/`. The composer script is named `deps-audit` rather than `audit`, because a script named `audit` collides with Composer's own command and is skipped in silence.
 
 The git `pre-commit` hook ([`.dev/git-hooks/pre-commit`](./.dev/git-hooks/pre-commit)) is a deliberately thin caller of the same script (`--staged`, which does nothing unless the index carries a PHP change). It checks and never fixes — run `composer cs-fix` yourself. It adds one guard CI cannot: it reads the index and rejects a force-staged `.dev-data/` path or `.dev/docker/.env.local`, both of which are gitignored and, by the time a push reaches CI, would already be in the history.
@@ -78,6 +85,9 @@ Before opening a pull request:
 
 The repository enforces a strict, opinionated style on top of
 [PER-CS 2.0](https://www.php-fig.org/per/coding-style/). `php-cs-fixer` and `phpstan` (level 8) are the automated enforcers; the rules below are normative and contributions are expected to follow them.
+
+`php-cs-fixer` enforces the formatting layer; `phpstan` (level 8) enforces the type layer and, through the house rules in [`.dev/phpstan/rules.neon`](./.dev/phpstan/rules.neon), the conventions below that formatting cannot express: no `!` negation, yoda equality, explicit boolean conditions (no bare values, no `?:`), imported class names instead of inline `\Fqn`, project-specific exceptions only, `static::` over `self::` where late static binding is legal, no `final` classes or methods and no `private` methods under `src/`, no public `isXyz()` accessors, lowercase exception and log messages, the class member order below, no abbreviated or numbered variable names, uppercase SQL keywords in string literals, and no `TODO`/`FIXME` markers. These run inside `composer phpstan`, so they gate the pre-commit hook and CI alike; there is no baseline and no suppression, a violation is fixed in the code. The rules are unit-tested under [`.dev/phpstan/Test/`](./.dev/phpstan/Test) and run with
+`composer test` (the *Dev Tooling Suite*). The member order knows no exceptions: static members before instance members and `public` → `protected` → `private` inside each group, for properties and methods alike, after the abstract methods, the constructor and the magic methods — so in a test class `getMockDto()` sits with the public static methods and `setUp()`/`tearDown()` sit with the protected methods, below the tests. PHPStan's result cache does not hash the rule classes, so run `vendor/bin/phpstan clear-result-cache` after editing a rule.
 
 ### Naming
 

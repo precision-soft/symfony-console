@@ -20,14 +20,14 @@ class ConfigDto implements ConfigInterface
     protected ConfigSettingsDto $settings;
 
     /**
-     * @param array<string, mixed> $config
+     * @param array<string, mixed> $configuration
      * @throws InvalidValueException
      */
-    public function __construct(array $config)
+    public function __construct(array $configuration)
     {
-        $this->setConfig($config);
+        $this->setConfig($configuration);
 
-        $this->settings = new ConfigSettingsDto($config[Configuration::SETTINGS]);
+        $this->settings = new ConfigSettingsDto($configuration[Configuration::SETTINGS]);
     }
 
     public function getSettings(): ConfigSettingsDto

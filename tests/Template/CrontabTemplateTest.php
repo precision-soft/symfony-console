@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace PrecisionSoft\Symfony\Console\Test\Template;
 
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PrecisionSoft\Symfony\Console\DependencyInjection\Configuration;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\CommandDto;
 use PrecisionSoft\Symfony\Console\Dto\Cronjob\ConfigDto;
@@ -27,6 +28,17 @@ final class CrontabTemplateTest extends AbstractTestCase
     public static function getMockDto(): MockDto
     {
         return new MockDto(CrontabTemplate::class, [], true);
+    }
+
+
+    /** @return iterable<string, array{array<string, mixed>, array<string, mixed>}> */
+    public static function provideValuesCarryingControlCharacters(): iterable
+    {
+        yield 'command part' => [[], [Configuration::COMMAND => ['bin/console', "app:report\n* * * * * root /bin/evil"]]];
+        yield 'command user' => [[], [Configuration::USER => "root\n* * * * * root /bin/evil"]];
+        yield 'log file name' => [[], [Configuration::LOG_FILE_NAME => "report\n.log"]];
+        yield 'config user' => [[Configuration::SETTINGS => [Configuration::USER => "root\r* * * * * root /bin/evil"]], []];
+        yield 'logs dir' => [[Configuration::LOGS_DIR => "/var/log\n* * * * * root /bin/evil"], []];
     }
 
     public function testGenerate(): void
@@ -1028,6 +1040,93 @@ final class CrontabTemplateTest extends AbstractTestCase
         $this->expectExceptionMessage('the `destination file` `./` resolves to an empty path');
 
         $crontabTemplate->generate($this->buildConfigDto(['./'], false), $this->buildTwoFileCommands('bin/console app:heartbeat'));
+    }
+
+    /* cron cuts the command at an unescaped `%` and feeds what follows to its stdin; the literal form is `\%` */
+    public function testGenerateEscapesPercentSignsInCommandsAndLogPaths(): void
+    {
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto([
+            Configuration::TEMPLATE_CLASS => 'test',
+            Configuration::CONF_FILES_DIR => 'test',
+            Configuration::LOGS_DIR => '/var/log/100%done',
+            Configuration::SETTINGS => [Configuration::DESTINATION_FILE => 'crontab', Configuration::HEARTBEAT => false],
+        ]);
+        $commandDto = new CommandDto('report', [
+            Configuration::COMMAND => ['bin/console', 'app:report', '--date=%Y-%m-%d'],
+            Configuration::LOG_FILE_NAME => 'report-%d.log',
+            Configuration::SCHEDULE => $this->buildSchedule(),
+            Configuration::SETTINGS => [Configuration::LOG => true],
+        ]);
+
+        $content = ConfFiles::getFirstContent($crontabTemplate->generate($configDto, ['report' => $commandDto])->getFiles());
+
+        static::assertStringContainsString(
+            '* * * * * bin/console app:report --date=\%Y-\%m-\%d >> \'/var/log/100\%done/report-\%d.log\' 2>&1',
+            $content,
+        );
+    }
+
+    /* `escapeshellarg()` follows `LC_CTYPE`: under the `C` locale it drops every byte above 0x7f, so a UTF-8 path was rewritten silently */
+    public function testTheLogPathSurvivesANonAsciiLogsDirUnderTheCLocale(): void
+    {
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto([
+            Configuration::TEMPLATE_CLASS => 'test',
+            Configuration::CONF_FILES_DIR => 'test',
+            Configuration::LOGS_DIR => '/srv/données',
+            Configuration::SETTINGS => [Configuration::DESTINATION_FILE => 'crontab', Configuration::HEARTBEAT => false],
+        ]);
+        $commandDto = new CommandDto('report', [
+            Configuration::COMMAND => ['bin/console', 'app:report'],
+            Configuration::SCHEDULE => $this->buildSchedule(),
+            Configuration::SETTINGS => [Configuration::LOG => true],
+        ]);
+
+        $previousLocale = \setlocale(\LC_CTYPE, '0');
+
+        static::assertIsString($previousLocale);
+        static::assertIsString(\setlocale(\LC_CTYPE, 'C'));
+
+        try {
+            $content = ConfFiles::getFirstContent($crontabTemplate->generate($configDto, ['report' => $commandDto])->getFiles());
+        } finally {
+            \setlocale(\LC_CTYPE, $previousLocale);
+        }
+
+        static::assertStringContainsString(">> '/srv/données/report.log' 2>&1", $content);
+    }
+
+    /**
+     * @param array<string, mixed> $configuration
+     * @param array<string, mixed> $commandParameters
+     */
+    #[DataProvider('provideValuesCarryingControlCharacters')]
+    public function testGenerateRejectsControlCharactersInCrontabValues(array $configuration, array $commandParameters): void
+    {
+        /** @var CrontabTemplate&MockInterface $crontabTemplate */
+        $crontabTemplate = $this->get(CrontabTemplate::class);
+
+        $configDto = new ConfigDto(\array_replace_recursive([
+            Configuration::TEMPLATE_CLASS => 'test',
+            Configuration::CONF_FILES_DIR => 'test',
+            Configuration::LOGS_DIR => '/var/log',
+            Configuration::SETTINGS => [Configuration::DESTINATION_FILE => 'crontab', Configuration::HEARTBEAT => false],
+        ], $configuration));
+        $commandDto = new CommandDto('report', \array_replace_recursive([
+            Configuration::COMMAND => ['bin/console', 'app:report'],
+            Configuration::SCHEDULE => $this->buildSchedule(),
+            Configuration::SETTINGS => [Configuration::LOG => true],
+        ], $commandParameters));
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('must not contain control characters');
+
+        $crontabTemplate->generate($configDto, ['report' => $commandDto]);
     }
 
     /** @return array<string, string> */

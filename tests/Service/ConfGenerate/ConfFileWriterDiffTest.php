@@ -36,22 +36,6 @@ final class ConfFileWriterDiffTest extends AbstractTestCase
         );
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->filesystem = new Filesystem();
-        $this->confFileWriter = new ConfFileWriter($this->filesystem);
-        $this->destinationDirectory = \sys_get_temp_dir() . '/cfw_diff_' . \uniqid('', true);
-    }
-
-    protected function tearDown(): void
-    {
-        $this->filesystem->remove($this->destinationDirectory);
-
-        parent::tearDown();
-    }
-
     public function testDiffReportsAnUnwrittenFileAsAdded(): void
     {
         $confFilesDto = (new ConfFilesDto())->addFile($this->destinationDirectory . '/added.conf', 'new');
@@ -253,6 +237,69 @@ final class ConfFileWriterDiffTest extends AbstractTestCase
         $this->expectExceptionMessage('could not be read');
 
         $unreadableConfFileWriter->diff($confFilesDto, $this->destinationDirectory);
+    }
+
+    public function testDiffCarriesTheCurrentContentOfARemovedFile(): void
+    {
+        $this->filesystem->dumpFile($this->destinationDirectory . '/stale.conf', 'old');
+
+        $confFilesDto = (new ConfFilesDto())->addFile($this->destinationDirectory . '/kept.conf', 'kept');
+
+        $confFileChangeDto = $this->getChange($confFilesDto, '/stale.conf');
+
+        static::assertSame(ConfFileStatus::Removed, $confFileChangeDto->getStatus());
+        static::assertNull($confFileChangeDto->getExpectedContent());
+        static::assertSame('old', $confFileChangeDto->getCurrentContent());
+    }
+
+    /* `save()` deletes what `diff()` reports as removed, and a directory reached through a symlink is not a conf file */
+    public function testDiffIgnoresASymlinkedDirectory(): void
+    {
+        $linkedDirectory = \sys_get_temp_dir() . '/cfw_diff_linked_' . \uniqid('', true);
+
+        try {
+            $this->filesystem->dumpFile($linkedDirectory . '/inside.conf', 'inside');
+            $this->filesystem->mkdir($this->destinationDirectory);
+            \symlink($linkedDirectory, $this->destinationDirectory . '/linked');
+
+            $confFilesDto = (new ConfFilesDto())->addFile($this->destinationDirectory . '/kept.conf', 'kept');
+
+            static::assertSame(
+                [$this->destinationDirectory . '/kept.conf'],
+                \array_keys($this->confFileWriter->diff($confFilesDto, $this->destinationDirectory)->getChanges()),
+            );
+        } finally {
+            $this->filesystem->remove($linkedDirectory);
+        }
+    }
+
+    public function testDiffKeepsADanglingSymlinkAsRemoved(): void
+    {
+        $this->filesystem->mkdir($this->destinationDirectory);
+        \symlink($this->destinationDirectory . '/gone.conf', $this->destinationDirectory . '/dangling.conf');
+
+        $confFilesDto = (new ConfFilesDto())->addFile($this->destinationDirectory . '/kept.conf', 'kept');
+
+        $confFileChangeDto = $this->getChange($confFilesDto, '/dangling.conf');
+
+        static::assertSame(ConfFileStatus::Removed, $confFileChangeDto->getStatus());
+        static::assertNull($confFileChangeDto->getCurrentContent());
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filesystem = new Filesystem();
+        $this->confFileWriter = new ConfFileWriter($this->filesystem);
+        $this->destinationDirectory = \sys_get_temp_dir() . '/cfw_diff_' . \uniqid('', true);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->filesystem->remove($this->destinationDirectory);
+
+        parent::tearDown();
     }
 
     private function getChange(ConfFilesDto $confFilesDto, string $relativePath): ConfFileChangeDto
