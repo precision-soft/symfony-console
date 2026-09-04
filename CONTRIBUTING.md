@@ -43,7 +43,7 @@ The gate itself lives in one place — [`.dev/validate/all.sh`](./.dev/validate/
 The integration suite writes real systemd units and, wherever `systemd-analyze` is on the `PATH` (every native CI leg), runs `systemd-analyze verify` over them; the Alpine dev container has no systemd, so from the container the units are exported instead and verified on the host:
 
 ```bash
-SYSTEMD_UNITS_EXPORT_DIR=/var/www/html/.dev-data/units ./dc exec -T dev composer test-integration
+./dc exec -T -e SYSTEMD_UNITS_EXPORT_DIR=/var/www/html/.dev-data/units dev composer test-integration
 systemd-analyze verify --man=no --generators=no .dev-data/units/*.service   # on the host: silent and exit 0 when every unit is valid
 ```
 

@@ -45,7 +45,7 @@ From the repository root the same runs as one section of the gate, inside the de
 To verify the systemd units on a host that has systemd but no php:
 
 ```shell
-SYSTEMD_UNITS_EXPORT_DIR=/var/www/html/.dev-data/units ./dc exec -T dev bash -c 'cd .example && composer test'
+./dc exec -T -e SYSTEMD_UNITS_EXPORT_DIR=/var/www/html/.dev-data/units dev bash -c 'cd .example && composer test'
 systemd-analyze verify --man=no --generators=no .dev-data/units/*.service
 ```
 
